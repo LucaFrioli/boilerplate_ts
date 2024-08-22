@@ -8,8 +8,7 @@
 	  "start:dev": "tsx watch src/app.ts",
 	  "build": "tsup src",
 	  "format": "eslint 'src/**/*.{js,ts}' && prettier --write 'src/**/*.{js,ts}'",
-	  "lint:fix": "eslint 'src/**/*.{js,ts}' --fix",
-	  "prepare": "husky install"
+	  "lint:fix": "eslint 'src/**/*.{js,ts}' --fix"
 	},
 	"keywords": [],
 	"author": "",
@@ -34,23 +33,6 @@
 	  "tsup": "^8.2.4",
 	  "tsx": "^4.17.0",
 	  "typescript": "^5.5.4",
-	  "vitest": "^2.0.5",
-	  "husky": "^8.0.0",
-	  "lint-staged": "^13.0.0"
-	},
-	"lint-staged": {
-	  "*.{js,ts}": [
-		"eslint --fix",
-		"prettier --write"
-	  ],
-	  "*.{json,md}": [
-		"prettier --write"
-	  ]
-	},
-	"husky": {
-	  "hooks": {
-		"pre-commit": "lint-staged",
-		"pre-push": "npm test"
-	  }
+	  "vitest": "^2.0.5"
 	}
   }
