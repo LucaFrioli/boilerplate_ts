@@ -1,0 +1,40 @@
+{
+	"root": true,
+	"env": {
+	  "node": true,
+	  "es2021": true
+	},
+	"extends": [
+	  "eslint:recommended",
+	  "plugin:@typescript-eslint/recommended",
+	  "airbnb-typescript/base",
+	  "plugin:prettier/recommended"
+	],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+	  "ecmaVersion": 2021,
+	  "sourceType": "module"
+	},
+	"plugins": [
+	  "@typescript-eslint",
+	  "import",
+	  "n",
+	  "promise",
+	  "prettier"
+	],
+	"rules": {
+	  "import/prefer-default-export": "off",
+	  "no-console": "warn",
+	  "@typescript-eslint/explicit-module-boundary-types": "off",
+	  "no-underscore-dangle": "off",
+	  "class-methods-use-this": "off",
+	  "prettier/prettier": ["error", {
+		"endOfLine": "lf"
+	  }]
+	},
+	"settings": {
+	  "import/resolver": {
+		"typescript": {}
+	  }
+	}
+  }
