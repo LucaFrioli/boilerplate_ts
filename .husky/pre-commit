@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Executa o lint-staged para processar arquivos antes do commit
+npx lint-staged
