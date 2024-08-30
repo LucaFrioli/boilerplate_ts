@@ -14,30 +14,39 @@
 	  "prettier"
 	],
 	"plugins": [
-	  "@typescript-eslint",
-	  "import",
-	  "node",
-	  "promise",
-	  "prettier"
+		"@typescript-eslint",
+		"import",
+		"node",
+		"promise",
+		"prettier",
+		"react-hooks"
 	],
 	"rules": {
-	  "prettier/prettier": "error",
-	  "import/extensions": [
-		"error",
-		"ignorePackages",
-		{
-		  "ts": "never",
-		  "tsx": "never"
-		}
-	  ],
-	  "import/no-unresolved": "off",
-	  "no-underscore-dangle": "off",
-	  "no-console": "warn",
-	  "no-unused-vars": "off",
-	  "@typescript-eslint/no-unused-vars": ["error"],
-	  "node/no-missing-import": "off",
-	  "promise/always-return": "off",
-	  "promise/catch-or-return": "off"
+		"prettier/prettier": "error",
+		"import/extensions": [
+			"error",
+			"ignorePackages",
+			{
+				"ts": "never",
+				"tsx": "never"
+			}
+		],
+		"import/no-unresolved": "off",
+		"no-underscore-dangle": "off",
+		"no-console": "warn",
+		"no-unused-vars": "off",
+		"@typescript-eslint/no-unused-vars": ["warn"],
+		"node/no-missing-import": "off",
+		"promise/always-return": "off",
+		"promise/catch-or-return": "off",
+		"react/jsx-filename-extension": [
+			"error",
+			{
+				"extensions": [".tsx"]
+			}
+		],
+		"react-hooks/rules-of-hooks": "error",
+		"react-hooks/exhaustive-deps": "warn"
 	},
 	"settings": {
 	  "import/resolver": {
