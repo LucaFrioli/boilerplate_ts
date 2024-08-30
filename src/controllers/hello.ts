@@ -1,5 +1,7 @@
-const hello = (req: any, res: any) => {
-	res.status(200).send('hello world');
+import { Request, Response } from 'express';
+
+const hello = (req: Request, res: Response) => {
+    res.status(200).send('hello world');
 };
 
 export { hello };

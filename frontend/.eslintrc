@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "../.eslintrc", // Herda do arquivo principal
+    "plugin:react/recommended"
+  ],
+  "rules": {
+    "react/jsx-filename-extension": [
+      "error",
+      {
+        "extensions": [".tsx"]
+      }
+    ]
+  }
+}

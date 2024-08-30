@@ -1,0 +1,9 @@
+{
+  "extends": [
+    "../.eslintrc" // Herda do arquivo principal
+  ],
+  "rules": {
+    // Regras específicas para backend
+    "react/jsx-filename-extension": "off" // Desativa a regra react/jsx-filename-extension
+  }
+}
