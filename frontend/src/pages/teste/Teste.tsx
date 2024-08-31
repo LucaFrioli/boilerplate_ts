@@ -1,21 +1,19 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-export default () => {
+
+const HelloWord = () => {
     const [teste, setTeste] = useState('');
-    let info: { status: number; headers: object; data: string };
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await axios.get('http://localhost:3000');
-                info = {
-                    status: response.status,
-                    headers: response.headers,
-                    data: response.data,
-                };
                 setTeste(response.data);
             } catch (e) {
-                console.log(info, `tivemos o seguinte erro ${e}`);
+                console.log(
+                    'segue os erros capturados ao tentar acessar a API\n',
+                    e
+                );
                 setTeste('Olá dei erro');
             }
         };
@@ -29,3 +27,5 @@ export default () => {
         </div>
     );
 };
+
+export default HelloWord;

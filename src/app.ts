@@ -1,18 +1,23 @@
+// dependencias de bibliotecas
 import express from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
-import configs from '../configs/configServer';
 import cors from 'cors';
+
+// dependencias dentro de arquivos
 import router from './routes';
+import configureCors from './utils/corsConfiguration';
 
+// configurando variaveis
 const app = express();
-const port: number = 3000;
+const port: number = Number(process.env.PORT) || 3000;
+const production: string | undefined = process.env.PRODUCTION?.toLowerCase();
+const isProduction: boolean = production === 'y' || production === 'yes';
+const allowedOrigens: string | string[] = configureCors(isProduction);
 
-const allowedOrigens: string[] | string =
-    process.env.PRODUCTION === 'y'
-        ? configs.allowedOrigensList
-        : 'http://localhost:5173';
+console.log(`\n ${allowedOrigens} \n`);
 
+// definindo middlewares
 app.use(
     cors({
         origin: [...allowedOrigens],
@@ -20,7 +25,6 @@ app.use(
     })
 );
 app.use(router);
-
 
 app.listen(port, () => {
     console.log(
