@@ -8,14 +8,14 @@ import cors from 'cors';
 import router from './routes';
 import configureCors from './utils/corsConfiguration';
 
-// configurando variaveis
-const app = express();
-const port: number = Number(process.env.PORT) || 3000;
+// averiguando se é produção
 const production: string | undefined = process.env.PRODUCTION?.toLowerCase();
 const isProduction: boolean = production === 'y' || production === 'yes';
-const allowedOrigens: string | string[] = configureCors(isProduction);
 
-console.log(`\n ${allowedOrigens} \n`);
+// configurando variaveis
+const app = express();
+const port: number = isProduction ? Number(process.env.PORT) : 3000;
+const allowedOrigens: string | string[] = configureCors(isProduction);
 
 // definindo middlewares
 app.use(
