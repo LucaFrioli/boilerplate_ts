@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// To start using it, simply create a `.env` file in the project root with a DATABASE_URL key containing the database connection string, and run the command in the terminal `npm run migrate`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Here is a basic example of creating tables within the context of relational databases, more specifically PostgreSql, already implementing a basic structure of users and people, taking into account that a person can have more than one user.
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  userName String   @unique
+  password String
+  createAt DateTime @default(now())
+  isAdmin  Boolean  @default(false)
+  person   Person   @relation(fields: [email], references: [email]) //one user can have only one Person
+
+  @@map("users")
+}
+
+model Person {
+  id       Int      @id @default(autoincrement())
+  name     String
+  lastname String
+  birth    DateTime
+  adress   Json
+  gender   String?  @db.Char(1)
+  cpf      String   @unique @db.Char(11)
+  email    String   @unique
+  user     User[] // one peapole can have many users
+
+  @@map("people")
+}
+
