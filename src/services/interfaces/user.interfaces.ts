@@ -1,3 +1,14 @@
+interface User {
+    id: number;
+    userName: string;
+    email: string;
+    password: string;
+    createAt: Date;
+    isAdmin: boolean;
+    isPrimary: boolean;
+    cellphone: string | null;
+    personID: number | null;
+}
 interface CreateUser {
     userName: string;
     email: string;
@@ -17,4 +28,4 @@ interface UpdateUser {
     cellphone?: string | null;
 }
 
-export { CreateUser, UpdateUser };
+export { User, CreateUser, UpdateUser };
