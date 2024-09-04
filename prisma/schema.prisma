@@ -19,12 +19,15 @@ datasource db {
 
 model User {
   id       Int      @id @default(autoincrement())
-  email    String   @unique
   userName String   @unique
+  email    String
   password String
   createAt DateTime @default(now())
   isAdmin  Boolean  @default(false)
-  person   Person   @relation(fields: [email], references: [email]) //one user can have only one Person
+  isPrimary Boolean @default(false)
+  cellphone  String?
+  person   Person?   @relation(fields: [personID], references: [id])
+  personID Int?
 
   @@map("users")
 }
@@ -37,9 +40,8 @@ model Person {
   adress   Json
   gender   String?  @db.Char(1)
   cpf      String   @unique @db.Char(11)
-  email    String   @unique
-  user     User[] // one peapole can have many users
+  email    String
+  users    User[]
 
   @@map("people")
 }
-
