@@ -2,8 +2,6 @@ import * as UserCrud from '../models/user.model';
 import { User, CreateUser, UpdateUser } from './interfaces/user.interfaces';
 
 class UserService {
-    private body: User | null = null;
-    private user: User | null = null;
     private id: number = -1;
 
     // remember to set the body in the initialization
@@ -27,18 +25,10 @@ class UserService {
         }
     }
 
-    public getBody() {
-        return this.body;
-    }
-
     // setters
 
     private setId(id: number) {
         this.id = id;
-    }
-
-    private setBody(body: User) {
-        this.body = body;
     }
 
     /**
@@ -87,6 +77,31 @@ class UserService {
             await UserCrud.updateUser(id, body);
         } catch (e) {
             console.error(e);
+            process.exit(0);
+        }
+    }
+
+    /**
+     * deleteUser
+     */
+    public async deleteUser(id: number) {
+        try {
+            await UserCrud.deleteUser(id);
+        } catch (e) {
+            console.error(e);
+            process.exit(0);
+        }
+    }
+
+    /**
+     * getAllUsers
+     */
+    public async getAllUsers(): Promise<User[]> {
+        try {
+            const listOfUsers = await UserCrud.getAllUsers();
+            return listOfUsers;
+        } catch (e) {
+            console.log(e);
             process.exit(0);
         }
     }
