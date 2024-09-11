@@ -73,5 +73,5 @@ export {
     getUserById,
     updateUser,
     deleteUser,
-    prisma
+    prisma,
 };

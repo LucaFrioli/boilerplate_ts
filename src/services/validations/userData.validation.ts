@@ -14,8 +14,8 @@ const userValidationSchema = fildsValidation.z.object({
     createAt: fildsValidation.dateSchema,
     isAdmin: fildsValidation.booleanSchema,
     isPrimary: fildsValidation.booleanSchema,
-    cellphone: fildsValidation.cellphoneSchema,
-    personID: fildsValidation.z.number(),
+    cellphone: fildsValidation.cellphoneSchema.optional(),
+    personID: fildsValidation.z.number().optional(),
 });
 
 export default class VelidateEntryUserData {
@@ -34,23 +34,25 @@ export default class VelidateEntryUserData {
         const validUser = userValidationSchema.safeParse(this.data);
         this.outputInfo.flag = validUser.success;
         if (!this.outputInfo.flag) {
-            const errors = validUser.error?.format();
+            const errors: any = validUser.error?.format();
+
+            console.log(errors);
 
             // Iterando sobre os erros e adicionando ao array
             for (const field in errors) {
-                this.outputInfo.errors.push(errors[field].message);
+                this.outputInfo.errors.push(errors[field]._errors);
             }
+            this.organizeErrors(this.outputInfo.errors);
         }
     }
+
+    private organizeErrors(arr: string[]) {
+        let temp: any = [];
+        arr.forEach((el) => {
+            if (el) {
+                temp.push(...el);
+            }
+        });
+        this.outputInfo.errors = temp;
+    }
 }
-const arrayDeTeste: string[] = [];
-
-const teste = new VelidateEntryUserData(
-    {
-        cellphone: 'teste',
-    },
-    arrayDeTeste
-);
-teste.validateGettedUser();
-
-console.log('Este é o output : \n', teste.outputInfo);

@@ -18,16 +18,16 @@ datasource db {
 // Here is a basic example of creating tables within the context of relational databases, more specifically PostgreSql, already implementing a basic structure of users and people, taking into account that a person can have more than one user.
 
 model User {
-  id       Int      @id @default(autoincrement())
-  userName String   @unique
-  email    String
-  password String
-  createAt DateTime @default(now())
-  isAdmin  Boolean  @default(false)
-  isPrimary Boolean @default(false)
-  cellphone  String?
-  person   Person?   @relation(fields: [personID], references: [id])
-  personID Int?
+  id        Int      @id @default(autoincrement())
+  userName  String   @unique
+  email     String
+  password  String
+  createAt  DateTime @default(now())
+  isAdmin   Boolean  @default(false)
+  isPrimary Boolean  @default(false)
+  cellphone String?
+  person    Person?  @relation(fields: [personID], references: [id])
+  personID  Int?
 
   @@map("users")
 }
