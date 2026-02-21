@@ -4,6 +4,7 @@ import { env } from '@Configs/env.js';
 class MongoConnectionString {
     private _uri: string = '';
     private _fine_settings:string = 'retryWrites=true&w=majority&authSource=admin'
+    private mongoConnectionstringLogger = logger.child({module: 'mongodb', fileType: 'uri'})
 
     constructor() {
         this.generateUri();
@@ -20,7 +21,7 @@ class MongoConnectionString {
         } = env;
 
         if (DATABASE_TYPE !== 'mongodb') {
-            logger.fatal({ databaseType: DATABASE_TYPE }, "Tentativa de formação MongoURI porém DATABASE_TYPE é incompatível");
+            this.mongoConnectionstringLogger.fatal({ databaseType: DATABASE_TYPE }, "Tentativa de formação MongoURI porém DATABASE_TYPE é incompatível");
             throw new Error(`FATAL ERROR tetativa de fromação de URI Mongo porém env configurda como ${DATABASE_TYPE}`);
         }
 
@@ -31,7 +32,7 @@ class MongoConnectionString {
         if (NODE_ENV === "development") {
             this._uri = `mongodb://${auth}${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?retryWrites=true`;
 
-            logger.debug({
+            this.mongoConnectionstringLogger.debug({
                 host: DATABASE_HOST,
                 port: DATABASE_PORT,
                 uri: this._uri.replace(DATABASE_PASSWORD ?? '', '******'),
@@ -51,7 +52,7 @@ class MongoConnectionString {
 
         if (isSRV) {
             this._uri = `mongodb+srv://${auth}${DATABASE_HOST}/${DATABASE_NAME}?${this._fine_settings}`;
-            logger.info({
+            this.mongoConnectionstringLogger.info({
                 host: DATABASE_HOST,
                 port: DATABASE_PORT,
                 modality:'srv',
@@ -62,7 +63,7 @@ class MongoConnectionString {
         
         if (hasMultipleHosts) {
             this._uri = `mongodb://${auth}${DATABASE_HOST}/${DATABASE_NAME}?${this._fine_settings}`;
-            logger.info({
+            this.mongoConnectionstringLogger.info({
                 host: DATABASE_HOST,
                 port: DATABASE_PORT,
                 modality:'Multi-hosted',
@@ -72,7 +73,7 @@ class MongoConnectionString {
         } 
         
         this._uri = `mongodb://${auth}${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?${this._fine_settings}`;
-        logger.info({
+        this.mongoConnectionstringLogger.info({
             host: DATABASE_HOST,
             port: DATABASE_PORT,
             modality: 'Single-hosted',
