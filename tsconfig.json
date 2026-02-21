@@ -44,7 +44,8 @@
       "@Validations/*":["./src/validations/*"],
       "@Configs/*":["./src/configs/*"],
       "@Auth/*":["./src/auth/*"],
-      "@Utils/*":["./src/utils/*"]
+      "@Utils/*":["./src/utils/*"],
+      "@Database/*":["./src/databases/*"]
     }
   },
   "include": ["src/**/*", "test/**/*"],

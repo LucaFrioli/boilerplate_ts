@@ -1,5 +1,6 @@
 import { logger } from "@/configs/logger.js";
 
+
 /**
  * Responsável exclusivamente por realizar o parsing (análise) de strings de data
  * provenientes do banco de dados ou outras fontes externas.
@@ -211,7 +212,7 @@ export class DateUtils {
      */
     static startOfDay(date: Date): Date {
         if (!this.isValidDate(date)) {
-            logger.warn('Data de entrada inválida');
+            logger.debug('Data de entrada inválida');
             throw new Error('Data inválida');
         }
 
@@ -232,7 +233,7 @@ export class DateUtils {
      */
     static endOfDay(date: Date): Date {
         if (!this.isValidDate(date)) {
-            logger.warn('Data de entrada inválida');
+            logger.debug('Data de entrada inválida');
             throw new Error('Data inválida');
         }
 
