@@ -1,22 +1,23 @@
 import { resolve } from 'path';
 import pino from "pino";
-import { env } from "./env.js";
 import { DateFormatter } from "@/utils/Date_manager.js";
 
 const rootDir = process.cwd();
 const logFileName = `${DateFormatter.toFileSafe(new Date())}.log`
 const logsFilesPath = resolve(rootDir, 'logs', logFileName);
+const currentEnv = process.env.NODE_ENV || 'development';
+const currentAppName = process.env.APP_NAME
 
 const pinoConfigs = {
-    level: env.NODE_ENV === "development" ? 'debug' : 'info',
+    level: currentEnv === "development" ? 'debug' : 'info',
     redact: {
         paths: ['password', 'DATABASE_PASSWORD', 'user.token', 'authorization'],
         placeholder: '******'
     },
 
     base: {
-        env: env.NODE_ENV,
-        app_name: env.APP_NAME
+        env: currentEnv,
+        app_name: currentAppName
     },
 
     timestamp: pino.stdTimeFunctions.isoTime,
@@ -24,9 +25,9 @@ const pinoConfigs = {
 
 // Target para console/desenvolvimento
 const consoleTarget: pino.TransportTargetOptions = {
-    target: env.NODE_ENV === 'development' ? 'pino-pretty' : 'pino/file',
-    level: env.NODE_ENV === 'development' ? 'debug' : 'info',
-    options: env.NODE_ENV === 'development' ? { colorize: true } : {}
+    target: currentEnv === 'development' ? 'pino-pretty' : 'pino/file',
+    level: currentEnv === 'development' ? 'debug' : 'info',
+    options: currentEnv === 'development' ? { colorize: true } : {}
 };
 
 // Target para arquivos de log

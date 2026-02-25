@@ -1,4 +1,5 @@
 import validator from "validator";
+import { logger } from "@/configs/logger.js";
 
 type passwordStrengthParams = {
     securityLevel: 'low' | 'medium' | 'strong',
@@ -17,12 +18,14 @@ type passwordStrengthValues = {
     pointsPerUnique?: number, // bônus por variedade
 };
 
+
 // Verifica a força de uma senha, com termos pré definidos, porém permitindo poseteriormente personalização caso necessário 
 function passwordStrength(value: string, options: passwordStrengthParams = { securityLevel: "medium", personalize: false }): boolean | number {
+    const passwordValidationLogger = logger.child({module: 'password', fileType: 'validation'})
     const errorMessagePrefix = '[Development - ](Password validation module - passwordStrength) ';
 
     if (typeof value !== 'string') {
-        console.error(errorMessagePrefix, 'A senha deve ser uma string');
+        passwordValidationLogger.warn(`${errorMessagePrefix} A senha deve ser uma string`);
         return false;
     }
 
@@ -73,7 +76,7 @@ function passwordStrength(value: string, options: passwordStrengthParams = { sec
             break;
 
         default:
-            console.error(errorMessagePrefix, 'è preciso caso não haja personalização passar ao menos um nível de segurança!');
+            passwordValidationLogger.warn(`${errorMessagePrefix} É preciso caso não haja personalização passar ao menos um nível de segurança!`);
             return false;
     }
 
