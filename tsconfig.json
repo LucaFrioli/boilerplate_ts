@@ -45,7 +45,8 @@
       "@Configs/*":["./src/configs/*"],
       "@Auth/*":["./src/auth/*"],
       "@Utils/*":["./src/utils/*"],
-      "@Database/*":["./src/databases/*"]
+      "@Database/*":["./src/databases/*"],
+      "@Contracts/*":["./src/resources/contracts/*"]
     }
   },
   "include": ["src/**/*", "test/**/*"],
