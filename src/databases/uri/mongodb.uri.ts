@@ -1,11 +1,11 @@
-import { logger } from '@Configs/logger.js';
+import { createChildLogger } from '@Configs/logger.js';
 import { env } from '@Configs/env.js';
 
 class MongoConnectionString {
     private _uri: string = '';
     private password: string = '';
     private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin'
-    private mongoConnectionstringLogger = logger.child({ module: 'mongodb', fileType: 'uri' })
+    private mongoConnectionstringLogger = createChildLogger({ module: 'mongodb', fileType: 'uri' })
 
     constructor() {
         this.initilize();

@@ -1,5 +1,5 @@
 import validator from "validator";
-import { logger } from "@/configs/logger.js";
+import { createChildLogger } from "@Configs/logger.js";
 
 type passwordStrengthParams = {
     securityLevel: 'low' | 'medium' | 'strong',
@@ -21,7 +21,7 @@ type passwordStrengthValues = {
 
 // Verifica a força de uma senha, com termos pré definidos, porém permitindo poseteriormente personalização caso necessário 
 function passwordStrength(value: string, options: passwordStrengthParams = { securityLevel: "medium", personalize: false }): boolean | number {
-    const passwordValidationLogger = logger.child({module: 'password', fileType: 'validation'})
+    const passwordValidationLogger = createChildLogger({ module: 'password', fileType: 'validation'})
     const errorMessagePrefix = '[Development - ](Password validation module - passwordStrength) ';
 
     if (typeof value !== 'string') {

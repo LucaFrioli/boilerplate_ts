@@ -8,6 +8,28 @@ const logsFilesPath = resolve(rootDir, 'logs', logFileName);
 const currentEnv = process.env.NODE_ENV || 'development';
 const currentAppName = process.env.APP_NAME
 
+
+// Definimos as strings permitidas. O TS vai sugerir estas opções automaticamente.
+export type FileType = 
+    | 'validation' 
+    | 'entity' 
+    | 'controller' 
+    | 'model' 
+    | 'interface' 
+    | 'util' 
+    | 'connection' 
+    | 'uri';
+
+export type LoggerParams = {
+    module: string;
+    fileType: FileType;
+} & Record<string, unknown>;
+
+// Criamos uma função helper para gerar o child logger já tipado
+export const createChildLogger = (params: LoggerParams) => {
+    return logger.child({...params});
+};
+
 const pinoConfigs = {
     level: currentEnv === "development" ? 'debug' : 'info',
     redact: {
