@@ -1,7 +1,7 @@
 import { createChildLogger } from "@/configs/logger.js";
 
 export class CpfValidator {
-    private static cpfValidatorLogger = createChildLogger({ module: 'cpf', fileType: "validation" });
+    private static cpfValidatorLogger = createChildLogger({ module: 'cpf', fileType: "validation", service: 'util' });
 
     /**
      * validateAndSaniteze

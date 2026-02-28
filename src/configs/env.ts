@@ -18,6 +18,9 @@ const envSchema = z.object({
     DATABASE_PASSWORD: z.string().min(10).max(100).refine((value) => {
         return passwordStrength(value)
     }, { error: 'A senha do banco não atende os requisitos de segurança' }).optional(),
+
+    // Contatos de administradores
+    EMAIL_TO_CONTACT: z.email()
 })
 
 

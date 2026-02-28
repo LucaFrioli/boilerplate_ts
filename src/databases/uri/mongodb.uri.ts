@@ -5,7 +5,7 @@ class MongoConnectionString {
     private _uri: string = '';
     private password: string = '';
     private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin'
-    private mongoConnectionstringLogger = createChildLogger({ module: 'mongodb', fileType: 'uri' })
+    private mongoConnectionstringLogger = createChildLogger({ module: 'mongodb', fileType: 'uri', service: 'database' })
 
     constructor() {
         this.initilize();

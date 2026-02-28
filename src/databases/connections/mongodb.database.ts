@@ -5,7 +5,7 @@ import { env } from "@Configs/env.js";
 
 class MongodbConnect {
     private static readonly _uri: string = mongoURI
-    private static mongoConnectLogger = createChildLogger({module: 'mongodb', fileType: "connection", databaseType: env.DATABASE_TYPE })
+    private static mongoConnectLogger = createChildLogger({module: 'mongodb', fileType: "connection", service:'database', databaseType: env.DATABASE_TYPE })
 
     public static async connect() {
         if (env.DATABASE_TYPE !== 'mongodb') {

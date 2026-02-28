@@ -21,7 +21,7 @@ type passwordStrengthValues = {
 
 // Verifica a força de uma senha, com termos pré definidos, porém permitindo poseteriormente personalização caso necessário 
 function passwordStrength(value: string, options: passwordStrengthParams = { securityLevel: "medium", personalize: false }): boolean | number {
-    const passwordValidationLogger = createChildLogger({ module: 'password', fileType: 'validation'})
+    const passwordValidationLogger = createChildLogger({ module: 'password', fileType: 'validation', service: "util" })
     const errorMessagePrefix = '[Development - ](Password validation module - passwordStrength) ';
 
     if (typeof value !== 'string') {
@@ -86,4 +86,4 @@ function passwordStrength(value: string, options: passwordStrengthParams = { sec
 }
 
 
-export {passwordStrength}
+export { passwordStrength }

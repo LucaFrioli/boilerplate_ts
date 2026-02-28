@@ -20,9 +20,12 @@ export type FileType =
     | 'connection' 
     | 'uri';
 
+export type ServiceType = 'database' | 'hasher' | 'util' ;
+
 export type LoggerParams = {
     module: string;
     fileType: FileType;
+    service: ServiceType;
 } & Record<string, unknown>;
 
 // Criamos uma função helper para gerar o child logger já tipado
