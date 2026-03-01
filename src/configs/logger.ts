@@ -18,9 +18,10 @@ export type FileType =
     | 'interface' 
     | 'util' 
     | 'connection' 
-    | 'uri';
+    | 'uri'
+    | 'core';
 
-export type ServiceType = 'database' | 'hasher' | 'util' ;
+export type ServiceType = 'database' | 'hasher' | 'util' | 'valuation' ;
 
 export type LoggerParams = {
     module: string;
