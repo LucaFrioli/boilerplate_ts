@@ -13,19 +13,61 @@ export interface IHasherProvider {
      * @param payload - O texto enviado pelo usuário
      * @param hashed - O hash recuperado do banco de dados
      */
-    compare(payload: string, hashedString: string): Promise<string>
+    compare(payload: string, hashedString: string): Promise<boolean>
 }
 
 export abstract class BaseHasher implements IHasherProvider {
-    private hasherLgger = createChildLogger({ module: 'security', fileType: 'util', service: 'hasher' })
+    protected hasherLogger = createChildLogger({ module: 'security', fileType: 'util', service: 'hasher' })
+
+    /**
+     * Obriga o desenvolvedor a declara o nome de serviço trzendo ainda mais informação para os logs e depuração
+    */
+    protected abstract ServiceName: string;
 
 
-    abstract generate(payload: string): Promise<string>
-    abstract compare(payload: string, hashedString: string): Promise<string>
+    /**
+     * Metódo que deve ser implementado nas classes filhas com lógica de como o hash deve ocorrrer
+     * @param payload - O dado sensível que seráa tratado pelo serviço de hasher
+    */
+    protected abstract executeHash(payload: string): Promise<string>;
+    /**
+     * Método que deve ser implementado nas classes filhas com a lógica de comparação de hash e como a lógica deve ocorrer
+     * @param hahsedString - string que já tem o hahs 
+     * @param payload - o alvo que deve ser objeto de comeparação
+    */
+    protected abstract executeCompare(payload: string, hahsedString: string): Promise<boolean>;
 
-    protected handleFatalErrors(error: unknown, method: string): void {
-        this.hasherLgger.fatal({ error, method }, `Falha crítica no motor de criptografia no método ${method}`);
+
+    public async generate(payload: string): Promise<string> {
+        try {
+            return await this.executeHash(payload)
+        } catch (e) {
+            this.handleFatalErrors(e, 'generate');
+            return '';
+        }
+    }
+
+    public async compare(payload: string, hashedString: string): Promise<boolean> {
+        try {
+            return await this.executeCompare(payload, hashedString);
+        } catch (e) {
+            this.hasherLogger.error({ error: e, serviceName: this.ServiceName }, `Erro de verificação comparativa no ${this.ServiceName}`);
+            return false;
+        }
+    }
+
+    /**
+     * *handleFatalErrors*
+     * @param e unknown - error catched in method
+     * @param method string - name of the method on error is catched
+     * 
+     * @returns void - returns nothing in case trhows an Error
+     * Este método loga um erro fatal que pode ocorrer e serviços de hasher e lança um erro critico,
+     * dizendo que o usuário deve entrar em contato com a administração do sistema permitindo que haja um 
+     * email de comunicação com a daministração
+    */
+    protected handleFatalErrors(e: unknown, method: string): void {
+        this.hasherLogger.fatal({ error: e, method: method, serviceNmae: this.ServiceName }, `Falha crítica no motor de criptografia no método ${method}`);
         throw new Error(`Erro interno crítico, contate algum administrador por meio dos canais legais ${env.EMAIL_TO_CONTACT}`);
-        
     }
 }
