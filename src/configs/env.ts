@@ -6,7 +6,7 @@ import { createChildLogger } from "./logger.js";
 // conforme o boilerplate for crescendo adicionarei mais bancos
 const enabledDatabaseConections = ['mongodb'] as const;
 const envLogger = createChildLogger({ fileType: "core", module: 'env', service: 'valuation' });
-const supportedHashProviders = ['argon2', 'bcrypt'] as const;
+export const supportedHashProviders = ['argon2', 'bcrypt'] as const;
 
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'stage', 'production']).default('development'),
