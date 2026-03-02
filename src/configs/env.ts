@@ -13,7 +13,7 @@ const envSchema = z.object({
     PORT: z.coerce.number().int({ error: 'A porta da aplicação deve ser um número inteiro' }).default(3000),
     APP_NAME: z.string({ error: 'lembre-se de adicionar um nome ao app' }).min(3).max(50),
     // database info
-    DATABASE_TYPE: z.enum(enabledDatabaseConections, { error: `Ops aparentemente o db desejado ainda não está disponível, utilize algum destes ${enabledDatabaseConections}` }),
+    DATABASE_TYPE: z.enum(enabledDatabaseConections, { error: `Ops aparentemente o db desejado ainda não está disponível, utilize algum destes ${enabledDatabaseConections.join(', ')}` }),
     DATABASE_HOST: z.string().default('localhost'),
     DATABASE_PORT: z.coerce.number().int({ error: 'A porta de um banco de dados deve ser um número inteiro' }),
     DATABASE_NAME: z.string(),
