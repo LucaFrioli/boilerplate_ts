@@ -3,12 +3,13 @@ import { env } from '@Configs/env.js';
 
 class MongoConnectionString {
     private _uri: string = '';
+    // caso não tenha senha se mantém, porém se foi criada uma senha a URI é definida de froma autônoma para uma normalização de URIEncode
     private password: string = '';
     private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin'
     private mongoConnectionstringLogger = createChildLogger({ module: 'mongodb', fileType: 'uri', service: 'database' })
 
     constructor() {
-        this.initilize();
+        this.initialize();
     }
 
     public get uri(): string {
@@ -24,7 +25,15 @@ class MongoConnectionString {
         return encodeURIComponent(password);
     }
 
-    private initilize() {
+    /**
+     * initilize
+     * Esta função é responsável por validar algumas informações vindas do env,
+     * após a validação da sinformações e se houver senha no banco de dados ela 
+     * normaliza a senha para poder se encaixar 
+     * em uma URI válida independente do uso de carcteres especiais
+     * @throws {Error} - caso o DATABSE_TYPE não seja mongodb
+    */
+    private initialize() {
         const { DATABASE_TYPE, DATABASE_PASSWORD } = env
 
         if (DATABASE_TYPE !== 'mongodb') {
@@ -39,6 +48,14 @@ class MongoConnectionString {
         this.generateUri();
     }
 
+    /**
+     * **genreateUri** 
+     * 
+     * Método dedicado a definir como a uri deve ser foca principalmente na de desenvolvimento, 
+     * caso o app não esteja em modeo de desenvolvimento faz a chamda para a criação de URI em prod pelo método específico
+     * o processo de formatação é o seguinte verifica usuário senha, junta na formatação correta para 
+     * mongo via a constante `auth`, e forma uma conexão `mongodb://`
+    */
     private generateUri(): void {
         const {
             DATABASE_HOST, DATABASE_PORT,
@@ -65,8 +82,16 @@ class MongoConnectionString {
         this.prodFormation();
     }
 
+    /**
+     * **prodFromation**
+     * 
+     * Este método permite verificar em que tipo de modalidade o mongo está definido podendo formar de demais maneira uris 
+     * para mongo em server via o próprio mongo multihost ou mongo local em prod
+     * 
+     * **Suporta protocolos SRV (Atlas), Multi-host (Replica Sets) e instâncias únicas.**
+    */
     private prodFormation(): void {
-        const { DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD, NODE_ENV } = env;
+        const { DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USERNAME } = env;
 
         const auth = `${DATABASE_USERNAME}:${this.password}@`;
         const isSRV = DATABASE_HOST.includes('.mongodb.net');
@@ -106,4 +131,7 @@ class MongoConnectionString {
     }
 }
 
+/**
+ * Modulo retorna a URI já fromatada e validada seja ela feita para rodar em produção ou desenvolvimento
+*/
 export const mongoURI = new MongoConnectionString().uri;

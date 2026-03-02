@@ -35,7 +35,7 @@ export abstract class BaseHasher implements IHasherProvider {
      * @param hahsedString - string que já tem o hahs 
      * @param payload - o alvo que deve ser objeto de comeparação
     */
-    protected abstract executeCompare(payload: string, hahsedString: string): Promise<boolean>;
+    protected abstract executeCompare(payload: string, hashedString: string): Promise<boolean>;
 
 
     public async generate(payload: string): Promise<string> {
@@ -67,7 +67,7 @@ export abstract class BaseHasher implements IHasherProvider {
      * email de comunicação com a daministração
     */
     protected handleFatalErrors(e: unknown, method: string): void {
-        this.hasherLogger.fatal({ error: e, method: method, serviceNmae: this.ServiceName }, `Falha crítica no motor de criptografia no método ${method}`);
+        this.hasherLogger.fatal({ error: e, method: method, serviceName: this.ServiceName }, `Falha crítica no motor de criptografia no método ${method}`);
         throw new Error(`Erro interno crítico, contate algum administrador por meio dos canais legais ${env.EMAIL_TO_CONTACT}`);
     }
 }
