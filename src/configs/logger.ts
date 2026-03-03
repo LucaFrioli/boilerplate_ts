@@ -1,9 +1,8 @@
 import { resolve } from 'path';
 import pino from "pino";
-import { DateFormatter } from "@/utils/Date_manager.js";
 
 const rootDir = process.cwd();
-const logFileName = `${DateFormatter.toFileSafe(new Date())}.log`
+const logFileName = `${new Date().toISOString().substring(0,10)}.log`
 const logsFilesPath = resolve(rootDir, 'logs', logFileName);
 const currentEnv = process.env.NODE_ENV || 'development';
 const currentAppName = process.env.APP_NAME

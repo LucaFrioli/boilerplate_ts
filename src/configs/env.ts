@@ -4,14 +4,19 @@ import { passwordStrength } from "@Validations/Password.validations.js";
 import { createChildLogger } from "./logger.js";
 
 // conforme o boilerplate for crescendo adicionarei mais bancos
-const enabledDatabaseConections = ['mongodb'] as const;
 const envLogger = createChildLogger({ fileType: "core", module: 'env', service: 'valuation' });
+const enabledDatabaseConections = ['mongodb'] as const;
 export const supportedHashProviders = ['argon2', 'bcrypt'] as const;
+const timezoneSupported = ['UTC', 'America/Sao_Paulo', 'Europa/Rome'] as const;
+const localeSupported = ['pt-BR', 'en-US', 'it-IT'] as const;
 
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'stage', 'production']).default('development'),
     PORT: z.coerce.number().int({ error: 'A porta da aplicação deve ser um número inteiro' }).default(3000),
     APP_NAME: z.string({ error: 'lembre-se de adicionar um nome ao app' }).min(3).max(50),
+    APP_TIMEZONE: z.enum(timezoneSupported).default('UTC'),
+    APP_LOCALE: z.enum(localeSupported).default('pt-BR'),
+
     // database info
     DATABASE_TYPE: z.enum(enabledDatabaseConections, { error: `Ops aparentemente o db desejado ainda não está disponível, utilize algum destes ${enabledDatabaseConections.join(', ')}` }),
     DATABASE_HOST: z.string().default('localhost'),
