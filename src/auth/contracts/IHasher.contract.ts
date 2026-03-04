@@ -39,11 +39,16 @@ export abstract class BaseHasher implements IHasherProvider {
 
 
     public async generate(payload: string): Promise<string> {
+
+        if (!payload || payload.trim().length === 0) {
+            this.hasherLogger.warn({ serviceName: this.ServiceName }, 'Tentativa de gerar hash de payload vazio');
+            throw new Error('O payload para geração de hash não pode estar vazio');
+        }
+
         try {
             return await this.executeHash(payload)
         } catch (e) {
             this.handleFatalErrors(e, 'generate');
-            return '';
         }
     }
 
@@ -66,7 +71,7 @@ export abstract class BaseHasher implements IHasherProvider {
      * dizendo que o usuário deve entrar em contato com a administração do sistema permitindo que haja um 
      * email de comunicação com a daministração
     */
-    protected handleFatalErrors(e: unknown, method: string): void {
+    protected handleFatalErrors(e: unknown, method: string): never {
         this.hasherLogger.fatal({ error: e, method: method, serviceName: this.ServiceName }, `Falha crítica no motor de criptografia no método ${method}`);
         throw new Error(`Erro interno crítico, contate algum administrador por meio dos canais legais ${env.EMAIL_TO_CONTACT}`);
     }
