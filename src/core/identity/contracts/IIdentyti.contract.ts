@@ -11,19 +11,19 @@ export default abstract class BaseIdentityGenerator implements IIdentity {
     protected identityLogger = createChildLogger({ module: 'Identity', fileType: 'core', service: 'generation' })
     protected abstract readonly serviceName: string;
 
-    abstract generateLogic(): string;
-    abstract generateValidation(id: string): boolean;
+    protected abstract generateLogic(): string;
+    protected abstract generateValidation(id: string): boolean;
 
-    genrate(): string {
+    public genrate(): string {
         try {
             const id = this.generateLogic();
-            return id;
+            return Object.freeze(id);
         } catch (e) {
             this.logFailures('generate', e);
         }
     }
 
-    validate(id: string): boolean {
+    public validate(id: string): boolean {
         try {
             return this.generateValidation(id);
         } catch (e) {
