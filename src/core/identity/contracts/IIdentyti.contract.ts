@@ -2,7 +2,7 @@ import { createChildLogger } from "@Configs/logger.js";
 import { env } from "@Configs/env.js";
 
 export interface IIdentityProvider {
-    genrate(): string;
+    generate(): string;
     validate(id: string): boolean;
 }
 
@@ -14,7 +14,7 @@ export default abstract class BaseIdentityGenerator implements IIdentityProvider
     protected abstract generateLogic(): string;
     protected abstract generateValidation(id: string): boolean;
 
-    public genrate(): string {
+    public generate(): string {
         try {
             const id = this.generateLogic();
             return Object.freeze(id);
