@@ -47,8 +47,9 @@
       "@Utils/*":["./src/utils/*"],
       "@Database/*":["./src/databases/*"],
       "@Contracts/*":["./src/resources/contracts/*"],
-      "@Hash/*": ["./src/auth/providers/hash/*"],
       "@Types/*": ["./src/shared/types/*"],
+      "@Hash/*": ["./src/auth/hash/*"],
+      "@Id/*": ["./src/core/identity/*"]
     }
   },
   "include": ["src/**/*", "test/**/*"],

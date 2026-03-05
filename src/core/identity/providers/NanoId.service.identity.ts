@@ -1,6 +1,6 @@
 import { StringWithLegthGen } from "@Types/primitives.type.js";
 import BaseIdentityGenerator from "../contracts/IIdentyti.contract.js";
-import { env } from "@/configs/env.js";
+import { env } from "@Configs/env.js";
 import { randomBytes } from "node:crypto";
 
 export default class NanoIdProvider extends BaseIdentityGenerator {

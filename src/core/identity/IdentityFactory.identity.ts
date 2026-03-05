@@ -1,8 +1,8 @@
 import { env, type identityTypeSupported } from "@Configs/env.js";
-import type { IIdentityProvider } from "./contracts/IIdentyti.contract.js";
-import NanoIdProvider from "./providers/NanoId.service.identity.js";
-import UuidV4Provider from "./providers/UuidV4.service.identity.js";
-import UuidV7Provider from "./providers/UuidV7.service.identity.js";
+import type { IIdentityProvider } from "@Id/contracts/IIdentyti.contract.js";
+import NanoIdProvider from "@Id/providers/NanoId.service.identity.js";
+import UuidV4Provider from "@Id/providers/UuidV4.service.identity.js";
+import UuidV7Provider from "@Id/providers/UuidV7.service.identity.js";
 
 type supportedProviders = (typeof identityTypeSupported)[number];
 

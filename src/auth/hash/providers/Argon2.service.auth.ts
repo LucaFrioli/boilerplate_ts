@@ -1,4 +1,4 @@
-import { BaseHasher } from "@Auth/contracts/IHasher.contract.js";
+import { BaseHasher } from "@Auth/hash/contracts/IHasher.contract.js";
 import { argon2id, hash, verify, type Options as ArgonOptions } from 'argon2';
 import { env } from "@Configs/env.js";
 import { randomBytes } from "node:crypto";

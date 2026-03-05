@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import BaseIdentityGenerator from "../contracts/IIdentyti.contract.js";
+import BaseIdentityGenerator from "@Id/contracts/IIdentyti.contract.js";
 
 export default class UuidV4Provider extends BaseIdentityGenerator {
     protected serviceName: string = 'UuidV4Provider';

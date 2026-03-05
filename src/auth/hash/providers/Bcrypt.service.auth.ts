@@ -1,4 +1,4 @@
-import { BaseHasher } from "@Auth/contracts/IHasher.contract.js";
+import { BaseHasher } from "@Auth/hash/contracts/IHasher.contract.js";
 import { hash, compare } from 'bcrypt'
 import { env } from '@Configs/env.js'
 

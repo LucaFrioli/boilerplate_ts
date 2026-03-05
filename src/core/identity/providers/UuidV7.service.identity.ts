@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import BaseIdentityGenerator from "../contracts/IIdentyti.contract.js";
+import BaseIdentityGenerator from "@Id/contracts/IIdentyti.contract.js";
 
 export default class UuidV7Provider extends BaseIdentityGenerator {
     protected serviceName: string = 'UuidV7Provider';

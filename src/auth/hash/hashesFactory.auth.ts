@@ -1,7 +1,7 @@
 import { env, type supportedHashProviders } from "@Configs/env.js";
-import Argon2Provider from "@Hash/Argon2.service.auth.js";
-import BcryptService from "@Hash/Bcrypt.service.auth.js";
-import type { IHasherProvider } from "@Auth/contracts/IHasher.contract.js";
+import Argon2Provider from "@Hash/providers/Argon2.service.auth.js";
+import BcryptService from "@Hash/providers/Bcrypt.service.auth.js";
+import type { IHasherProvider } from "@Hash/contracts/IHasher.contract.js";
 
 type supportedProviders = (typeof supportedHashProviders)[number];
 
