@@ -1,13 +1,13 @@
 import { createChildLogger } from "@Configs/logger.js";
 import { env } from "@Configs/env.js";
 
-export interface IIdentity {
+export interface IIdentityProvider {
     genrate(): string;
     validate(id: string): boolean;
 }
 
 
-export default abstract class BaseIdentityGenerator implements IIdentity {
+export default abstract class BaseIdentityGenerator implements IIdentityProvider {
     protected identityLogger = createChildLogger({ module: 'Identity', fileType: 'core', service: 'generation' })
     protected abstract readonly serviceName: string;
 
