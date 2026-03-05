@@ -13,14 +13,12 @@ const providers: Record<supportedProviders, new () => IIdentityProvider> = {
     uuidv7: UuidV7Provider
 }
 
-type AppIdGenerator = {
+interface AppIdGenerator extends Omit<IIdentityProvider, 'generate'> {
     generate(): AppID;
-    validate(id: string): boolean;
 }
 
-type DbIdGenerator = {
+interface DbIdGenerator extends Omit<IIdentityProvider, 'generate'> {
     generate(): DatabaseID;
-    validate(id: string): boolean;
 }
 
 class IdentityFactory {
