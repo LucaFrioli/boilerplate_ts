@@ -20,7 +20,7 @@ export type FileType =
     | 'uri'
     | 'core';
 
-export type ServiceType = 'database' | 'hasher' | 'util' | 'valuation' | 'generation' ;
+export type ServiceType = 'database' | 'hasher' | 'util' | 'valuation' | 'generation' | 'typo' ;
 
 export type LoggerParams = {
     module: string;
