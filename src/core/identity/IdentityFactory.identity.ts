@@ -1,3 +1,4 @@
+import type { DatabaseID, AppID } from "@Types/identity.type.js";
 import { env, type identityTypeSupported } from "@Configs/env.js";
 import type { IIdentityProvider } from "@Id/contracts/IIdentyti.contract.js";
 import NanoIdProvider from "@Id/providers/NanoId.service.identity.js";
@@ -10,6 +11,16 @@ const providers: Record<supportedProviders, new () => IIdentityProvider> = {
     nanoid: NanoIdProvider,
     uuidv4: UuidV4Provider,
     uuidv7: UuidV7Provider
+}
+
+type AppIdGenerator = {
+    generate(): AppID;
+    validate(id: string): boolean;
+}
+
+type DbIdGenerator = {
+    generate(): DatabaseID;
+    validate(id: string): boolean;
 }
 
 class IdentityFactory {
@@ -32,5 +43,5 @@ class IdentityFactory {
     }
 }
 
-export const DBid = IdentityFactory.getDBDefaultId();
-export const Id = IdentityFactory.getDefaultProvider();
+export const DBid = IdentityFactory.getDBDefaultId() as unknown as DbIdGenerator;
+export const Id = IdentityFactory.getDefaultProvider() as unknown as AppIdGenerator;
