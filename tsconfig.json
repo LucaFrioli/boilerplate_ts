@@ -48,6 +48,7 @@
       "@Database/*":["./src/databases/*"],
       "@Contracts/*":["./src/resources/contracts/*"],
       "@Types/*": ["./src/shared/types/*"],
+      "@Types": ["./src/shared/types/index.ts"],
       "@Hash/*": ["./src/auth/hash/*"],
       "@Id/*": ["./src/core/identity/*"]
     }
