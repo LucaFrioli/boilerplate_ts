@@ -2,10 +2,16 @@ import { env, type supportedHashProviders } from "@Configs/env.js";
 import Argon2Provider from "@Hash/providers/Argon2.service.auth.js";
 import BcryptService from "@Hash/providers/Bcrypt.service.auth.js";
 import type { IHasherProvider } from "@Hash/contracts/IHasher.contract.js";
+import type { HashedString } from '@Types'
 
 type supportedProviders = (typeof supportedHashProviders)[number];
 
-const providers: Record<supportedProviders, new ()=> IHasherProvider> = {
+interface IHasherGenerator extends Omit<IHasherProvider, 'generate'> {
+    generate(payload: string): Promise<HashedString>;
+}
+
+
+const providers: Record<supportedProviders, new () => IHasherProvider> = {
     argon2: Argon2Provider,
     bcrypt: BcryptService
 }
@@ -13,8 +19,8 @@ const providers: Record<supportedProviders, new ()=> IHasherProvider> = {
 class HasherFactory {
     private static instance: IHasherProvider;
 
-    public static getProvider (): IHasherProvider{
-        if(!this.instance){
+    public static getProvider(): IHasherProvider {
+        if (!this.instance) {
             const SelectedProvider = providers[env.HASHER_PROVIDER as supportedProviders];
             this.instance = new SelectedProvider();
         }
@@ -23,4 +29,4 @@ class HasherFactory {
     }
 }
 
-export const Hasher = HasherFactory.getProvider();
+export const Hasher = HasherFactory.getProvider() as unknown as IHasherGenerator;
