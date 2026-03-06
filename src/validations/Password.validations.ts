@@ -35,8 +35,8 @@ function passwordStrength(value: string, options: passwordStrengthParams = { sec
             const isStrong = validator.isStrongPassword(value, options.strengthSchema);
             return isStrong;
         } catch (e) {
-            console.error(errorMessagePrefix, e);
-            return false;
+            passwordValidationLogger.error({ error: e }, errorMessagePrefix);
+            throw e
         }
     }
 
