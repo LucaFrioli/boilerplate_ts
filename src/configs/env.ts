@@ -14,16 +14,16 @@ export const identityTypeSupported = ['uuidv4', 'uuidv7', 'nanoid'] as const;
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'stage', 'production']).default('development'),
     PORT: z.coerce.number().int({ error: 'A porta da aplicação deve ser um número inteiro' }).default(3000),
-    APP_NAME: z.string({ error: 'lembre-se de adicionar um nome ao app' }).min(3).max(50),
+    APP_NAME: z.string({ error: 'lembre-se de adicionar um nome ao app' }).trim().min(3).max(50),
     APP_TIMEZONE: z.enum(timezoneSupported).default('UTC'),
     APP_LOCALE: z.enum(localeSupported).default('pt-BR'),
 
     // database info
     DATABASE_TYPE: z.enum(enabledDatabaseConections, { error: `Ops aparentemente o db desejado ainda não está disponível, utilize algum destes ${enabledDatabaseConections.join(', ')}` }),
-    DATABASE_HOST: z.string().default('localhost'),
+    DATABASE_HOST: z.string().trim().default('localhost'),
     DATABASE_PORT: z.coerce.number().int({ error: 'A porta de um banco de dados deve ser um número inteiro' }),
-    DATABASE_NAME: z.string(),
-    DATABASE_USERNAME: z.string().optional(),
+    DATABASE_NAME: z.string().trim(),
+    DATABASE_USERNAME: z.string().trim().optional(),
     DATABASE_PASSWORD: z.string().min(10).max(100).refine((value) => {
         return passwordStrength(value)
     }, { error: 'A senha do banco não atende os requisitos de segurança' }).optional(),
@@ -36,7 +36,7 @@ const envSchema = z.object({
     HASHER_PROVIDER: z.enum(supportedHashProviders, {
         error: `Provedor de hash inválido. Escolha entre: ${supportedHashProviders.join(', ')}`
     }).default('argon2'),
-    HASHER_SECURITY_PEPPER: z.string().min(20, 'O pepper deve ter ao menos 20 carcteres').default('development-secretPepper_SHA256-F@llback').refine((val) => {
+    HASHER_SECURITY_PEPPER: z.string().trim().min(20, 'O pepper deve ter ao menos 20 carcteres').default('development-secretPepper_SHA256-F@llback').refine((val) => {
         const testPepper = passwordStrength(val, { securityLevel: "strong", personalize: false })
         const isProd = process.env.NODE_ENV === 'production';
         const isFallback = val.includes('F@llback');
@@ -60,7 +60,7 @@ const envSchema = z.object({
 
     // Definição identificadores da aplicação
     IDENTIFIER_PATTERN: z.enum(identityTypeSupported, { error: `Defina um tipode identificador suportado entre estes ${identityTypeSupported.join(', ')}` }).default("nanoid"),
-    IDENTIFIER_NANOID_ALPHABET: z.string().min(32, { error: 'alfabetos menores de 32 são inseguros' }).max(64, { error: 'alfabetos com mais de 64 caracteres fogem do URL-safe' }).refine((val) => {
+    IDENTIFIER_NANOID_ALPHABET: z.string().trim().min(32, { error: 'alfabetos menores de 32 são inseguros' }).max(64, { error: 'alfabetos com mais de 64 caracteres fogem do URL-safe' }).refine((val) => {
         return new Set(val).size === val.length
     }, { error: 'O alfabeto não pode conter caracteres iguas, duplicatas reduzem a entropia' }).refine(val => /^[A-Za-z0-9\-_]+$/.test(val), { error: 'O alfabeto deve conter apenas caracteres URL safe' }).default("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"),
     IDENTIFIER_NANOID_SIZE: z.coerce.number().int().min(16, { error: 'Mínimo 16 chars para entropia adequada' }).max(32, { error: 'Acima de 32 chars o ganho entrópico é desnecessário para IDs de aplicação' }).default(21)
