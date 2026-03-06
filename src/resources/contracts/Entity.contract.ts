@@ -7,11 +7,12 @@ export abstract class BaseEntity<T> implements IEntity<T> {
 
     constructor(data: unknown) {
         this.props = this.validate(data);
+        Object.freeze({ ...this.props })
     }
 
     // padroniza o retorno de objetos para a API
     public toDTO(): T {
-        return Object.freeze({ ...this.props });
+        return { ...this.props };
     }
 
     protected abstract validate(data: unknown): T;
