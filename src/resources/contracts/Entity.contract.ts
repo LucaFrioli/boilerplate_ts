@@ -1,21 +1,33 @@
-export interface IEntity<T> {
-    toDatabaseDTO(): T; // exporta objeto limpo para o banco de dados, e com trtamento para ser realmente seguro trnasportá-lo   
-    toPublicDTO(): Partial<T>
+import {env} from '@Configs/env.js';
+import { createChildLogger } from '@Configs/logger.js';
+import type { DeepReadonly } from '@Types';
+
+export interface IEntity<T, Tout> {
+    toDatabaseDTO(): DeepReadonly<T>; // exporta objeto limpo para o banco de dados, e com tratamento para ser realmente seguro trnasportá-lo   
+    toPublicDTO(): DeepReadonly<Tout>
 }
 
-export abstract class BaseEntity<T> implements IEntity<T> {
+export abstract class BaseEntity<T, Tout> implements IEntity<T, Tout> {
+    protected abstract readonly entityName:string;
     protected props: T;
+    protected entityLogger = createChildLogger({fileType: 'entity', module: 'bussinesLogic', service:'valuation'});
 
     constructor(data: unknown) {
         this.props = this.validate(data);
-        Object.freeze({ ...this.props })
     }
 
     // padroniza o retorno de objetos para a API
-    public toDatabaseDTO(): T {
-        return { ...this.props };
+    public toDatabaseDTO(): DeepReadonly<T> {
+        return Object.freeze({ ...this.props });
+
     }
 
-    public abstract toPublicDTO(): Partial<T>;
+    protected handlingFatalError(entityName: string, error: unknown, message:string): never{
+        this.entityLogger.error({serviceName: entityName, error: error}, message);
+        throw new Error(`Erro interno crítico, contate algum administrador por meio dos canais legais ${env.EMAIL_TO_CONTACT}`);
+        
+    }
+
+    public abstract toPublicDTO(): DeepReadonly<Tout>;
     protected abstract validate(data: unknown): T;
 }
