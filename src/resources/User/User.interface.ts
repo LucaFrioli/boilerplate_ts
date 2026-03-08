@@ -1,6 +1,6 @@
 import type { DatabaseID, AppID, HashedString } from '@Types'
 
-export default interface UserI {
+export interface UserI {
    readonly id: DatabaseID;
    readonly publicId: AppID;
    active: boolean
@@ -21,3 +21,11 @@ export default interface UserI {
    deletedAt: Date | null;
 }
 
+
+export interface PublicUserI{
+   readonly id: AppID;
+   username: string;
+   email: string;
+   active: string;
+   hasBillingProfile: boolean;
+}
