@@ -1,5 +1,6 @@
 export interface IEntity<T> {
-    toDTO(): T; // exporta objeto limpo para o banco de dados, e com trtamento para ser realmente seguro trnasportá-lo   
+    toDatabaseDTO(): T; // exporta objeto limpo para o banco de dados, e com trtamento para ser realmente seguro trnasportá-lo   
+    toPublicDTO(): Partial<T>
 }
 
 export abstract class BaseEntity<T> implements IEntity<T> {
@@ -11,9 +12,10 @@ export abstract class BaseEntity<T> implements IEntity<T> {
     }
 
     // padroniza o retorno de objetos para a API
-    public toDTO(): T {
+    public toDatabaseDTO(): T {
         return { ...this.props };
     }
 
+    public abstract toPublicDTO(): Partial<T>;
     protected abstract validate(data: unknown): T;
 }
