@@ -14,6 +14,12 @@ export interface IHasherProvider {
      * @param hashed - O hash recuperado do banco de dados
      */
     compare(payload: string, hashedString: string): Promise<boolean>
+
+    /**
+     * Validar se uma string pretence ao tipo semântico de hash
+     * @param hasheddString - texto de hash que deverá ser validado
+    */
+    validateHash(hasheddString: string): boolean;
 }
 
 export abstract class BaseHasher implements IHasherProvider {
@@ -37,6 +43,7 @@ export abstract class BaseHasher implements IHasherProvider {
     */
     protected abstract executeCompare(payload: string, hashedString: string): Promise<boolean>;
 
+    protected abstract executeValidation(hashedString: string): boolean
 
     public async generate(payload: string): Promise<string> {
 
@@ -58,6 +65,15 @@ export abstract class BaseHasher implements IHasherProvider {
         } catch (e) {
             this.hasherLogger.error({ error: e, serviceName: this.ServiceName }, `Erro de verificação comparativa no ${this.ServiceName}`);
             return false;
+        }
+    }
+
+    public validateHash(hashedString: string): boolean {
+        try {
+            return this.executeValidation(hashedString);
+        } catch (e) {
+            this.hasherLogger.error({ error: e, serviceName: this.ServiceName }, `Erro de validação do tipop string hash no ${this.ServiceName}`);
+            throw new Error('Verifique novamente a senha enviada!')
         }
     }
 
