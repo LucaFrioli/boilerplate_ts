@@ -43,4 +43,17 @@ export default class DateManager {
             timeZone: timezone
         }).format(date)
     }
+
+    public static isDate(input: unknown): boolean {
+        if (input instanceof Date) {
+            return !isNaN(input.getTime());
+        }
+
+        if(typeof input === 'string'){
+            const d = new Date(input);
+            return !isNaN(d.getTime()) &&  d.toISOString() !== 'Invalid Date';
+        }
+
+        return false;
+    }
 }
