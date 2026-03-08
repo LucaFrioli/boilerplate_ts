@@ -1,5 +1,5 @@
-import {env} from '@Configs/env.js';
-import { createChildLogger } from '@Configs/logger.js';
+import { env } from '@Configs/env.js';
+import { createChildLogger, type errorLevels } from '@Configs/logger.js';
 import type { DeepReadonly } from '@Types';
 
 export interface IEntity<T, Tout> {
@@ -8,9 +8,9 @@ export interface IEntity<T, Tout> {
 }
 
 export abstract class BaseEntity<T, Tout> implements IEntity<T, Tout> {
-    protected abstract readonly entityName:string;
+    protected abstract readonly entityName: string;
     protected props: T;
-    protected entityLogger = createChildLogger({fileType: 'entity', module: 'bussinesLogic', service:'valuation'});
+    protected entityLogger = createChildLogger({ fileType: 'entity', module: 'bussinesLogic', service: 'valuation' });
 
     constructor(data: unknown) {
         this.props = this.validate(data);
@@ -22,10 +22,10 @@ export abstract class BaseEntity<T, Tout> implements IEntity<T, Tout> {
 
     }
 
-    protected handlingFatalError(entityName: string, error: unknown, message:string): never{
-        this.entityLogger.error({serviceName: entityName, error: error}, message);
+    protected handlingUserError(errorLevel: errorLevels, entityName: string, error: unknown, message: string): never {
+        this.entityLogger[errorLevel]({ serviceName: entityName, error: error }, message);
         throw new Error(`Erro interno crítico, contate algum administrador por meio dos canais legais ${env.EMAIL_TO_CONTACT}`);
-        
+
     }
 
     public abstract toPublicDTO(): DeepReadonly<Tout>;

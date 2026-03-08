@@ -7,6 +7,7 @@ const logsFilesPath = resolve(rootDir, 'logs', logFileName);
 const currentEnv = process.env.NODE_ENV || 'development';
 const currentAppName = process.env.APP_NAME
 
+export type errorLevels = 'info' | 'warn' | 'error' | 'fatal'
 
 // Definimos as strings permitidas. O TS vai sugerir estas opções automaticamente.
 export type FileType = 
