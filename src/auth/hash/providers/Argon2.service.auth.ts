@@ -28,10 +28,32 @@ export default class Argon2Provider extends BaseHasher {
     }
 
 
-    public async executeCompare(payload: string, hashedString: string): Promise<boolean> {
+    protected async executeCompare(payload: string, hashedString: string): Promise<boolean> {
+        if (!this.validateHash(hashedString)) {
+            return false;
+        }
+
         return await verify(hashedString, payload, {
             secret: this.argonConfigs.secret
         })
 
+    }
+
+    protected executeValidation(hashedString: string): boolean {
+        /**
+         * PHC String Format para Argon2:
+         * $argon2(i|d|id)$v=<version>$m=<memory>,t=<time>,p=<parallelism>$<salt>$<hash>
+         *
+         * - Variantes: argon2i | argon2d | argon2id
+         * - v=    → versão do algoritmo (normalmente 19)
+         * - m=    → memoryCost  (número inteiro)
+         * - t=    → timeCost    (número inteiro)
+         * - p=    → parallelism (número inteiro)
+         * - salt  → Base64 sem padding
+         * - hash  → Base64 sem padding
+         */
+        const argon2Regex = /^\$argon2(id|i|d)\$v=\d+\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/;
+
+        return argon2Regex.test(hashedString);
     }
 }
