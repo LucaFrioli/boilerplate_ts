@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type UserI from './User.interface.js';
+import type { UserI } from './User.interface.js';
 import { DBid, Id } from '@Id/IdentityFactory.identity.js';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
 import DateManager from '@Utils/dateManager.util.js';
