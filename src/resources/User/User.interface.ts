@@ -26,6 +26,6 @@ export interface PublicUserI{
    readonly id: AppID;
    username: string;
    email: string;
-   active: string;
+   active: boolean;
    hasBillingProfile: boolean;
 }
