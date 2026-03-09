@@ -84,7 +84,7 @@ export abstract class BaseHasher implements IHasherProvider {
 				{ error: e, serviceName: this.ServiceName },
 				`Erro de validação do tipop string hash no ${this.ServiceName}`,
 			);
-			throw new Error('Verifique novamente a senha enviada!', {cause: e});
+			throw new Error('Verifique novamente a senha enviada!', { cause: e });
 		}
 	}
 
