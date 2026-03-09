@@ -17,6 +17,8 @@ class MongodbConnect {
 			this.mongoConnectLogger.fatal(
 				'Erro no tipo de banco da env caso queira utilizar conexão mongo altere a env',
 			);
+			throw new Error('Erro no tipo de banco da env caso queira utilizar conexão mongo altere a env');
+
 		}
 
 		try {
