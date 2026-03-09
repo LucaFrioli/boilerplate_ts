@@ -1,17 +1,17 @@
-import type { DatabaseID, AppID } from "@Types";
-import { env, type identityTypeSupported } from "@Configs/env.js";
-import type { IIdentityProvider } from "@Id/contracts/IIdentyti.contract.js";
-import NanoIdProvider from "@Id/providers/NanoId.service.identity.js";
-import UuidV4Provider from "@Id/providers/UuidV4.service.identity.js";
-import UuidV7Provider from "@Id/providers/UuidV7.service.identity.js";
+import type { DatabaseID, AppID } from '@Types';
+import { env, type identityTypeSupported } from '@Configs/env.js';
+import type { IIdentityProvider } from '@Id/contracts/IIdentyti.contract.js';
+import NanoIdProvider from '@Id/providers/NanoId.service.identity.js';
+import UuidV4Provider from '@Id/providers/UuidV4.service.identity.js';
+import UuidV7Provider from '@Id/providers/UuidV7.service.identity.js';
 
 type supportedProviders = (typeof identityTypeSupported)[number];
 
 const providers: Record<supportedProviders, new () => IIdentityProvider> = {
 	nanoid: NanoIdProvider,
 	uuidv4: UuidV4Provider,
-	uuidv7: UuidV7Provider
-}
+	uuidv7: UuidV7Provider,
+};
 
 interface AppIdGenerator extends Omit<IIdentityProvider, 'generate'> {
 	generate(): AppID;

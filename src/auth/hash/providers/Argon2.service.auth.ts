@@ -1,7 +1,7 @@
-import { BaseHasher } from "@Auth/hash/contracts/IHasher.contract.js";
+import { BaseHasher } from '@Auth/hash/contracts/IHasher.contract.js';
 import { argon2id, hash, verify, type Options as ArgonOptions } from 'argon2';
-import { env } from "@Configs/env.js";
-import { randomBytes } from "node:crypto";
+import { env } from '@Configs/env.js';
+import { randomBytes } from 'node:crypto';
 
 export default class Argon2Provider extends BaseHasher {
 	protected ServiceName: string = 'Argon2Provider';
@@ -16,17 +16,16 @@ export default class Argon2Provider extends BaseHasher {
 		secret: Buffer.from(env.HASHER_SECURITY_PEPPER),
 		hashLength: env.HASHER_LENGTH,
 
-		salt: randomBytes(env.HASHER_SALT_LENGTH)
+		salt: randomBytes(env.HASHER_SALT_LENGTH),
 	};
 
 	protected async executeHash(payload: string): Promise<string> {
 		const result = await hash(payload, {
 			...this.argonConfigs,
-			salt: randomBytes(env.HASHER_SALT_LENGTH)
+			salt: randomBytes(env.HASHER_SALT_LENGTH),
 		});
 		return result;
 	}
-
 
 	protected async executeCompare(payload: string, hashedString: string): Promise<boolean> {
 		if (!this.validateHash(hashedString)) {
@@ -34,9 +33,8 @@ export default class Argon2Provider extends BaseHasher {
 		}
 
 		return await verify(hashedString, payload, {
-			secret: this.argonConfigs.secret
-		})
-
+			secret: this.argonConfigs.secret,
+		});
 	}
 
 	protected executeValidation(hashedString: string): boolean {
@@ -52,7 +50,8 @@ export default class Argon2Provider extends BaseHasher {
 		 * - salt  → Base64 sem padding
 		 * - hash  → Base64 sem padding
 		 */
-		const argon2Regex = /^\$argon2(id|i|d)\$v=\d+\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/;
+		const argon2Regex =
+			/^\$argon2(id|i|d)\$v=\d+\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/;
 
 		return argon2Regex.test(hashedString);
 	}

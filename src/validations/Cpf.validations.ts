@@ -1,7 +1,11 @@
-import { createChildLogger } from "@/configs/logger.js";
+import { createChildLogger } from '@/configs/logger.js';
 
 export class CpfValidator {
-	private static cpfValidatorLogger = createChildLogger({ module: 'cpf', fileType: "validation", service: 'util' });
+	private static cpfValidatorLogger = createChildLogger({
+		module: 'cpf',
+		fileType: 'validation',
+		service: 'util',
+	});
 
 	/**
 	 * validateAndSaniteze
@@ -13,13 +17,17 @@ export class CpfValidator {
 
 		const clearCpf = rawCpf.replace(/\D/g, '');
 
-		if (clearCpf.length !== 11) throw new Error('Ops um cpf deve ter ao menos 11 dígitos numéricos além de sua mascara');
+		if (clearCpf.length !== 11)
+			throw new Error(
+				'Ops um cpf deve ter ao menos 11 dígitos numéricos além de sua mascara',
+			);
 
 		if (/^(\d)\1+$/.test(clearCpf)) {
-			this.cpfValidatorLogger.warn('Houve uma tentativa de validaçãodo CPF com números repetidos!')
+			this.cpfValidatorLogger.warn(
+				'Houve uma tentativa de validaçãodo CPF com números repetidos!',
+			);
 			throw new Error('O cpf não pode ter números repetidos');
 		}
-
 
 		const parcialCpf = clearCpf.slice(0, -2);
 		const firstDigit = this.generateDigit(parcialCpf);
@@ -27,7 +35,9 @@ export class CpfValidator {
 		const generatedCpf = parcialCpf + firstDigit + secondDigit;
 
 		if (generatedCpf !== clearCpf) {
-			this.cpfValidatorLogger.warn('Tentativa de validação de CPF com digitos verificadores inválidos')
+			this.cpfValidatorLogger.warn(
+				'Tentativa de validação de CPF com digitos verificadores inválidos',
+			);
 			throw new Error('Ops! Digite um cpf válido para poder continuaar com a operação');
 		}
 
@@ -39,7 +49,7 @@ export class CpfValidator {
 		let regressive = cpfArray.length + 1;
 		const total = cpfArray.reduce((acu, v) => {
 			acu += regressive * Number(v);
-			regressive--
+			regressive--;
 			return acu;
 		}, 0);
 		const digit = 11 - (total % 11);

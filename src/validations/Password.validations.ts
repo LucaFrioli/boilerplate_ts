@@ -1,27 +1,33 @@
-import validator from "validator";
-import { createChildLogger } from "@Configs/logger.js";
+import validator from 'validator';
+import { createChildLogger } from '@Configs/logger.js';
 
 type passwordStrengthParams = {
-	securityLevel: 'low' | 'medium' | 'strong',
-	personalize: boolean,
-	strengthSchema?: passwordStrengthValues,
+	securityLevel: 'low' | 'medium' | 'strong';
+	personalize: boolean;
+	strengthSchema?: passwordStrengthValues;
 };
 
 type passwordStrengthValues = {
-	minLength: number,         // senha deve ter pelo menos x caracteres
-	minLowercase?: number,      // pelo menos x letra minúscula
-	minUppercase?: number,      // pelo menos x letra maiúscula
-	minNumbers?: number,        // pelo menos x número
-	minSymbols?: number,        // pelo menos x símbolo/caractere especial
-	returnScore?: boolean,   // retorna true/false em vez de pontuação
-	pointsPerRepeat?: number,   // penaliza repetições
-	pointsPerUnique?: number, // bônus por variedade
+	minLength: number; // senha deve ter pelo menos x caracteres
+	minLowercase?: number; // pelo menos x letra minúscula
+	minUppercase?: number; // pelo menos x letra maiúscula
+	minNumbers?: number; // pelo menos x número
+	minSymbols?: number; // pelo menos x símbolo/caractere especial
+	returnScore?: boolean; // retorna true/false em vez de pontuação
+	pointsPerRepeat?: number; // penaliza repetições
+	pointsPerUnique?: number; // bônus por variedade
 };
 
-
 // Verifica a força de uma senha, com termos pré definidos, porém permitindo poseteriormente personalização caso necessário
-function passwordStrength(value: string, options: passwordStrengthParams = { securityLevel: "medium", personalize: false }): boolean | number {
-	const passwordValidationLogger = createChildLogger({ module: 'password', fileType: 'validation', service: "util" })
+function passwordStrength(
+	value: string,
+	options: passwordStrengthParams = { securityLevel: 'medium', personalize: false },
+): boolean | number {
+	const passwordValidationLogger = createChildLogger({
+		module: 'password',
+		fileType: 'validation',
+		service: 'util',
+	});
 	const errorMessagePrefix = '[Development - ](Password validation module - passwordStrength) ';
 
 	if (typeof value !== 'string') {
@@ -29,18 +35,21 @@ function passwordStrength(value: string, options: passwordStrengthParams = { sec
 		return false;
 	}
 
-	if (Object.hasOwn(options, "personalize") && options.personalize) {
+	if (Object.hasOwn(options, 'personalize') && options.personalize) {
 		try {
-			if (!Object.hasOwn(options, "strengthSchema")) throw new Error('Caso você deseje alterar a validação de senha deve-se passar obrigatóriamente o objeto com suas customizações.');
+			if (!Object.hasOwn(options, 'strengthSchema'))
+				throw new Error(
+					'Caso você deseje alterar a validação de senha deve-se passar obrigatóriamente o objeto com suas customizações.',
+				);
 			const isStrong = validator.isStrongPassword(value, options.strengthSchema);
 			return isStrong;
 		} catch (e) {
 			passwordValidationLogger.error({ error: e }, errorMessagePrefix);
-			throw e
+			throw e;
 		}
 	}
 
-	let defaultschema: passwordStrengthValues
+	let defaultschema: passwordStrengthValues;
 	switch (options.securityLevel) {
 		case 'low':
 			defaultschema = {
@@ -48,10 +57,10 @@ function passwordStrength(value: string, options: passwordStrengthParams = { sec
 				minLowercase: 1,
 				minUppercase: 1,
 				minNumbers: 1,
-			}
+			};
 			break;
 
-		case "strong":
+		case 'strong':
 			defaultschema = {
 				minLength: 15,
 				minLowercase: 3,
@@ -60,10 +69,10 @@ function passwordStrength(value: string, options: passwordStrengthParams = { sec
 				minSymbols: 3,
 				pointsPerRepeat: 1,
 				pointsPerUnique: 1,
-			}
+			};
 			break;
 
-		case "medium":
+		case 'medium':
 			defaultschema = {
 				minLength: 8,
 				minLowercase: 1,
@@ -71,19 +80,20 @@ function passwordStrength(value: string, options: passwordStrengthParams = { sec
 				minUppercase: 1,
 				minSymbols: 1,
 				pointsPerRepeat: 0.5,
-				pointsPerUnique: 1
-			}
+				pointsPerUnique: 1,
+			};
 			break;
 
 		default:
-			passwordValidationLogger.warn(`${errorMessagePrefix} É preciso caso não haja personalização passar ao menos um nível de segurança!`);
+			passwordValidationLogger.warn(
+				`${errorMessagePrefix} É preciso caso não haja personalização passar ao menos um nível de segurança!`,
+			);
 			return false;
 	}
 
-	const isStrong = validator.isStrongPassword(value, defaultschema)
+	const isStrong = validator.isStrongPassword(value, defaultschema);
 
 	return isStrong;
 }
 
-
-export { passwordStrength }
+export { passwordStrength };

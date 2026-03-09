@@ -1,9 +1,9 @@
-import type { DatabaseID, AppID, HashedString } from '@Types'
+import type { DatabaseID, AppID, HashedString } from '@Types';
 
 export interface UserI {
 	readonly id: DatabaseID;
 	readonly publicId: AppID;
-	active: boolean
+	active: boolean;
 	username: string;
 	email: string;
 	passwordHash: HashedString;
@@ -20,7 +20,6 @@ export interface UserI {
 	updatedAt: Date | null;
 	deletedAt: Date | null;
 }
-
 
 export interface PublicUserI {
 	readonly id: AppID;

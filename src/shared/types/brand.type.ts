@@ -1,2 +1,2 @@
 // A criação de uma tipagem brand é realizada para diferenciação de caso de uso, isso permite um refinamento em relação a tipos que podem representar valores similares, mas são conceitualmente diferentes, isso ajuda a ter um crontorle de fluxo mais fino definndo onde cada coisa vai, a dependenr do uso da typagem em si, sendo T o tipo passado podendo ser primitivo ou complexo e B a flag que diferencia qual tipo específico é
-export type Brand<T, B> = T & { readonly __brand: B }
+export type Brand<T, B> = T & { readonly __brand: B };

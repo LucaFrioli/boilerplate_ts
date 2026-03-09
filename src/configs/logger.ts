@@ -1,13 +1,13 @@
 import { resolve } from 'path';
-import pino from "pino";
+import pino from 'pino';
 
 const rootDir = process.cwd();
-const logFileName = `${new Date().toISOString().substring(0, 10)}.log`
+const logFileName = `${new Date().toISOString().substring(0, 10)}.log`;
 const logsFilesPath = resolve(rootDir, 'logs', logFileName);
 const currentEnv = process.env.NODE_ENV || 'development';
-const currentAppName = process.env.APP_NAME
+const currentAppName = process.env.APP_NAME;
 
-export type errorLevels = 'info' | 'warn' | 'error' | 'fatal'
+export type errorLevels = 'info' | 'warn' | 'error' | 'fatal';
 
 // Definimos as strings permitidas. O TS vai sugerir estas opções automaticamente.
 export type FileType =
@@ -35,25 +35,25 @@ export const createChildLogger = (params: LoggerParams) => {
 };
 
 const pinoConfigs = {
-	level: currentEnv === "development" ? 'debug' : 'info',
+	level: currentEnv === 'development' ? 'debug' : 'info',
 	redact: {
 		paths: ['password', 'DATABASE_PASSWORD', 'user.token', 'authorization'],
-		placeholder: '******'
+		placeholder: '******',
 	},
 
 	base: {
 		env: currentEnv,
-		app_name: currentAppName
+		app_name: currentAppName,
 	},
 
 	timestamp: pino.stdTimeFunctions.isoTime,
-}
+};
 
 // Target para console/desenvolvimento
 const consoleTarget: pino.TransportTargetOptions = {
 	target: currentEnv === 'development' ? 'pino-pretty' : 'pino/file',
 	level: currentEnv === 'development' ? 'debug' : 'info',
-	options: currentEnv === 'development' ? { colorize: true } : {}
+	options: currentEnv === 'development' ? { colorize: true } : {},
 };
 
 // Target para arquivos de log
@@ -62,14 +62,14 @@ const fileTarget: pino.TransportTargetOptions = {
 	level: 'info',
 	options: {
 		destination: logsFilesPath,
-		mkdir: true
-	}
+		mkdir: true,
+	},
 };
 
 // posteriormente quando tivermos a solução dos banco de dados adicionamos eles aqui de forma inteligente e adaptável
 
 const transport = pino.transport({
-	targets: [consoleTarget, fileTarget]
+	targets: [consoleTarget, fileTarget],
 });
 
-export const logger = pino(pinoConfigs, transport)
+export const logger = pino(pinoConfigs, transport);

@@ -1,7 +1,6 @@
 import express, { type Application } from 'express';
 
 class App {
-
 	public app: Application;
 
 	constructor() {
@@ -15,8 +14,7 @@ class App {
 		this.app.use(express.json());
 	}
 
-	routes() {
-	}
+	routes() {}
 }
 
 export default new App().app;
