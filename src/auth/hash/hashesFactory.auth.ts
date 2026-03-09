@@ -7,26 +7,26 @@ import type { HashedString } from '@Types'
 type supportedProviders = (typeof supportedHashProviders)[number];
 
 interface IHasherGenerator extends Omit<IHasherProvider, 'generate'> {
-    generate(payload: string): Promise<HashedString>;
+	generate(payload: string): Promise<HashedString>;
 }
 
 
 const providers: Record<supportedProviders, new () => IHasherProvider> = {
-    argon2: Argon2Provider,
-    bcrypt: BcryptService
+	argon2: Argon2Provider,
+	bcrypt: BcryptService
 }
 
 class HasherFactory {
-    private static instance: IHasherProvider;
+	private static instance: IHasherProvider;
 
-    public static getProvider(): IHasherProvider {
-        if (!this.instance) {
-            const SelectedProvider = providers[env.HASHER_PROVIDER as supportedProviders];
-            this.instance = new SelectedProvider();
-        }
+	public static getProvider(): IHasherProvider {
+		if (!this.instance) {
+			const SelectedProvider = providers[env.HASHER_PROVIDER as supportedProviders];
+			this.instance = new SelectedProvider();
+		}
 
-        return this.instance
-    }
+		return this.instance
+	}
 }
 
 export const Hasher = HasherFactory.getProvider() as unknown as IHasherGenerator;
