@@ -21,7 +21,6 @@ const baseUserSchema: z.ZodType<UserI> = z.object({
 	username: z
 		.string()
 		.trim()
-		.trim()
 		.lowercase({ error: 'Utilize apenas letras minúsculas' })
 		.min(3, { error: `Usuário deve ter no mínimo 3 caracteres` })
 		.max(30, { error: 'Usuário não pode execeder 30 caracteres' })
