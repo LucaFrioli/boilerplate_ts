@@ -8,7 +8,7 @@ export default class BcryptService extends BaseHasher {
 
 	protected async executeHash(payload: string): Promise<string> {
 		const passwordWithPepper = payload + this.pepper;
-		let rounds: number = env.HASHER_SALT_LENGTH;
+		const rounds: number = env.HASHER_SALT_LENGTH;
 
 		if (rounds < 10) {
 			this.handleFatalErrors(

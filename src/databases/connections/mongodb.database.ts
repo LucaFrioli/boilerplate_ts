@@ -26,7 +26,7 @@ class MongodbConnect {
 			this.mongoConnectLogger.info('Conexão realizada com sucesso');
 		} catch (e) {
 			this.mongoConnectLogger.fatal({ error: e }, 'Falha na conexão do banco!');
-			throw new Error('Erro de conexão com o banco de dados mongo: ' + e);
+			throw new Error('Erro de conexão com o banco de dados mongo:', { cause: e });
 		}
 	}
 }
