@@ -30,7 +30,7 @@ export function StringWithLegthGen<N extends number>(value: string, n: N): Strin
 			{ expectedLength: n, recivedLegth: value.length },
 			'Passaram um valor com tamanho diferente do esperado',
 		);
-		throw new Error(`Tanaho esperado ${n}, tamanho recebido ${value.length}`);
+		throw new Error(`Tanaho esperado ${String(n)}, tamanho recebido ${String(value.length)}`);
 	}
 
 	return value as StringWithLegth<N>;

@@ -17,7 +17,7 @@ export default class DateManager {
 				{ methood: 'verifyIsIsoString', input: input },
 				'Ops, algo de errado aconteceu durante o desenvolvimento',
 			);
-			throw new Error(`Data inválida: o valor '${input}' não pode ser convertido`);
+			throw new Error(`Data inválida: o valor '${String(input)}' não pode ser convertido`);
 		}
 
 		return parsedDate;
