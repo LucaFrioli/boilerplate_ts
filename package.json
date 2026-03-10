@@ -4,7 +4,7 @@
   "description": "",
   "main": "./dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --tsconfig tsconfig.app.json src/server.ts",
     "build": "npm run build:lint && tsup src/server.ts --tsconfig tsconfig.app.json --format esm --minify --clean",
     "build:lint": "tsc --noEmit",
     "start": "node ./dist/server.js",
