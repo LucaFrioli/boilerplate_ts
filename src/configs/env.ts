@@ -107,7 +107,7 @@ const envSchema = z.object({
 		.transform((val) => {
 			if (val > 16)
 				envLogger.warn(
-					`HASHER_PARALLELISM alto! ${val} trheads alocadas, verifique o desempenho da aplicação!`,
+					`HASHER_PARALLELISM alto! ${String(val)} trheads alocadas, verifique o desempenho da aplicação!`,
 				);
 			return val;
 		})
@@ -157,9 +157,9 @@ const envSchema = z.object({
 const _env = envSchema.safeParse(process.env);
 
 if (!_env.success) {
-	const { fieldErrors } = _env.error.flatten();
+	const fieldErrors = z.treeifyError(_env.error);
 	console.error('‼️ ‼️ Erro grave na configuração de ambiente ‼️ ‼️');
-	console.table(fieldErrors);
+	console.dir(fieldErrors, { depth: null, colors: true });
 
 	throw new Error('Varivais de ambiente inválidas, edite o .env tente iniciar a api novamente!');
 }

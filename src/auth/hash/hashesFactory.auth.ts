@@ -16,11 +16,12 @@ const providers: Record<supportedProviders, new () => IHasherProvider> = {
 };
 
 class HasherFactory {
-	private static instance: IHasherProvider;
+	private static instance?: IHasherProvider;
 
 	public static getProvider(): IHasherProvider {
 		if (!this.instance) {
-			const SelectedProvider = providers[env.HASHER_PROVIDER as supportedProviders];
+			const selectedProviderName: supportedProviders = env.HASHER_PROVIDER;
+			const SelectedProvider = providers[selectedProviderName];
 			this.instance = new SelectedProvider();
 		}
 

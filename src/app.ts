@@ -9,12 +9,12 @@ class App {
 		this.routes();
 	}
 
-	middlewares() {
+	private middlewares(): void {
 		this.app.use(express.urlencoded({ extended: true }));
 		this.app.use(express.json());
 	}
 
-	routes() {}
+	private routes(): void {}
 }
 
 export default new App().app;
