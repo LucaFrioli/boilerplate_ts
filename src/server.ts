@@ -10,7 +10,7 @@ try {
 		logger.info(
 			{
 				port: env.PORT,
-				url: `http://localhost:${env.PORT}`,
+				url: `http://localhost:${String(env.PORT)}`,
 				env: env.NODE_ENV,
 				hasher: env.HASHER_PROVIDER,
 				database: env.DATABASE_TYPE,
@@ -19,6 +19,17 @@ try {
 		);
 	});
 } catch (e) {
-	logger.fatal({ error: `${e}` }, '‼️ Erro ao inciar o servidor');
+	if (e instanceof Error) {
+		logger.fatal(
+			{
+				message: e.message,
+				stack: e.stack,
+				name: e.name,
+			},
+			'‼️ Erro Crítico (Instância de Erro) ao iniciar o servidor',
+		);
+	} else {
+		logger.fatal({ rawError: e }, '‼️ Erro Crítico (Desconhecido) ao iniciar o servidor');
+	}
 	process.exit(1);
 }

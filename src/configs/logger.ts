@@ -1,5 +1,5 @@
 import { resolve } from 'path';
-import pino from 'pino';
+import pino, { type Logger } from 'pino';
 
 const rootDir = process.cwd();
 const logFileName = `${new Date().toISOString().substring(0, 10)}.log`;
@@ -30,7 +30,7 @@ export type LoggerParams = {
 } & Record<string, unknown>;
 
 // Criamos uma função helper para gerar o child logger já tipado
-export const createChildLogger = (params: LoggerParams) => {
+export const createChildLogger = (params: LoggerParams): Logger => {
 	return logger.child({ ...params });
 };
 

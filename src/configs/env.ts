@@ -161,7 +161,11 @@ if (!_env.success) {
 	console.error('‼️ ‼️ Erro grave na configuração de ambiente ‼️ ‼️');
 	console.dir(fieldErrors, { depth: null, colors: true });
 
-	throw new Error('Varivais de ambiente inválidas, edite o .env tente iniciar a api novamente!');
+	envLogger.fatal(
+		{ e: fieldErrors },
+		'Erro fatal da aplicação, faça a correção para poder inicar a aplicação',
+	);
+	process.exit(1);
 }
 
 export const env = _env.data;
