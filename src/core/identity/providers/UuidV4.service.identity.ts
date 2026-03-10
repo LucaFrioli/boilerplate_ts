@@ -12,7 +12,7 @@ export default class UuidV4Provider extends BaseIdentityGenerator {
 	protected generateValidation(id: string): boolean {
 		if (typeof id !== 'string' || id.length !== 36) {
 			this.identityLogger.warn(
-				{ serviceName: this.serviceName, valueOfId: `${id}`, typeOfValue: typeof id },
+				{ serviceName: this.serviceName, valueOfId: id, typeOfValue: typeof id },
 				`O id fornecido foi provavelmentte comprometido ou não é do tipo string, ${id}`,
 			);
 			return false;

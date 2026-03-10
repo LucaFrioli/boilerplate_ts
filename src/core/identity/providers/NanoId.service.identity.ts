@@ -19,7 +19,13 @@ export default class NanoIdProvider extends BaseIdentityGenerator {
 		let id: string = '';
 
 		for (let i = 0; i < bytes.length && id.length < NanoIdProvider.DEFAULT_SIZE; i++) {
-			const index = bytes[i]! & NanoIdProvider.BITMASK;
+			const vByte = bytes[i];
+
+			if (vByte === undefined) {
+				this.logFailures('generateLogic', 'Erro ao tentar acessar bite inexistente');
+			}
+
+			const index = vByte & NanoIdProvider.BITMASK;
 			const char = NanoIdProvider.ALPHABET[index];
 			if (char) {
 				id += char;
@@ -32,14 +38,14 @@ export default class NanoIdProvider extends BaseIdentityGenerator {
 	protected generateValidation(id: string): boolean {
 		if (typeof id !== 'string' || id.length !== NanoIdProvider.DEFAULT_SIZE) {
 			this.identityLogger.warn(
-				{ serviceName: this.serviceName, length: id?.length, type: typeof id },
+				{ serviceName: this.serviceName, valueOfId: id, type: typeof id },
 				'Tentativa de validação de NanoId com estrutura corrompida',
 			);
 			return false;
 		}
 
 		const pattern = new RegExp(
-			`^[${NanoIdProvider.ALPHABET}]{${NanoIdProvider.DEFAULT_SIZE}}$`,
+			`^[${NanoIdProvider.ALPHABET}]{${String(NanoIdProvider.DEFAULT_SIZE)}}$`,
 		);
 		return pattern.test(id);
 	}

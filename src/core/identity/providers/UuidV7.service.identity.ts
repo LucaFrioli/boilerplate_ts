@@ -14,11 +14,22 @@ export default class UuidV7Provider extends BaseIdentityGenerator {
 		// sobreescrvemos os primeiros 6 bytes com o timestamp
 		value.writeUintBE(timestamp, 0, 6);
 
+		// definição lógica para bites específicos
+		const v6Byte = value[6];
+		const v8Byte = value[8];
+
+		if (v6Byte === undefined || v8Byte === undefined) {
+			this.logFailures(
+				'generateLogic',
+				'Erro fatal de acesso, verifique a criação do buffer do nanoID',
+			);
+		}
+
 		// setamos obrigatoriamente que o sexto byte começe com 7 definindo a verção do UUID
-		value[6] = (value[6]! & 0x0f) | 0x70;
+		value[6] = (v6Byte & 0x0f) | 0x70;
 
 		// definimos a regra de inicio para o 8º byte
-		value[8] = (value[8]! & 0x3f) | 0x80;
+		value[8] = (v8Byte & 0x3f) | 0x80;
 
 		//retrona o uuid formatado em hexadecimal e válido, literalmente transformamos binário em hexadecimal
 		return value.toString('hex').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5');
@@ -26,7 +37,7 @@ export default class UuidV7Provider extends BaseIdentityGenerator {
 	protected generateValidation(id: string): boolean {
 		if (typeof id !== 'string' || id.length !== 36) {
 			this.identityLogger.warn(
-				{ serviceName: this.serviceName, valueOfId: `${id}`, typeOfValue: typeof id },
+				{ serviceName: this.serviceName, valueOfId: id, typeOfValue: typeof id },
 				`O id fornecido foi provavelmentte comprometido ou não é do tipo string, ${id}`,
 			);
 			return false;

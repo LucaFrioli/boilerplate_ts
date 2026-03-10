@@ -35,7 +35,7 @@ export default abstract class BaseIdentityGenerator implements IIdentityProvider
 	}
 
 	protected logFailures(method: string, error: unknown): never {
-		this.identityLogger.error(
+		this.identityLogger.fatal(
 			{ method, error, serviceName: this.serviceName },
 			`Falha cŕitica no módulo de identidade ${this.serviceName}`,
 		);
