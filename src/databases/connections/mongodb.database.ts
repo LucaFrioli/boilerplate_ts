@@ -12,14 +12,15 @@ class MongodbConnect {
 		databaseType: env.DATABASE_TYPE,
 	});
 
-	public static async connect() {
+	public static async connect(): Promise<void> {
 		if (env.DATABASE_TYPE !== 'mongodb') {
 			this.mongoConnectLogger.fatal(
+				{
+					databasTypePassed: env.DATABASE_TYPE,
+				},
 				'Erro no tipo de banco da env caso queira utilizar conexão mongo altere a env',
 			);
-			throw new Error(
-				'Erro no tipo de banco da env caso queira utilizar conexão mongo altere a env',
-			);
+			throw new Error('Erro no tipo de banco da env verifique se DATABSE_TYPE é mongodb');
 		}
 
 		try {

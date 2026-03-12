@@ -37,7 +37,7 @@ class MongoConnectionString {
 	 * em uma URI válida independente do uso de carcteres especiais
 	 * @throws {Error} - caso o DATABSE_TYPE não seja mongodb
 	 */
-	private initialize() {
+	private initialize(): void {
 		const { DATABASE_TYPE, DATABASE_PASSWORD } = env;
 
 		if (DATABASE_TYPE !== 'mongodb') {
@@ -79,7 +79,7 @@ class MongoConnectionString {
 			DATABASE_USERNAME && DATABASE_PASSWORD ? `${DATABASE_USERNAME}:${this.password}@` : '';
 
 		if (NODE_ENV === 'development') {
-			this._uri = `mongodb://${auth}${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?retryWrites=true&authSource=admin`;
+			this._uri = `mongodb://${auth}${DATABASE_HOST}:${String(DATABASE_PORT)}/${DATABASE_NAME}?retryWrites=true&authSource=admin`;
 
 			this.mongoConnectionstringLogger.debug(
 				{
@@ -105,6 +105,15 @@ class MongoConnectionString {
 	 */
 	private prodFormation(): void {
 		const { DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USERNAME } = env;
+
+		if (typeof DATABASE_USERNAME !== 'string') {
+			this.mongoConnectionstringLogger.fatal(
+				'Em produção adicione as credências, válidas no arquivo .env',
+			);
+			throw new Error(
+				'É necessário adiiconar credências para realização do deploy, e testes em staging',
+			);
+		}
 
 		const auth = `${DATABASE_USERNAME}:${this.password}@`;
 		const isSRV = DATABASE_HOST.includes('.mongodb.net');
@@ -138,7 +147,7 @@ class MongoConnectionString {
 			return;
 		}
 
-		this._uri = `mongodb://${auth}${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?${this._fine_settings}`;
+		this._uri = `mongodb://${auth}${DATABASE_HOST}:${String(DATABASE_PORT)}/${DATABASE_NAME}?${this._fine_settings}`;
 		this.mongoConnectionstringLogger.info(
 			{
 				host: DATABASE_HOST,

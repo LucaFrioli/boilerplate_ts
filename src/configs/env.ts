@@ -5,7 +5,7 @@ import { createChildLogger } from './logger.js';
 
 // conforme o boilerplate for crescendo adicionarei mais bancos
 const envLogger = createChildLogger({ fileType: 'core', module: 'env', service: 'valuation' });
-const enabledDatabaseConections = ['mongodb'] as const;
+const enabledDatabaseConections = ['mongodb', 'postgres'] as const;
 export const supportedHashProviders = ['argon2', 'bcrypt'] as const;
 const timezoneSupported = ['UTC', 'America/Sao_Paulo', 'Europa/Rome'] as const;
 const localeSupported = ['pt-BR', 'en-US', 'it-IT'] as const;
