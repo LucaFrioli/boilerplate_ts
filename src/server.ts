@@ -4,7 +4,7 @@ import app from './app.js';
 import MongodbConnect from '@Database/connections/mongodb.database.js';
 
 try {
-	await MongodbConnect.connect();
+	await new MongodbConnect().connect();
 	app.listen(env.PORT, () => {
 		// Substituímos console.log pelo logger para manter o padrão de infraestrutura
 		logger.info(

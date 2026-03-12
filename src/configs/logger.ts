@@ -34,6 +34,23 @@ export const createChildLogger = (params: LoggerParams): Logger => {
 	return logger.child({ ...params });
 };
 
+/**
+ * **handlerContractsErrorsParams**
+ *
+ * Esta interface específica permite uqe apenas os parametros necessários que uma
+ * implementação de um contrato de classe abtrata precisa enviar para concluir o
+ * refinamento dos logs, enquanto já nas classes abstratas em si é onde deverão conter
+ * os refinamentos de módúlo, regras de négocio para auditória e afins, o loggger em
+ * tendencia tem como ideia ser flexivel e ao mesmo tempo bem informativo, está interface
+ * vem como um utilitário pr arefinar logs de handling de erros dentro dos
+ * contratos da aplicação
+ */
+export interface handlerContractsErrorsParams {
+	erroLevel: errorLevels;
+	error: unknown;
+	message: string;
+}
+
 const pinoConfigs = {
 	level: currentEnv === 'development' ? 'debug' : 'info',
 	redact: {

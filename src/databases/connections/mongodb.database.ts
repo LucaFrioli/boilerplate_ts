@@ -1,35 +1,52 @@
 import mongoose from 'mongoose';
 import { mongoURI } from '../uri/mongodb.uri.js';
-import { createChildLogger } from '@Configs/logger.js';
 import { env } from '@Configs/env.js';
+import { BaseConnectDb } from './contracts/BaseConnect.contract.js';
 
-class MongodbConnect {
-	private static readonly _uri: string = mongoURI;
-	private static mongoConnectLogger = createChildLogger({
-		module: 'mongodb',
-		fileType: 'connection',
-		service: 'database',
-		databaseType: env.DATABASE_TYPE,
-	});
+class MongodbConnect extends BaseConnectDb {
+	protected connectionName: string = 'MongoConnect';
+	protected _uri: string = mongoURI;
 
-	public static async connect(): Promise<void> {
+	public async connect(): Promise<void> {
 		if (env.DATABASE_TYPE !== 'mongodb') {
-			this.mongoConnectLogger.fatal(
-				{
-					databasTypePassed: env.DATABASE_TYPE,
-				},
-				'Erro no tipo de banco da env caso queira utilizar conexão mongo altere a env',
-			);
-			throw new Error('Erro no tipo de banco da env verifique se DATABSE_TYPE é mongodb');
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: 'Tentativa de conexão em mongo db sem credenciais ou tipo definido em env',
+				message: 'Erro no tipo de banco da env verifique se DATABSE_TYPE é mongodb',
+			});
 		}
 
 		try {
 			await mongoose.connect(this._uri);
-			this.mongoConnectLogger.info('Conexão realizada com sucesso');
+			this.logInfo('Conexão realizada com sucesso');
+			this.connectionStatus = true;
 		} catch (e) {
-			this.mongoConnectLogger.fatal({ error: e }, 'Falha na conexão do banco!');
-			throw new Error('Erro de conexão com o banco de dados mongo:', { cause: e });
+			this.connectionStatus = false;
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: e,
+				message: 'Falha na conexão do banco!',
+			});
 		}
+	}
+
+	public async disconnect(): Promise<void> {
+		try {
+			await mongoose.disconnect()
+			this.connectionStatus = false;
+			this.logInfo('Conexão encerrada com sucesso!');
+		} catch (e) {
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: e,
+				message: 'Falha ao realizar a desconexão com o banco de dados'
+			})
+		}
+
+	}
+
+	public isConnected(): boolean {
+		return mongoose.connection.readyState === mongoose.ConnectionStates.connected;
 	}
 }
 
