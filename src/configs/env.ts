@@ -2,14 +2,16 @@ import z from 'zod';
 import 'dotenv/config';
 import { passwordStrength } from '@Validations/Password.validations.js';
 import { createChildLogger } from './logger.js';
+import { dbEnvValidationSchema } from './schemas/dbEnv.schema.js';
+import {
+	supportedHashProviders,
+	timezoneSupported,
+	localeSupported,
+	identityTypeSupported,
+} from './constants/env.constants.js';
 
 // conforme o boilerplate for crescendo adicionarei mais bancos
 const envLogger = createChildLogger({ fileType: 'core', module: 'env', service: 'valuation' });
-const enabledDatabaseConections = ['mongodb', 'postgres'] as const;
-export const supportedHashProviders = ['argon2', 'bcrypt'] as const;
-const timezoneSupported = ['UTC', 'America/Sao_Paulo', 'Europa/Rome'] as const;
-const localeSupported = ['pt-BR', 'en-US', 'it-IT'] as const;
-export const identityTypeSupported = ['uuidv4', 'uuidv7', 'nanoid'] as const;
 
 const envSchema = z.object({
 	NODE_ENV: z.enum(['development', 'stage', 'production']).default('development'),
@@ -21,35 +23,11 @@ const envSchema = z.object({
 	APP_TIMEZONE: z.enum(timezoneSupported).default('UTC'),
 	APP_LOCALE: z.enum(localeSupported).default('pt-BR'),
 
-	// database info
-	DATABASE_TYPE: z.enum(enabledDatabaseConections, {
-		error: `Ops aparentemente o db desejado ainda não está disponível, utilize algum destes ${enabledDatabaseConections.join(', ')}`,
-	}),
-	DATABASE_HOST: z.string().trim().default('localhost'),
-	DATABASE_PORT: z.coerce
-		.number()
-		.int({ error: 'A porta de um banco de dados deve ser um número inteiro' }),
-	DATABASE_NAME: z.string().trim(),
-	DATABASE_USERNAME: z.string().trim().optional(),
-	DATABASE_PASSWORD: z
-		.string()
-		.min(10)
-		.max(100)
-		.refine(
-			(value) => {
-				return passwordStrength(value);
-			},
-			{ error: 'A senha do banco não atende os requisitos de segurança' },
-		)
-		.optional(),
-	DATABASE_ID_DEFAULT: z
-		.enum(identityTypeSupported, {
-			error: `Defina um padrão de id para os registros do banco contindos nesta lista ${identityTypeSupported.join(',')}`,
-		})
-		.default('uuidv7'),
-
 	// Contatos de administradores
 	EMAIL_TO_CONTACT: z.email(),
+
+	// database keys validations
+	...dbEnvValidationSchema.shape,
 
 	//hasher configs
 	HASHER_PROVIDER: z

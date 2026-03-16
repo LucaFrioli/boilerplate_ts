@@ -1,5 +1,6 @@
 import type { DatabaseID, AppID } from '@Types';
-import { env, type identityTypeSupported } from '@Configs/env.js';
+import { env } from '@Configs/env.js';
+import { type identityTypeSupported } from '@Configs/constants/env.constants.js';
 import type { IIdentityProvider } from '@Id/contracts/IIdentyti.contract.js';
 import NanoIdProvider from '@Id/providers/NanoId.service.identity.js';
 import UuidV4Provider from '@Id/providers/UuidV4.service.identity.js';
