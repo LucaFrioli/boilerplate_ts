@@ -3,11 +3,11 @@ import 'dotenv/config';
 import { passwordStrength } from '@Validations/Password.validations.js';
 import { createChildLogger } from './logger.js';
 import { dbEnvValidationSchema } from './schemas/dbEnv.schema.js';
+import { idEnvValidationsSchema } from './schemas/idEnv.schema.js';
 import {
 	supportedHashProviders,
 	timezoneSupported,
 	localeSupported,
-	identityTypeSupported,
 } from './constants/env.constants.js';
 
 // conforme o boilerplate for crescendo adicionarei mais bancos
@@ -102,34 +102,7 @@ const envSchema = z.object({
 		.default(65536),
 
 	// Definição identificadores da aplicação
-	IDENTIFIER_PATTERN: z
-		.enum(identityTypeSupported, {
-			error: `Defina um tipode identificador suportado entre estes ${identityTypeSupported.join(', ')}`,
-		})
-		.default('nanoid'),
-	IDENTIFIER_NANOID_ALPHABET: z
-		.string()
-		.trim()
-		.min(32, { error: 'alfabetos menores de 32 são inseguros' })
-		.max(64, { error: 'alfabetos com mais de 64 caracteres fogem do URL-safe' })
-		.refine(
-			(val) => {
-				return new Set(val).size === val.length;
-			},
-			{ error: 'O alfabeto não pode conter caracteres iguas, duplicatas reduzem a entropia' },
-		)
-		.refine((val) => /^[A-Za-z0-9\-_]+$/.test(val), {
-			error: 'O alfabeto deve conter apenas caracteres URL safe',
-		})
-		.default('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'),
-	IDENTIFIER_NANOID_SIZE: z.coerce
-		.number()
-		.int()
-		.min(16, { error: 'Mínimo 16 chars para entropia adequada' })
-		.max(32, {
-			error: 'Acima de 32 chars o ganho entrópico é desnecessário para IDs de aplicação',
-		})
-		.default(21),
+	...idEnvValidationsSchema.shape,
 });
 
 const _env = envSchema.safeParse(process.env);
