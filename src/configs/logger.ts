@@ -19,7 +19,8 @@ export type FileType =
 	| 'util'
 	| 'connection'
 	| 'uri'
-	| 'core';
+	| 'core'
+	| 'type';
 
 export type ServiceType = 'database' | 'hasher' | 'util' | 'valuation' | 'generation' | 'typo';
 

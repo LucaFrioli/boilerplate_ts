@@ -32,17 +32,16 @@ class MongodbConnect extends BaseConnectDb {
 
 	public async disconnect(): Promise<void> {
 		try {
-			await mongoose.disconnect()
+			await mongoose.disconnect();
 			this.connectionStatus = false;
 			this.logInfo('Conexão encerrada com sucesso!');
 		} catch (e) {
 			this.handlerErrors({
 				erroLevel: 'fatal',
 				error: e,
-				message: 'Falha ao realizar a desconexão com o banco de dados'
-			})
+				message: 'Falha ao realizar a desconexão com o banco de dados',
+			});
 		}
-
 	}
 
 	public isConnected(): boolean {
