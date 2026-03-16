@@ -1,3 +1,13 @@
+import { createChildLogger } from '../logger.js';
+
+// default logger to env
+
+export const envLogger = createChildLogger({
+	fileType: 'core',
+	module: 'env',
+	service: 'valuation',
+});
+
 // loacale and date constants
 
 export const timezoneSupported = ['UTC', 'America/Sao_Paulo', 'Europa/Rome'] as const;

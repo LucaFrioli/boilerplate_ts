@@ -1,24 +1,19 @@
 import { createChildLogger } from '@Configs/logger.js';
 import { env } from '@Configs/env.js';
+import { BaseUri } from './contracts/BaseUri.contract.js';
+import type { DatabaseURI } from '@/shared/types/security.types.js';
 
-class MongoConnectionString {
-	private _uri: string = '';
+class MongoConnectionString extends BaseUri {
+	protected _uri?: DatabaseURI;
 	// caso não tenha senha se mantém, porém se foi criada uma senha a URI é definida de froma autônoma para uma normalização de URIEncode
-	private password: string = '';
+	protected _password?: string;
+
 	private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin';
 	private mongoConnectionstringLogger = createChildLogger({
 		module: 'mongodb',
 		fileType: 'uri',
 		service: 'database',
 	});
-
-	constructor() {
-		this.initialize();
-	}
-
-	public get uri(): string {
-		return this._uri;
-	}
 
 	private maskUri(uri: string): string {
 		// Regex que encontra ':senha@' e substitui por ':******@'
@@ -41,13 +36,14 @@ class MongoConnectionString {
 		const { DATABASE_TYPE, DATABASE_PASSWORD } = env;
 
 		if (DATABASE_TYPE !== 'mongodb') {
-			this.mongoConnectionstringLogger.fatal(
-				{ databaseType: DATABASE_TYPE },
-				'Tentativa de formação MongoURI porém DATABASE_TYPE é incompatível',
-			);
-			throw new Error(
-				`FATAL ERROR tetativa de fromação de URI Mongo porém env configurda como ${DATABASE_TYPE}`,
-			);
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: {
+					databaseType: DATABASE_TYPE,
+					specify: 'Tentativa de formação MongoURI porém DATABASE_TYPE é incompatível',
+				},
+				message: `FATAL ERROR tetativa de fromação de URI Mongo porém env configurda como ${DATABASE_TYPE}`,
+			});
 		}
 
 		if (DATABASE_PASSWORD) {
