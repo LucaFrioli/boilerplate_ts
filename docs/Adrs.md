@@ -59,3 +59,14 @@ Este documento registra as decisões técnicas fundamentais tomadas durante a co
 **Decisão**: Extrair arrays de suporte e constantes estáticas (*`dbProtocols`, `identityTypeSupported`, etc.*) para arquivos exclusivos em `src/configs/constants/`.
 
 **Justificativa**: Cria uma "Base de Pirâmide" (Level 0) que não depende de ninguém. Permite que *Tipos*, *TypeGuards* e *Schemas* consumam a mesma verdade absoluta sem gerar ciclos, mantendo a inferência de tipo do TypeScript íntegra e robusta para o "Estado da Arte".
+
+
+## ADR 009: Type Guards e Type Narrowing como Fronteiras de Segurança (Cybersecurity)
+**Data: 2026-03-18** *Contexto*: O cast de tipos clássico (`as Type`) no TypeScript mascara erros em tempo de execução, permitindo que o estado da memória desvie do contrato estático do compilador (Undefined Behaviors). Em sistemas críticos, assumir a tipagem sem validação de memória gera vulnerabilidades exploráveis.
+
+**Decisão**: Banir o uso de Asserções de Tipo (`as`) em fluxos críticos de infraestrutura. Utilizar Custom Type Guards (`function isType(val): val is Type`) atrelados a blocos de controle de fluxo de Fail-Fast (lançando erros mapeados caso o fluxo seja quebrado).
+
+**Justificativa**:
+- Segurança (Defense in Depth): Alinha a verificação de memória (*Runtime*) com a verificação estática (*Compile-time*). Inputs maliciosos são interceptados na fronteira da função antes mesmo de entrarem na lógica de domínio.
+
+- Inspiração no Rust: Prepara a arquitetura para o uso de match e extração segura de Result/Option no Rust. A coerção explícita suportada por Type Guards estreita o tipo, criando uma aplicação matematicamente rastreável onde estados inválidos são "`unrepresentable`" (impossíveis de representar no código válido).

@@ -33,7 +33,7 @@ export function isValidUri(uri: unknown): uri is Uri {
 		new URL(uri);
 		return true;
 	} catch (e) {
-		securityTypesLogger.info(
+		securityTypesLogger.warn(
 			{ error: e, specificType: 'Uri', rawValue: uri },
 			'tentativa de asserção de tipo errônea',
 		);

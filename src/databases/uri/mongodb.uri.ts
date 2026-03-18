@@ -1,159 +1,88 @@
-import { createChildLogger } from '@Configs/logger.js';
-import { env } from '@Configs/env.js';
-import { BaseUri } from './contracts/BaseUri.contract.js';
-import type { DatabaseURI } from '@/shared/types/security.types.js';
+import { type DatabaseURI, isDatabaseUri } from '@Types/security.types.js';
+import { BaseUri, type EnvDataForUri } from './contracts/BaseUri.contract.js';
 
 class MongoConnectionString extends BaseUri {
+	protected uriGeneratorName: string = 'MongoConnectionString';
 	protected _uri?: DatabaseURI;
-	// caso não tenha senha se mantém, porém se foi criada uma senha a URI é definida de froma autônoma para uma normalização de URIEncode
 	protected _password?: string;
-
+	protected _specificEnvValues?: Record<string, unknown>;
 	private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin';
-	private mongoConnectionstringLogger = createChildLogger({
-		module: 'mongodb',
-		fileType: 'uri',
-		service: 'database',
-	});
+	private auth: string = '';
 
-	private maskUri(uri: string): string {
-		// Regex que encontra ':senha@' e substitui por ':******@'
-		return uri.replace(/:([^:@]+)@/, ':******@');
+	protected validateSpecificEnvValues(): void {
+		throw new Error('Method not implemented.');
 	}
-
-	private normalizePassword(password: string): string {
-		return encodeURIComponent(password);
-	}
-
-	/**
-	 * initilize
-	 * Esta função é responsável por validar algumas informações vindas do env,
-	 * após a validação da sinformações e se houver senha no banco de dados ela
-	 * normaliza a senha para poder se encaixar
-	 * em uma URI válida independente do uso de carcteres especiais
-	 * @throws {Error} - caso o DATABSE_TYPE não seja mongodb
-	 */
-	private initialize(): void {
-		const { DATABASE_TYPE, DATABASE_PASSWORD } = env;
-
-		if (DATABASE_TYPE !== 'mongodb') {
+	protected guardBroken(): void {
+		if (!this._baseEnvValues) {
 			this.handlerErrors({
 				erroLevel: 'fatal',
+				message:
+					'Algo deu errado ao instânciar as variaveis de ambinente para o gerador de URI',
 				error: {
-					databaseType: DATABASE_TYPE,
-					specify: 'Tentativa de formação MongoURI porém DATABASE_TYPE é incompatível',
+					rawValue: this._baseEnvValues,
 				},
-				message: `FATAL ERROR tetativa de fromação de URI Mongo porém env configurda como ${DATABASE_TYPE}`,
 			});
 		}
 
-		if (DATABASE_PASSWORD) {
-			this.password = this.normalizePassword(DATABASE_PASSWORD);
+		if (this._baseEnvValues.DATABASE_TYPE !== 'mongodb') {
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: {
+					databaseType: this._baseEnvValues.DATABASE_TYPE,
+					specify: 'Tentativa de formação MongoURI porém DATABASE_TYPE é incompatível',
+				},
+				message: `FATAL ERROR tetativa de fromação de URI Mongo porém env configurda como ${this._baseEnvValues.DATABASE_TYPE}`,
+			});
 		}
 
-		this.generateUri();
+		if (this._baseEnvValues.DATABASE_PASSWORD && this._baseEnvValues.DATABASE_USERNAME) {
+			this.normalizePassword(this._baseEnvValues.DATABASE_PASSWORD);
+			this.generateAuth(this._baseEnvValues);
+		}
+	}
+	protected maskUriToLog(unmaskUri: string): string {
+		return unmaskUri.replace(/:([^:@]+)@/, ':*********@');
 	}
 
-	/**
-	 * **genreateUri**
-	 *
-	 * Método dedicado a definir como a uri deve ser foca principalmente na de desenvolvimento,
-	 * caso o app não esteja em modeo de desenvolvimento faz a chamda para a criação de URI em prod pelo método específico
-	 * o processo de formatação é o seguinte verifica usuário senha, junta na formatação correta para
-	 * mongo via a constante `auth`, e forma uma conexão `mongodb://`
-	 */
-	private generateUri(): void {
-		const {
-			DATABASE_HOST,
-			DATABASE_PORT,
-			DATABASE_NAME,
-			DATABASE_USERNAME,
-			DATABASE_PASSWORD,
-			NODE_ENV,
-		} = env;
-
-		const auth =
-			DATABASE_USERNAME && DATABASE_PASSWORD ? `${DATABASE_USERNAME}:${this.password}@` : '';
-
-		if (NODE_ENV === 'development') {
-			this._uri = `mongodb://${auth}${DATABASE_HOST}:${String(DATABASE_PORT)}/${DATABASE_NAME}?retryWrites=true&authSource=admin`;
-
-			this.mongoConnectionstringLogger.debug(
-				{
-					host: DATABASE_HOST,
-					port: DATABASE_PORT,
-					uri: this.maskUri(this._uri),
-				},
-				'URI do Banco De Dados para Desenvolvimento gerada',
-			);
-			return;
+	private generateAuth(validatedEnvValues: EnvDataForUri): void {
+		if(validatedEnvValues.NODE_ENV !== 'development' && typeof validatedEnvValues.DATABASE_USERNAME !== 'string' && typeof validatedEnvValues.DATABASE_PASSWORD !== 'string'){
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				message: 'Em produção adicione as credências, válidas no arquivo .env',
+				error:{
+					typeofUserName: typeof validatedEnvValues.DATABASE_USERNAME,
+					typeofPassword: typeof validatedEnvValues.DATABASE_PASSWORD,
+				}
+			})
 		}
 
-		this.prodFormation();
+
+		this.auth = validatedEnvValues.DATABASE_USERNAME && validatedEnvValues.DATABASE_PASSWORD && this._password ? `${validatedEnvValues.DATABASE_USERNAME}:${this._password}@` : '';
 	}
 
-	/**
-	 * **prodFromation**
-	 *
-	 * Este método permite verificar em que tipo de modalidade o mongo está definido podendo formar de demais maneira uris
-	 * para mongo em server via o próprio mongo multihost ou mongo local em prod
-	 *
-	 * **Suporta protocolos SRV (Atlas), Multi-host (Replica Sets) e instâncias únicas.**
-	 */
-	private prodFormation(): void {
-		const { DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USERNAME } = env;
+	protected generateUriToDev(validatedEnvValues: EnvDataForUri): DatabaseURI {
+		const formatedUrl = `mongodb://${this.auth}${validatedEnvValues.DATABASE_HOST}:${String(validatedEnvValues.DATABASE_PORT)}?retryWrites=true&authSource=admin`;
 
-		if (typeof DATABASE_USERNAME !== 'string') {
-			this.mongoConnectionstringLogger.fatal(
-				'Em produção adicione as credências, válidas no arquivo .env',
-			);
-			throw new Error(
-				'É necessário adiiconar credências para realização do deploy, e testes em staging',
-			);
-		}
-
-		const auth = `${DATABASE_USERNAME}:${this.password}@`;
-		const isSRV = DATABASE_HOST.includes('.mongodb.net');
-		const hasMultipleHosts = DATABASE_HOST.includes(',');
-
-		if (isSRV) {
-			this._uri = `mongodb+srv://${auth}${DATABASE_HOST}/${DATABASE_NAME}?${this._fine_settings}`;
-			this.mongoConnectionstringLogger.info(
-				{
-					host: DATABASE_HOST,
-					port: DATABASE_PORT,
-					modality: 'srv',
-					uri: this.maskUri(this._uri),
+		if (!isDatabaseUri(formatedUrl)) {
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: {
+					rawValue: this.maskUriToLog(formatedUrl),
+					typeofValue: typeof formatedUrl,
+					guardResult: isDatabaseUri(formatedUrl)
 				},
-				'URI do Banco De Dados para Produção gerada',
-			);
-			return;
+				message: 'Erro ao validar como uma url válida para banco de dados'
+			});
 		}
 
-		if (hasMultipleHosts) {
-			this._uri = `mongodb://${auth}${DATABASE_HOST}/${DATABASE_NAME}?${this._fine_settings}`;
-			this.mongoConnectionstringLogger.info(
-				{
-					host: DATABASE_HOST,
-					port: DATABASE_PORT,
-					modality: 'Multi-hosted',
-					uri: this.maskUri(this._uri),
-				},
-				'URI do Banco De Dados para Produção gerada',
-			);
-			return;
-		}
+		this.logInfo('String de conexão ccom o banco de dados formada',{
+			connectionString: this.maskUriToLog(formatedUrl)
+		});
 
-		this._uri = `mongodb://${auth}${DATABASE_HOST}:${String(DATABASE_PORT)}/${DATABASE_NAME}?${this._fine_settings}`;
-		this.mongoConnectionstringLogger.info(
-			{
-				host: DATABASE_HOST,
-				port: DATABASE_PORT,
-				modality: 'Single-hosted',
-				uri: this.maskUri(this._uri),
-			},
-			'URI do Banco De Dados para Produção gerada',
-		);
-		return;
+		return formatedUrl
+	}
+	protected generateUriToProd(validatedEnvValues: EnvDataForUri): DatabaseURI {
+		throw new Error('Method not implemented.');
 	}
 }
 
