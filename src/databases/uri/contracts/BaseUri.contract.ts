@@ -1,7 +1,10 @@
 import { createChildLogger, type handlerContractsErrorsParams } from '@Configs/logger.js';
-import type pino from 'pino';
+import { nodeEnvSupported } from '@Configs/constants/env.constants.js';
+import { dbEnvValidationSchema } from '@Configs/schemas/dbEnv.schema.js';
 import { env } from '@Configs/env.js';
+import type pino from 'pino';
 import { isDatabaseUri, type DatabaseURI } from '@Types';
+import z from 'zod';
 
 /**
  * Interface que define as chaves necessárias da env para construção de uma URI.
@@ -33,6 +36,8 @@ export abstract class BaseUri implements IDatabaseUri {
 	protected abstract _uri?: DatabaseURI;
 	// variavel auxiliar para transformar senhas em urls legíveis pelo computador permitindo ainda mais segurança em senhas de bancos de dados
 	protected abstract _password?: string;
+	protected abstract _specificEnvValues?: Record<string, unknown>;
+	protected _baseEnvValues?: EnvDataForUri;
 
 	// logger que traz bse para a riquesa de detalhes e rastreabilidado do sistema
 	private BaseUriLogger: pino.Logger = createChildLogger({
@@ -64,17 +69,39 @@ export abstract class BaseUri implements IDatabaseUri {
 	 * de forma padronizada em todos os provedores.
 	 */
 	protected init(): void {
-		const validatedEnvValues = this.validateEnvDatas();
+		this.validateBaseEnvDatas();
 
-		if (validatedEnvValues.NODE_ENV === 'development') {
-			this._uri = this.generateUriToDev(validatedEnvValues);
+		if (this._baseEnvValues === undefined) {
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: { rawValidetedEnv: this._baseEnvValues },
+				message:
+					'Erro ao inicializar criação de string de conexão, verifique por qual motivo a base de hambiente não se ncontra formada',
+			});
+		}
+
+		this.guardBroken();
+
+		if (this._baseEnvValues.NODE_ENV === 'development') {
+			this._uri = this.generateUriToDev(this._baseEnvValues);
 			return;
 		}
 
-		this._uri = this.generateUriToProd(validatedEnvValues);
+		this._uri = this.generateUriToProd(this._baseEnvValues);
 	}
 
-	protected normalizePassword(rawPassword: string): void{
+	/**
+	 * **NormalzePassword**
+	 * Função específica para poder flexibilizar o uso de senhas dentor de bancos de daods,
+	 * garantindo senhas mais seguras e complexas, compatíveis com strings URI
+	 *
+	 * @param rawPassword - *string* senha vinda diretamente da env
+	 *
+	 * **Internamente o método dá um set no atributo `_password`**
+	 *
+	 * @returns {void}
+	 */
+	protected normalizePassword(rawPassword: string): void {
 		this._password = encodeURIComponent(rawPassword);
 	}
 
@@ -82,13 +109,66 @@ export abstract class BaseUri implements IDatabaseUri {
 	 * Realiza o mapeamento e validações extras de negócio sobre as envs.
 	 * Retorna apenas o subconjunto necessário para a construção da URI.
 	 * Bem como a validação extra garante defesa em profundidade
+	 *
+	 * @returns {void}
 	 */
-	protected abstract validateEnvDatas(): EnvDataForUri;
+	protected validateBaseEnvDatas(): void {
+		if (this._baseEnvValues === undefined) {
+			const baseUriEnvsShild: z.ZodType<EnvDataForUri> = z.object({
+				NODE_ENV: z.enum(nodeEnvSupported),
+				DATABASE_TYPE: dbEnvValidationSchema.shape.DATABASE_TYPE,
+				DATABASE_NAME: dbEnvValidationSchema.shape.DATABASE_NAME,
+				DATABASE_HOST: dbEnvValidationSchema.shape.DATABASE_HOST, // adicionar validação para verificaç~ao se é localhost ou não,, baseado no node_env e verificar especificamente se não ofr noed env, é uma string válida de um endereço ip (no momento isso ficará como dívida técnica)
+				DATABASE_PORT: dbEnvValidationSchema.shape.DATABASE_PORT,
+				DATABASE_USERNAME: dbEnvValidationSchema.shape.DATABASE_USERNAME,
+				DATABASE_PASSWORD: dbEnvValidationSchema.shape.DATABASE_PASSWORD,
+			});
+
+			const shildResult = baseUriEnvsShild.safeParse(env);
+
+			if (!shildResult.success) {
+				this.handlerErrors({
+					erroLevel: 'fatal',
+					error: z.treeifyError(shildResult.error),
+					message:
+						'Variáveis de ambiente base foram maculadas após a inicialização do app.',
+				});
+			}
+
+			this._baseEnvValues = Object.freeze(shildResult.data);
+		}
+	}
 
 	/**
 	 * Máscara dados sensíveis para logs de auditoria.
+	 * @returns {string}
 	 */
 	protected abstract maskUriToLog(unmaskUri: string): string;
+
+	/**
+	 * **guardBroken**
+	 * Método que irá revizar as envs passadas com o esperado realmente
+	 * pela classe concreta isso é mais uma garantia de fail fast,
+	 * se algo não corresponder com a realidade deve ele gerar um erro tratado
+	 * recomendação de uso de handler de erro interno para tratamento
+	 *
+	 * @returns {void}
+	 */
+	protected abstract guardBroken(): void;
+
+	/**
+	 * Adiciona validação extra para env, e configurações específicas para cada tipo de banco,
+	 * deve ser chamado apenas dentro dos métodos `generateUriToDev` ou `generateUriToProd` a
+	 * depender do caso específico, caso realmente form uma configuração imprecindível para a
+	 * url da classe concreta e bom funcionamento da conexão de banco pode-se pensar em adicionar
+	 *  no final da impllementação do  `guardBroken`
+	 *
+	 * **Esta função é unica e exclusiva para fazer
+	 * o set do atributo `_specificEnvValues`**
+	 *
+	 * @returns {void}
+	 */
+	protected abstract validateSpecificEnvValues(): void;
 
 	/**
 	 * Gerador de uri para ambiente de desenvolvimento.

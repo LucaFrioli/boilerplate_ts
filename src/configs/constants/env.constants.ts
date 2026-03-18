@@ -8,6 +8,9 @@ export const envLogger = createChildLogger({
 	service: 'valuation',
 });
 
+// node_env defaults and supported
+export const nodeEnvSupported = ['development', 'stage', 'production'] as const;
+
 // loacale and date constants
 
 export const timezoneSupported = ['UTC', 'America/Sao_Paulo', 'Europa/Rome'] as const;
