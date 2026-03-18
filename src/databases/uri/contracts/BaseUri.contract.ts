@@ -33,10 +33,10 @@ export abstract class BaseUri implements IDatabaseUri {
 	// variavel auxiliadora para riqueza de loggers
 	protected abstract uriGeneratorName: string;
 	// retrono da uri em si
-	protected abstract _uri?: DatabaseURI;
+	protected _uri?: DatabaseURI;
 	// variavel auxiliar para transformar senhas em urls legíveis pelo computador permitindo ainda mais segurança em senhas de bancos de dados
-	protected abstract _password?: string;
-	protected abstract _specificEnvValues?: Record<string, unknown>;
+	protected _password?: string;
+	protected _specificEnvValues?: Record<string, unknown>;
 	protected _baseEnvValues?: EnvDataForUri;
 
 	// logger que traz bse para a riquesa de detalhes e rastreabilidado do sistema
@@ -53,7 +53,7 @@ export abstract class BaseUri implements IDatabaseUri {
 
 	// metodo grantidor que a url está bem formada antes de ser instânciada na aplicação
 	public get uri(): DatabaseURI {
-		if (!isDatabaseUri(this._uri) || typeof this._uri === 'undefined') {
+		if (!isDatabaseUri(this._uri)) {
 			this.handlerErrors({
 				erroLevel: 'fatal',
 				error: { uriType: typeof this._uri, rawUri: this._uri },
