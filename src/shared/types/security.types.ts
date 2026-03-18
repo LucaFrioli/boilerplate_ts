@@ -26,7 +26,7 @@ export type Uri = Brand<string, 'Uri'>;
  * garantido que o DX seja consistente com
  * a verdade absoluta em runtime
  */
-export function isValidUri(uri: unknown): boolean {
+export function isValidUri(uri: unknown): uri is Uri {
 	try {
 		if (typeof uri !== 'string')
 			throw new Error('Para poder validar uma Uri, o parametro deve ser uma string');
@@ -48,7 +48,7 @@ export function isValidUri(uri: unknown): boolean {
  * caso deve-se utilizar a função isDatabaseURI
  */
 export type DatabaseURI = Brand<string, 'DatabaseURI'>;
-export function isDatabaseUri(uri: unknown): boolean {
+export function isDatabaseUri(uri: unknown): uri is DatabaseURI {
 	if (!isValidUri(uri) || typeof uri !== 'string') return false;
 
 	const parsedUrl: URL = new URL(uri);
