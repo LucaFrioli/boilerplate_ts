@@ -26,6 +26,12 @@ const acceptedDatabaseProtocols: readonly string[] = [
 	'postgresql',
 ];
 
+export const acceptedMongoSrvDomains = [
+	'.mongo.net',
+	'.mongodb.net',
+	/** adicione outros domínios aceitos conforme for necessário, esclar, ou mudar a metodologia */
+] as const;
+
 export const dbProtocols: readonly string[] = Object.freeze(acceptedDatabaseProtocols);
 
 // hasher constants

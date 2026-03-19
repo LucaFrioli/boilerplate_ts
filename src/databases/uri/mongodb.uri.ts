@@ -1,8 +1,11 @@
 import { type DatabaseURI, isDatabaseUri } from '@Types/security.types.js';
 import { BaseUri, type EnvDataForUri } from './contracts/BaseUri.contract.js';
+import { acceptedMongoSrvDomains } from '@Configs/constants/env.constants.js';
 
 class MongoConnectionString extends BaseUri {
-	protected get uriGeneratorName(): string { return 'MongoConnectionString' };
+	protected get uriGeneratorName(): string {
+		return 'MongoConnectionString';
+	}
 	private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin';
 	private auth: string = '';
 
@@ -59,8 +62,8 @@ class MongoConnectionString extends BaseUri {
 
 		this.auth =
 			validatedEnvValues.DATABASE_USERNAME &&
-				validatedEnvValues.DATABASE_PASSWORD &&
-				this._password
+			validatedEnvValues.DATABASE_PASSWORD &&
+			this._password
 				? `${validatedEnvValues.DATABASE_USERNAME}:${this._password}@`
 				: '';
 	}
@@ -99,7 +102,10 @@ class MongoConnectionString extends BaseUri {
 					'Falha ao gerar autenticação para a URI, verifique a env, ou lógic aplicada',
 			});
 
-		const isSRV: boolean = validatedEnvValues.DATABASE_HOST.includes('.mongo.net');
+		const isSRV: boolean = acceptedMongoSrvDomains.some((domain) =>
+			validatedEnvValues.DATABASE_HOST.includes(domain),
+		);
+
 		const hasMultipleHosts: boolean = validatedEnvValues.DATABASE_HOST.includes(',');
 
 		if (isSRV) {
