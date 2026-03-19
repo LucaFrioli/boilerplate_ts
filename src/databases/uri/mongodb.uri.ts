@@ -3,9 +3,6 @@ import { BaseUri, type EnvDataForUri } from './contracts/BaseUri.contract.js';
 
 class MongoConnectionString extends BaseUri {
 	protected uriGeneratorName: string = 'MongoConnectionString';
-	protected _uri?: DatabaseURI;
-	protected _password?: string;
-	protected _specificEnvValues?: Record<string, unknown>;
 	private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin';
 	private auth: string = '';
 
@@ -45,19 +42,27 @@ class MongoConnectionString extends BaseUri {
 	}
 
 	private generateAuth(validatedEnvValues: EnvDataForUri): void {
-		if(validatedEnvValues.NODE_ENV !== 'development' && typeof validatedEnvValues.DATABASE_USERNAME !== 'string' && typeof validatedEnvValues.DATABASE_PASSWORD !== 'string'){
+		if (
+			validatedEnvValues.NODE_ENV !== 'development' &&
+			typeof validatedEnvValues.DATABASE_USERNAME !== 'string' &&
+			typeof validatedEnvValues.DATABASE_PASSWORD !== 'string'
+		) {
 			this.handlerErrors({
 				erroLevel: 'fatal',
 				message: 'Em produção adicione as credências, válidas no arquivo .env',
-				error:{
+				error: {
 					typeofUserName: typeof validatedEnvValues.DATABASE_USERNAME,
 					typeofPassword: typeof validatedEnvValues.DATABASE_PASSWORD,
-				}
-			})
+				},
+			});
 		}
 
-
-		this.auth = validatedEnvValues.DATABASE_USERNAME && validatedEnvValues.DATABASE_PASSWORD && this._password ? `${validatedEnvValues.DATABASE_USERNAME}:${this._password}@` : '';
+		this.auth =
+			validatedEnvValues.DATABASE_USERNAME &&
+			validatedEnvValues.DATABASE_PASSWORD &&
+			this._password
+				? `${validatedEnvValues.DATABASE_USERNAME}:${this._password}@`
+				: '';
 	}
 
 	protected generateUriToDev(validatedEnvValues: EnvDataForUri): DatabaseURI {
@@ -69,20 +74,102 @@ class MongoConnectionString extends BaseUri {
 				error: {
 					rawValue: this.maskUriToLog(formatedUrl),
 					typeofValue: typeof formatedUrl,
-					guardResult: isDatabaseUri(formatedUrl)
+					guardResult: isDatabaseUri(formatedUrl),
 				},
-				message: 'Erro ao validar como uma url válida para banco de dados'
+				message: 'Erro ao validar como uma url válida para banco de dados',
 			});
 		}
 
-		this.logInfo('String de conexão ccom o banco de dados formada',{
-			connectionString: this.maskUriToLog(formatedUrl)
+		this.logInfo('String de conexão ccom o banco de dados mongodb formada', {
+			connectionString: this.maskUriToLog(formatedUrl),
 		});
 
-		return formatedUrl
+		return formatedUrl;
 	}
 	protected generateUriToProd(validatedEnvValues: EnvDataForUri): DatabaseURI {
-		throw new Error('Method not implemented.');
+		if (this.auth === '' || typeof this.auth !== 'string')
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: {
+					rawAuth: this.maskUriToLog(this.auth),
+					authLength: this.auth.length,
+					typeof: typeof this.auth,
+				},
+				message:
+					'Falha ao gerar autenticação para a URI, verifique a env, ou lógic aplicada',
+			});
+
+		const isSRV: boolean = validatedEnvValues.DATABASE_HOST.includes('.mongo.net');
+		const hasMultipleHosts: boolean = validatedEnvValues.DATABASE_HOST.includes(',');
+
+		if (isSRV) {
+			const formatedUri = `mongodb+srv://${this.auth}${validatedEnvValues.DATABASE_HOST}/${validatedEnvValues.DATABASE_NAME}?${this._fine_settings}`;
+
+			if (!isDatabaseUri(formatedUri)) {
+				this.handlerErrors({
+					erroLevel: 'fatal',
+					error: {
+						rawValue: this.maskUriToLog(formatedUri),
+						typeofValue: typeof formatedUri,
+						guardResult: !isDatabaseUri(formatedUri),
+						modality: '+srv',
+					},
+					message: 'Erro ao criar connection string para Mongodb em modalidade srv',
+				});
+			}
+
+			this.logInfo('String de conexão para mongodb formada com sucesso', {
+				connectionString: this.maskUriToLog(formatedUri),
+				modality: '+srv',
+			});
+			return formatedUri;
+		}
+
+		if (hasMultipleHosts) {
+			const formatedUri = `mongodb://${this.auth}${validatedEnvValues.DATABASE_HOST}/${validatedEnvValues.DATABASE_NAME}?${this._fine_settings}`;
+
+			if (!isDatabaseUri(formatedUri)) {
+				this.handlerErrors({
+					erroLevel: 'fatal',
+					error: {
+						rawValue: this.maskUriToLog(formatedUri),
+						typeofValue: typeof formatedUri,
+						guardResult: !isDatabaseUri(formatedUri),
+						modality: 'Multi-hosted',
+					},
+					message:
+						'Erro ao criar connection string para Mongodb em modalidade multi host',
+				});
+			}
+
+			this.logInfo('String de conexão para mongodb formada com sucesso', {
+				connectionString: this.maskUriToLog(formatedUri),
+				modality: 'Multi-hosted',
+			});
+			return formatedUri;
+		}
+
+		const formatedUri = `mongodb://${this.auth}${validatedEnvValues.DATABASE_HOST}:${String(validatedEnvValues.DATABASE_PORT)}/${validatedEnvValues.DATABASE_NAME}?${this._fine_settings}`;
+
+		if (!isDatabaseUri(formatedUri)) {
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				error: {
+					rawValue: this.maskUriToLog(formatedUri),
+					typeofValue: typeof formatedUri,
+					guardResult: !isDatabaseUri(formatedUri),
+					modality: 'Single-host',
+				},
+				message: 'Erro ao criar connection string para Mongodb em modalidade single-host',
+			});
+		}
+
+		this.logInfo('String de conexão para mongodb formada com sucesso', {
+			connectionString: this.maskUriToLog(formatedUri),
+			modality: 'Single-host',
+		});
+
+		return formatedUri;
 	}
 }
 

@@ -2,10 +2,11 @@ import mongoose from 'mongoose';
 import { mongoURI } from '../uri/mongodb.uri.js';
 import { env } from '@Configs/env.js';
 import { BaseConnectDb } from './contracts/BaseConnect.contract.js';
+import type { DatabaseURI } from '@Types';
 
 class MongodbConnect extends BaseConnectDb {
 	protected connectionName: string = 'MongoConnect';
-	protected _uri: string = mongoURI;
+	protected _uri: DatabaseURI = mongoURI;
 
 	public async connect(): Promise<void> {
 		if (env.DATABASE_TYPE !== 'mongodb') {
