@@ -31,7 +31,7 @@ export interface IDatabaseUri {
 
 export abstract class BaseUri implements IDatabaseUri {
 	// variavel auxiliadora para riqueza de loggers
-	protected abstract uriGeneratorName: string;
+	protected abstract get uriGeneratorName(): string;
 	// retrono da uri em si
 	protected _uri?: DatabaseURI;
 	// variavel auxiliar para transformar senhas em urls legíveis pelo computador permitindo ainda mais segurança em senhas de bancos de dados

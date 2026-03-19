@@ -2,7 +2,7 @@ import { type DatabaseURI, isDatabaseUri } from '@Types/security.types.js';
 import { BaseUri, type EnvDataForUri } from './contracts/BaseUri.contract.js';
 
 class MongoConnectionString extends BaseUri {
-	protected uriGeneratorName: string = 'MongoConnectionString';
+	protected get uriGeneratorName(): string { return 'MongoConnectionString' };
 	private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin';
 	private auth: string = '';
 
@@ -59,8 +59,8 @@ class MongoConnectionString extends BaseUri {
 
 		this.auth =
 			validatedEnvValues.DATABASE_USERNAME &&
-			validatedEnvValues.DATABASE_PASSWORD &&
-			this._password
+				validatedEnvValues.DATABASE_PASSWORD &&
+				this._password
 				? `${validatedEnvValues.DATABASE_USERNAME}:${this._password}@`
 				: '';
 	}
