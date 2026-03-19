@@ -8,7 +8,7 @@ export interface IConnectDb {
 }
 
 export abstract class BaseConnectDb implements IConnectDb {
-	protected abstract connectionName: string;
+	protected abstract get connectionName(): string;
 	protected abstract readonly _uri: string;
 	protected connectionStatus: boolean = false;
 

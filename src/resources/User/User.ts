@@ -4,7 +4,9 @@ import baseUserSchema from './User.validation.js';
 import type { DeepReadonly } from '@/shared/types/static.types.js';
 
 export class User extends BaseEntity<UserI, PublicUserI> {
-	protected entityName: string = 'User';
+	protected get entityName(): string {
+		return 'User';
+	}
 
 	protected validate(data: unknown): UserI {
 		const user = baseUserSchema.safeParse(data);

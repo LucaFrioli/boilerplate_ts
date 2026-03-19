@@ -2,7 +2,9 @@ import { randomUUID } from 'node:crypto';
 import BaseIdentityGenerator from '@Id/contracts/IIdentyti.contract.js';
 
 export default class UuidV4Provider extends BaseIdentityGenerator {
-	protected serviceName: string = 'UuidV4Provider';
+	protected get serviceName(): string {
+		return 'UuidV4Provider';
+	}
 	private readonly UUIDV4_REGEX =
 		/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

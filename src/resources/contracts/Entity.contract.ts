@@ -8,7 +8,7 @@ export interface IEntity<T, Tout> {
 }
 
 export abstract class BaseEntity<T, Tout> implements IEntity<T, Tout> {
-	protected abstract readonly entityName: string;
+	protected abstract get entityName(): string;
 	protected props: T;
 	protected entityLogger = createChildLogger({
 		fileType: 'entity',

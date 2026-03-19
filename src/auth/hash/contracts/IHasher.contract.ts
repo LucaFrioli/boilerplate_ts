@@ -32,7 +32,7 @@ export abstract class BaseHasher implements IHasherProvider {
 	/**
 	 * Obriga o desenvolvedor a declara o nome de serviço trzendo ainda mais informação para os logs e depuração
 	 */
-	protected abstract ServiceName: string;
+	protected abstract get ServiceName(): string;
 
 	/**
 	 * Metódo que deve ser implementado nas classes filhas com lógica de como o hash deve ocorrrer

@@ -12,7 +12,7 @@ export default abstract class BaseIdentityGenerator implements IIdentityProvider
 		fileType: 'core',
 		service: 'generation',
 	});
-	protected abstract readonly serviceName: string;
+	protected abstract get serviceName(): string;
 
 	protected abstract generateLogic(): string;
 	protected abstract generateValidation(id: string): boolean;

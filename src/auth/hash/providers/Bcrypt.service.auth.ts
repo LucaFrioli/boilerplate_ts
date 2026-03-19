@@ -3,7 +3,9 @@ import { hash, compare } from 'bcrypt';
 import { env } from '@Configs/env.js';
 
 export default class BcryptService extends BaseHasher {
-	protected ServiceName: string = 'BcryptService';
+	protected get ServiceName(): string {
+		return 'BcryptService';
+	}
 	private pepper: string = env.HASHER_SECURITY_PEPPER;
 
 	protected async executeHash(payload: string): Promise<string> {

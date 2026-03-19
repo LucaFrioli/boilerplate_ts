@@ -4,7 +4,9 @@ import { env } from '@Configs/env.js';
 import { randomBytes } from 'node:crypto';
 
 export default class NanoIdProvider extends BaseIdentityGenerator {
-	protected serviceName: string = 'NanoIdProvider';
+	protected get serviceName(): string {
+		return 'NanoIdProvider';
+	}
 
 	private static readonly ALPHABET = StringWithLegthGen(
 		env.IDENTIFIER_NANOID_ALPHABET,

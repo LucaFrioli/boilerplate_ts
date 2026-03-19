@@ -4,7 +4,9 @@ import { env } from '@Configs/env.js';
 import { randomBytes } from 'node:crypto';
 
 export default class Argon2Provider extends BaseHasher {
-	protected ServiceName: string = 'Argon2Provider';
+	protected get ServiceName(): string {
+		return 'Argon2Provider';
+	}
 
 	private argonConfigs: ArgonOptions = {
 		type: argon2id,

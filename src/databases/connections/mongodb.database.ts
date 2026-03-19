@@ -5,7 +5,9 @@ import { BaseConnectDb } from './contracts/BaseConnect.contract.js';
 import type { DatabaseURI } from '@Types';
 
 class MongodbConnect extends BaseConnectDb {
-	protected connectionName: string = 'MongoConnect';
+	protected get connectionName(): string {
+		return 'MongoConnect';
+	}
 	protected _uri: DatabaseURI = mongoURI;
 
 	public async connect(): Promise<void> {
