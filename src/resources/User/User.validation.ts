@@ -6,6 +6,16 @@ import DateManager from '@Utils/dateManager.util.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
 import type { DatabaseID, AppID, HashedString } from '@Types';
 
+export const usernameValidationSchema = z
+	.string()
+	.trim()
+	.lowercase({ error: 'Utilize apenas letras minúsculas' })
+	.min(3, { error: `Usuário deve ter no mínimo 3 caracteres` })
+	.max(30, { error: 'Usuário não pode execeder 30 caracteres' })
+	.refine((val) => /^[a-z0-9_.-]+$/.test(val), {
+		error: ' Nomes de usuários podem conter apenas letras, números, e _ - .',
+	});
+
 const baseUserSchema: z.ZodType<UserI> = z.object({
 	id: z
 		.string()
@@ -18,15 +28,7 @@ const baseUserSchema: z.ZodType<UserI> = z.object({
 		.trim()
 		.refine((val) => Id.validate(val), { error: 'Id Inválido' }) as unknown as z.ZodType<AppID>,
 	active: z.boolean(),
-	username: z
-		.string()
-		.trim()
-		.lowercase({ error: 'Utilize apenas letras minúsculas' })
-		.min(3, { error: `Usuário deve ter no mínimo 3 caracteres` })
-		.max(30, { error: 'Usuário não pode execeder 30 caracteres' })
-		.refine((val) => /^[a-z0-9_.-]+$/.test(val), {
-			error: ' Nomes de usuários podem conter apenas letras, números, e _ - .',
-		}),
+	username: usernameValidationSchema,
 	email: z.email(),
 	passwordHash: z
 		.string()

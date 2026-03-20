@@ -25,13 +25,8 @@ export abstract class BaseEntity<T, Tout> implements IEntity<T, Tout> {
 		return Object.freeze({ ...this.props });
 	}
 
-	protected handlingUserError(
-		errorLevel: errorLevels,
-		entityName: string,
-		error: unknown,
-		message: string,
-	): never {
-		this.entityLogger[errorLevel]({ serviceName: entityName, error: error }, message);
+	protected handlingError(errorLevel: errorLevels, errorInfos: unknown, message: string): never {
+		this.entityLogger[errorLevel]({ serviceName: this.entityName, error: errorInfos }, message);
 		throw new Error(
 			`Erro interno crítico, contate algum administrador por meio dos canais legais ${env.EMAIL_TO_CONTACT}`,
 		);
