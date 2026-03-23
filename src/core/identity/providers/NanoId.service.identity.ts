@@ -1,4 +1,4 @@
-import { StringWithLegthGen } from '@Types/primitives.type.js';
+import { StringWithLegthGen, NanoIDRegex } from '@Types';
 import BaseIdentityGenerator from '../contracts/IIdentyti.contract.js';
 import { env } from '@Configs/env.js';
 import { randomBytes } from 'node:crypto';
@@ -46,9 +46,6 @@ export default class NanoIdProvider extends BaseIdentityGenerator {
 			return false;
 		}
 
-		const pattern = new RegExp(
-			`^[${NanoIdProvider.ALPHABET}]{${String(NanoIdProvider.DEFAULT_SIZE)}}$`,
-		);
-		return pattern.test(id);
+		return NanoIDRegex.test(id);
 	}
 }
