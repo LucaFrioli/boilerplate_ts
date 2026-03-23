@@ -1,6 +1,7 @@
-import { dbProtocols } from '@Configs/constants/env.constants.js';
+import { dbProtocols, regexValidationToHasherProvidersSupported } from '@Configs/constants/env.constants.js';
 import { createChildLogger } from '@Configs/logger.js';
 import type { Brand } from './brand.type.js';
+import { env } from '@Configs/env.js';
 
 const securityTypesLogger = createChildLogger({
 	fileType: 'type',
@@ -13,6 +14,24 @@ const securityTypesLogger = createChildLogger({
  * Garante que dados sensíveis não circulem em texto puro.
  */
 export type HashedString = Brand<string, 'HashedString'>;
+export function isHashedString(rawValue: unknown): rawValue is HashedString {
+	if (typeof rawValue !== 'string') {
+		securityTypesLogger.warn({
+			typeofRawValue: typeof rawValue,
+			rawValueEntry: rawValue,
+		}, 'tentativa de entrada de valor diferente de string');
+		return false;
+	}
+
+	switch (env.HASHER_PROVIDER) {
+		case 'argon2':
+			return regexValidationToHasherProvidersSupported.argon2.test(rawValue);
+		case 'bcrypt':
+			return regexValidationToHasherProvidersSupported.bcrypt.test(rawValue);
+		default:
+			return false;
+	}
+}
 
 /**
  * String que sejam URIs válidas
