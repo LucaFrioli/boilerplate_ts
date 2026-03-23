@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { UserI } from './User.interface.js';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
-import DateManager from '@Utils/dateManager.util.js';
 import {
 	type DatabaseID,
 	type AppID,
@@ -52,17 +51,9 @@ const baseUserSchema: z.ZodType<UserI> = z.object({
 	profileId: dbIdSchema,
 	stripeId: z.string().trim().nullable().default(null),
 	walletId: z.string().trim().nullable().default(null),
-	createdAt: z.date().transform((val) => new Date(DateManager.toIsoString(val))),
-	updatedAt: z
-		.date()
-		.transform((val) => new Date(DateManager.toIsoString(val)))
-		.nullable()
-		.default(null),
-	deletedAt: z
-		.date()
-		.transform((val) => new Date(DateManager.toIsoString(val)))
-		.nullable()
-		.default(null),
+	createdAt: z.iso.datetime().transform((val) => new Date(val)),
+	updatedAt: z.iso.datetime().transform((val) => new Date(val)).nullable().default(null),
+	deletedAt: z.iso.datetime().transform((val) => new Date(val)).nullable().default(null),
 });
 
 export default baseUserSchema;
