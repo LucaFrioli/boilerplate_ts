@@ -2,8 +2,14 @@ import { z } from 'zod';
 import type { UserI } from './User.interface.js';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
 import DateManager from '@Utils/dateManager.util.js';
-import { Hasher } from '@Hash/hashesFactory.auth.js';
-import { type DatabaseID, type AppID, type HashedString, isDatabaseID, isAppID } from '@Types';
+import {
+	type DatabaseID,
+	type AppID,
+	type HashedString,
+	isDatabaseID,
+	isAppID,
+	isHashedString,
+} from '@Types';
 
 export const usernameValidationSchema = z
 	.string()
@@ -15,17 +21,17 @@ export const usernameValidationSchema = z
 		error: ' Nomes de usuários podem conter apenas letras, números, e _ - .',
 	});
 
-export const dbIdSchema = z.custom<DatabaseID>((val) => {
+const dbIdSchema = z.custom<DatabaseID>((val) => {
 	if (typeof val !== 'string') {
 		return false;
 	}
 	val = val.trim();
 	return isDatabaseID(val);
-})
+});
 
 const baseUserSchema: z.ZodType<UserI> = z.object({
 	id: dbIdSchema,
-	publicId: z.custom<AppID>(val => {
+	publicId: z.custom<AppID>((val) => {
 		if (typeof val !== 'string') return false;
 		val = val.trim();
 		return isAppID(val);
@@ -33,10 +39,11 @@ const baseUserSchema: z.ZodType<UserI> = z.object({
 	active: z.boolean(),
 	username: usernameValidationSchema,
 	email: z.email(),
-	passwordHash: z
-		.string()
-		.trim()
-		.refine((val) => Hasher.validateHash(val)) as unknown as z.ZodType<HashedString>,
+	passwordHash: z.custom<HashedString>((val) => {
+		if (typeof val !== 'string') return false;
+		val = val.trim();
+		return isHashedString(val);
+	}),
 	cpf: z
 		.string()
 		.trim()

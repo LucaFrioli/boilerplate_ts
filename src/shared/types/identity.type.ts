@@ -14,10 +14,13 @@ export const NanoIDRegex = new RegExp(
 );
 
 function isID(rawId: unknown, typeOfId: unknown, envId: unknown): boolean {
-
 	if (typeof typeOfId !== 'string' || typeof envId !== 'string') {
-		idTypesLogger.fatal('Erro crítico no módulo de tipo, reverifique a construção dos validadores de tipo.');
-		throw new Error('Erro fatal dentro do módulo identityTypes, verifique o validador de tipagem. E verifique')
+		idTypesLogger.fatal(
+			'Erro crítico no módulo de tipo, reverifique a construção dos validadores de tipo.',
+		);
+		throw new Error(
+			'Erro fatal dentro do módulo identityTypes, verifique o validador de tipagem. E verifique',
+		);
 	}
 
 	if (typeof rawId !== 'string') {
@@ -36,7 +39,10 @@ function isID(rawId: unknown, typeOfId: unknown, envId: unknown): boolean {
 		case 'uuidv7':
 			return regexValidationToIdentitySupported.uuidv7.test(rawId);
 		default:
-			idTypesLogger.warn({ value: rawId, typeofValue: typeof rawId, brandOfID: typeOfId }, 'O id é inválido');
+			idTypesLogger.warn(
+				{ value: rawId, typeofValue: typeof rawId, brandOfID: typeOfId },
+				'O id é inválido',
+			);
 			return false;
 	}
 }

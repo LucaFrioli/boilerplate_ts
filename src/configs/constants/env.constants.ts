@@ -39,32 +39,32 @@ export const supportedHashProviders = ['argon2', 'bcrypt'] as const;
 
 export const regexValidationToHasherProvidersSupported = {
 	/**
-	* PHC String Format para Argon2:
-	* $argon2(i|d|id)$v=<version>$m=<memory>,t=<time>,p=<parallelism>$<salt>$<hash>
-	*
-	* - Variantes: argon2i | argon2d | argon2id
-	* - v=    → versão do algoritmo (normalmente 19)
-	* - m=    → memoryCost  (número inteiro)
-	* - t=    → timeCost    (número inteiro)
-	* - p=    → parallelism (número inteiro)
-	* - salt  → Base64 sem padding
-	* - hash  → Base64 sem padding
-	*/
+	 * PHC String Format para Argon2:
+	 * $argon2(i|d|id)$v=<version>$m=<memory>,t=<time>,p=<parallelism>$<salt>$<hash>
+	 *
+	 * - Variantes: argon2i | argon2d | argon2id
+	 * - v=    → versão do algoritmo (normalmente 19)
+	 * - m=    → memoryCost  (número inteiro)
+	 * - t=    → timeCost    (número inteiro)
+	 * - p=    → parallelism (número inteiro)
+	 * - salt  → Base64 sem padding
+	 * - hash  → Base64 sem padding
+	 */
 	argon2: /^\$argon2(id|i|d)\$v=\d+\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/,
 	/**
-	* Formato BCrypt (Modular Crypt Format):
-	* $<version>$<rounds>$<salt(22)><hash(31)>
-	*
-	* - version → 2a | 2b | 2y  (2b é o padrão atual e mais seguro)
-	* - rounds  → 04–31 (custo logarítmico)
-	* - salt    → exatamente 22 chars Base64 BCrypt
-	* - hash    → exatamente 31 chars Base64 BCrypt
-	*
-	* ⚠️ BCrypt usa alfabeto Base64 próprio: ./A-Za-z0-9
-	*    diferente do Base64 padrão que usa +/
-	*/
-	bcrypt: /^\$2[aby]?\$\d{2}\$[./A-Za-z0-9]{53}$/
-} as const
+	 * Formato BCrypt (Modular Crypt Format):
+	 * $<version>$<rounds>$<salt(22)><hash(31)>
+	 *
+	 * - version → 2a | 2b | 2y  (2b é o padrão atual e mais seguro)
+	 * - rounds  → 04–31 (custo logarítmico)
+	 * - salt    → exatamente 22 chars Base64 BCrypt
+	 * - hash    → exatamente 31 chars Base64 BCrypt
+	 *
+	 * ⚠️ BCrypt usa alfabeto Base64 próprio: ./A-Za-z0-9
+	 *    diferente do Base64 padrão que usa +/
+	 */
+	bcrypt: /^\$2[aby]?\$\d{2}\$[./A-Za-z0-9]{53}$/,
+} as const;
 
 // id constants
 
