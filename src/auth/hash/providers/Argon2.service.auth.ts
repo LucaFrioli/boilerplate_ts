@@ -2,6 +2,7 @@ import { BaseHasher } from '@Auth/hash/contracts/IHasher.contract.js';
 import { argon2id, hash, verify, type Options as ArgonOptions } from 'argon2';
 import { env } from '@Configs/env.js';
 import { randomBytes } from 'node:crypto';
+import { regexValidationToHasherProvidersSupported } from '@/configs/constants/env.constants.js';
 
 export default class Argon2Provider extends BaseHasher {
 	protected get ServiceName(): string {
@@ -40,21 +41,6 @@ export default class Argon2Provider extends BaseHasher {
 	}
 
 	protected executeValidation(hashedString: string): boolean {
-		/**
-		 * PHC String Format para Argon2:
-		 * $argon2(i|d|id)$v=<version>$m=<memory>,t=<time>,p=<parallelism>$<salt>$<hash>
-		 *
-		 * - Variantes: argon2i | argon2d | argon2id
-		 * - v=    → versão do algoritmo (normalmente 19)
-		 * - m=    → memoryCost  (número inteiro)
-		 * - t=    → timeCost    (número inteiro)
-		 * - p=    → parallelism (número inteiro)
-		 * - salt  → Base64 sem padding
-		 * - hash  → Base64 sem padding
-		 */
-		const argon2Regex =
-			/^\$argon2(id|i|d)\$v=\d+\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/;
-
-		return argon2Regex.test(hashedString);
+		return regexValidationToHasherProvidersSupported.argon2.test(hashedString);
 	}
 }
