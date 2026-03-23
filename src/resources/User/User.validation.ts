@@ -1,10 +1,9 @@
 import { z } from 'zod';
 import type { UserI } from './User.interface.js';
-import { DBid, Id } from '@Id/IdentityFactory.identity.js';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
 import DateManager from '@Utils/dateManager.util.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
-import type { DatabaseID, AppID, HashedString } from '@Types';
+import { type DatabaseID, type AppID, type HashedString, isDatabaseID, isAppID } from '@Types';
 
 export const usernameValidationSchema = z
 	.string()
@@ -16,17 +15,21 @@ export const usernameValidationSchema = z
 		error: ' Nomes de usuários podem conter apenas letras, números, e _ - .',
 	});
 
+export const dbIdSchema = z.custom<DatabaseID>((val) => {
+	if (typeof val !== 'string') {
+		return false;
+	}
+	val = val.trim();
+	return isDatabaseID(val);
+})
+
 const baseUserSchema: z.ZodType<UserI> = z.object({
-	id: z
-		.string()
-		.trim()
-		.refine((val) => DBid.validate(val), {
-			error: 'Id interno Inválido',
-		}) as unknown as z.ZodType<DatabaseID>,
-	publicId: z
-		.string()
-		.trim()
-		.refine((val) => Id.validate(val), { error: 'Id Inválido' }) as unknown as z.ZodType<AppID>,
+	id: dbIdSchema,
+	publicId: z.custom<AppID>(val => {
+		if (typeof val !== 'string') return false;
+		val = val.trim();
+		return isAppID(val);
+	}),
 	active: z.boolean(),
 	username: usernameValidationSchema,
 	email: z.email(),
@@ -39,12 +42,7 @@ const baseUserSchema: z.ZodType<UserI> = z.object({
 		.trim()
 		.transform((val) => CpfValidator.validateAndSanitize(val)),
 
-	profileId: z
-		.string()
-		.trim()
-		.refine((val) => DBid.validate(val), {
-			error: 'O  id de perfil de usuário deve ser válido',
-		}) as unknown as z.ZodType<DatabaseID>,
+	profileId: dbIdSchema,
 	stripeId: z.string().trim().nullable().default(null),
 	walletId: z.string().trim().nullable().default(null),
 	createdAt: z.date().transform((val) => new Date(DateManager.toIsoString(val))),

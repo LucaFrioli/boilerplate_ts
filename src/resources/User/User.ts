@@ -152,6 +152,5 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 	public deleteUser(): void {
 		this.deactiveUser();
 		this.props.deletedAt = new Date(DateManager.toIsoString(Date.now()));
-		// deveria fazer a mesma coisa já dando chain em um userProfile?
 	}
 }
