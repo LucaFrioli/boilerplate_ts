@@ -55,7 +55,15 @@ export interface handlerContractsErrorsParams {
 const pinoConfigs = {
 	level: currentEnv === 'development' ? 'debug' : 'info',
 	redact: {
-		paths: ['password', 'DATABASE_PASSWORD', 'user.token', 'authorization'],
+		paths: [
+			'password',
+			'DATABASE_PASSWORD',
+			'user.token',
+			'authorization',
+			'passwordHash',
+			'walletId',
+			'cpf',
+		],
 		placeholder: '******',
 	},
 

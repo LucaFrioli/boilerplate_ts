@@ -55,10 +55,14 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 			);
 		}
 
+		this.logInfo('debug', `${user.data.publicId} transitando por dentro do sistema!`, {
+			...user.data,
+		});
 		return user.data;
 	}
 
 	public toPublicDTO(): DeepReadonly<PublicUserI> {
+		this.logInfo('debug', `${this.props.publicId} foi requisitado por frontend`);
 		return {
 			id: this.props.publicId,
 			username: this.props.username,
