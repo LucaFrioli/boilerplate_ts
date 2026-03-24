@@ -1,15 +1,20 @@
 import { BaseEntity } from '@Contracts/Entity.contract.js';
-import type { UserI, PublicUserI } from './User.interface.js';
-import baseUserSchema, { usernameValidationSchema } from './User.validation.js';
+import type { UserI, PublicUserI, CreateUserExpectedData } from './User.interface.js';
+import baseUserSchema, {
+	cpfValidationSchema,
+	emailValidationSchema,
+	usernameValidationSchema,
+} from './User.validation.js';
 import type { DeepReadonly } from '@Types';
 import DateManager from '@Utils/dateManager.util.js';
 import z from 'zod';
 import { passwordStrength } from '@Validations/Password.validations.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
+import { DBid, Id } from '@Id/IdentityFactory.identity.js';
 
 interface UserMethods {
 	changeEmail(newEmail: string): void;
-	changePassword(newPassword: string): void;
+	changePassword(newPassword: string): Promise<void>;
 	changeUsername(newUsername: string): void;
 	activateUser(): void;
 	/**
@@ -21,6 +26,18 @@ interface UserMethods {
 	 */
 	deleteUser(): void;
 }
+
+const transformAndValidatePassword = z
+	.string()
+	.refine(
+		(val) => {
+			return passwordStrength(val);
+		},
+		{ error: 'Senha muito frca tente novamente' },
+	)
+	.transform(async (val) => {
+		return await Hasher.generate(val);
+	});
 
 export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods {
 	protected get entityName(): string {
@@ -51,6 +68,36 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 		};
 	}
 
+	public static async create(data: CreateUserExpectedData): Promise<User> {
+		const validRecivedData = {
+			uname: usernameValidationSchema.parse(data.username),
+			email: emailValidationSchema.parse(data.email),
+			cpf: cpfValidationSchema.parse(data.cpf),
+			passwordHashed: await transformAndValidatePassword.parseAsync(data.rawPassword),
+		};
+
+		const UserDataFormation: UserI = {
+			id: DBid.generate(),
+			publicId: Id.generate(),
+			profileId: DBid.generate(),
+			active: true,
+			createdAt: new Date(DateManager.toIsoString(Date.now())),
+			deletedAt: null,
+			updatedAt: null,
+
+			// pré criados obrigatórios
+			username: validRecivedData.uname,
+			email: validRecivedData.email,
+			cpf: validRecivedData.cpf,
+			passwordHash: validRecivedData.passwordHashed,
+
+			// implementar quando módulos estiverem prontos ou se realmente for necessário para a aplicação
+			stripeId: null,
+			walletId: null,
+		};
+		return new User(UserDataFormation);
+	}
+
 	private updateDate(): void {
 		this.props.updatedAt = new Date(DateManager.toIsoString(Date.now()));
 	}
@@ -78,22 +125,8 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 		this.updateDate();
 	}
 
-	public changePassword(newPassword: string): void {
-		const validatePassword = z
-			.object({
-				password: z
-					.string()
-					.refine(
-						(val) => {
-							return passwordStrength(val);
-						},
-						{ error: 'Senha muito frca tente novamente' },
-					)
-					.transform((val) => {
-						return Hasher.generate(val);
-					}),
-			})
-			.safeParse(newPassword);
+	public async changePassword(newPassword: string): Promise<void> {
+		const validatePassword = await transformAndValidatePassword.safeParseAsync(newPassword);
 
 		if (!validatePassword.success) {
 			this.handlingError(
@@ -106,7 +139,7 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 				'Erro ao tentar trocar senha! Tente novamente',
 			);
 		}
-		const validatedNewPassword = validatePassword.data.password;
+		const validatedNewPassword = validatePassword.data;
 
 		if (Hasher.validateHash(validatedNewPassword)) {
 			this.handlingError(

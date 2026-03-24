@@ -28,3 +28,10 @@ export interface PublicUserI {
 	active: boolean;
 	hasBillingProfile: boolean;
 }
+
+export interface CreateUserExpectedData {
+	username: string;
+	email: string;
+	cpf: string;
+	rawPassword: string;
+}

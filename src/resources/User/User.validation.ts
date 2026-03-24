@@ -28,6 +28,13 @@ const dbIdSchema = z.custom<DatabaseID>((val) => {
 	return isDatabaseID(val);
 });
 
+export const emailValidationSchema = z.email();
+
+export const cpfValidationSchema = z
+	.string()
+	.trim()
+	.transform((val) => CpfValidator.validateAndSanitize(val));
+
 const baseUserSchema: z.ZodType<UserI> = z.object({
 	id: dbIdSchema,
 	publicId: z.custom<AppID>((val) => {
@@ -37,23 +44,28 @@ const baseUserSchema: z.ZodType<UserI> = z.object({
 	}),
 	active: z.boolean(),
 	username: usernameValidationSchema,
-	email: z.email(),
+	email: emailValidationSchema,
 	passwordHash: z.custom<HashedString>((val) => {
 		if (typeof val !== 'string') return false;
 		val = val.trim();
 		return isHashedString(val);
 	}),
-	cpf: z
-		.string()
-		.trim()
-		.transform((val) => CpfValidator.validateAndSanitize(val)),
+	cpf: cpfValidationSchema,
 
 	profileId: dbIdSchema,
 	stripeId: z.string().trim().nullable().default(null),
 	walletId: z.string().trim().nullable().default(null),
 	createdAt: z.iso.datetime().transform((val) => new Date(val)),
-	updatedAt: z.iso.datetime().transform((val) => new Date(val)).nullable().default(null),
-	deletedAt: z.iso.datetime().transform((val) => new Date(val)).nullable().default(null),
+	updatedAt: z.iso
+		.datetime()
+		.transform((val) => new Date(val))
+		.nullable()
+		.default(null),
+	deletedAt: z.iso
+		.datetime()
+		.transform((val) => new Date(val))
+		.nullable()
+		.default(null),
 });
 
 export default baseUserSchema;
