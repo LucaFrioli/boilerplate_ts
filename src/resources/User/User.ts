@@ -18,7 +18,9 @@ interface UserMethods {
 	changeUsername(newUsername: string): void;
 	activateUser(): void;
 	/**
-	 * Usado para desativar user
+	 * Usado para desativar user, e internamente dentro de
+	 * deleteUser então não é necessário ser chamdo para
+	 * deletar usuários
 	 */
 	deactiveUser(): void;
 	/**
