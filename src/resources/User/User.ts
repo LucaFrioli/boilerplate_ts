@@ -12,19 +12,40 @@ import { passwordStrength } from '@Validations/Password.validations.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
 import { DBid, Id } from '@Id/IdentityFactory.identity.js';
 
+/**
+ * Contrato de todas as ações possíveis que um Usuário pode sofrer
+ * dentro da aplicação (Rich Domain Model).
+ */
 interface UserMethods {
-	changeEmail(newEmail: string): void;
-	changePassword(newPassword: string): Promise<void>;
-	changeUsername(newUsername: string): void;
-	activateUser(): void;
 	/**
-	 * Usado para desativar user, e internamente dentro de
-	 * deleteUser então não é necessário ser chamdo para
-	 * deletar usuários
+	 * Altera o e-mail do usuário no sistema através de validação Zod strict.
+	 */
+	changeEmail(newEmail: string): void;
+
+	/**
+	 * Troca a senha do usuário invocando a fábrica de Criptografia configurada (Argon/Bcrypt)
+	 * e validando imunofalhas estruturais do Hash gerado.
+	 */
+	changePassword(newPassword: string): Promise<void>;
+
+	/**
+	 * Realiza a troca do Username (Handle de visualização pública).
+	 */
+	changeUsername(newUsername: string): void;
+
+	/**
+	 * Ativa o usuário liberando seu acesso completo.
+	 */
+	activateUser(): void;
+
+	/**
+	 * Desativa o usuário e suspende imediatamente chaves de acesso relacionadas.
 	 */
 	deactiveUser(): void;
+
 	/**
-	 * Usado para realizar o safe delete, este método altera a data deletedAt
+	 * Aplica o padrao "Soft Delete". Impede login sem apagar rastros de auditoria.
+	 * Cascading para relacionamentos deve ser orquestrado por Domain Events futuramente.
 	 */
 	deleteUser(): void;
 }
@@ -41,11 +62,21 @@ const transformAndValidatePassword = z
 		return await Hasher.generate(val);
 	});
 
+/**
+ * Root Aggregate da aplicação. (Entidade Primordial)
+ * Engloba toda a segurança e lógicas que circundam um Usuário Humano vivo.
+ */
 export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods {
 	protected get entityName(): string {
 		return 'User';
 	}
 
+	/**
+	 * Valida rigorosamente os dados instanciados pelo Construtor da Entidade.
+	 * Protege a aplicação contra Hidratação de JSONs corrompidos oriundos do MongoDB.
+	 * @param data Payload cru resgatado do banco ou gerado pela Factory.
+	 * @returns {UserI} As propriedades rigidamente tipadas e conferidas.
+	 */
 	protected validate(data: unknown): UserI {
 		const user = baseUserSchema.safeParse(data);
 		if (!user.success) {
@@ -63,8 +94,13 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 		return user.data;
 	}
 
+	/**
+	 * Mapeador de Frontend (Data Hiding).
+	 * Isola o Sistema contra vazamentos passivos, retornando APENAS informações amigáveis
+	 * que devem transitar no Payload de API REST Públicas.
+	 */
 	public toPublicDTO(): DeepReadonly<PublicUserI> {
-		this.logInfo('debug', `${this.props.publicId} foi requisitado por frontend`);
+		this.logInfo('info', `${this.props.publicId} foi requisitado por frontend`);
 		return {
 			id: this.props.publicId,
 			username: this.props.username,
@@ -74,6 +110,15 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 		};
 	}
 
+	/**
+	 * Fabrica (Static Factory Method) a Entidade a partir de um JSON não confiável.
+	 * Orquestra: Validação Zod, Injeção de Identidade (DB/App IDs), e Criptografia Hash Automática.
+	 *
+	 * É o coração da Cibersegurança de criação do Boilerplate.
+	 *
+	 * @param data {CreateUserExpectedData} O DTO mapeado que o Controller deve fornecer.
+	 * @returns Uma nova instância limpa, criptografada e fortemente tipada em Memória.
+	 */
 	public static async create(data: CreateUserExpectedData): Promise<User> {
 		const validRecivedData = {
 			uname: usernameValidationSchema.parse(data.username),
@@ -104,10 +149,19 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 		return new User(UserDataFormation);
 	}
 
+	/**
+	 * Setter restrito.
+	 * Disparado nativamente pelas Reações da Entidade (State Mutation)
+	 * para garantir a rastreabilidade passiva sem poluir os métodos com duplicidade de código.
+	 */
 	private updateDate(): void {
 		this.props.updatedAt = new Date(DateManager.toIsoString(Date.now()));
 	}
 
+	/**
+	 * Transição de Estado: Mudar E-mail de Contato.
+	 * Realiza validação pontual de RFC e gera Log Fatal se injetarem strings inválidas.
+	 */
 	public changeEmail(newEmail: string): void {
 		const validateEmail = z
 			.object({
@@ -131,6 +185,11 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 		this.updateDate();
 	}
 
+	/**
+	 * Opeação Criptográfica: Trocar Senha.
+	 * Assíncrono por força maior. Evita que o Hasher trave o Event-Loop da API.
+	 * Valida imunidade contra Hashes pré-computados acoplando checador de força bruta.
+	 */
 	public async changePassword(newPassword: string): Promise<void> {
 		const validatePassword = await transformAndValidatePassword.safeParseAsync(newPassword);
 
@@ -161,6 +220,9 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 		this.updateDate();
 	}
 
+	/**
+	 * Transição de Estado: Mudar Handle/Username Público.
+	 */
 	public changeUsername(newUsername: string): void {
 		const validatedUsername = usernameValidationSchema.safeParse(newUsername);
 		if (!validatedUsername.success) {
@@ -178,16 +240,26 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 		this.updateDate();
 	}
 
+	/**
+	 * Restabelecimento de Credenciais Ativas.
+	 */
 	public activateUser(): void {
 		this.props.active = true;
 		this.updateDate();
 	}
 
+	/**
+	 * Bloqueio de Segurança Instantâneo (Banning).
+	 */
 	public deactiveUser(): void {
 		this.props.active = false;
 		this.updateDate();
 	}
 
+	/**
+	 * Auditoria de Expurgo (Soft Delete Pattern).
+	 * Em cadeia, cega também o sinal de 'ativididade' do usuário.
+	 */
 	public deleteUser(): void {
 		this.deactiveUser();
 		this.props.deletedAt = new Date(DateManager.toIsoString(Date.now()));

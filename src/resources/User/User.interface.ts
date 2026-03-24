@@ -1,5 +1,10 @@
 import type { DatabaseID, AppID, HashedString } from '@Types';
 
+/**
+ * DTO de Domínio e Persistência.
+ * Representa o contrato absoluto de dados formadores de um Usuário no Banco de Dados.
+ * ATENÇÃO: Contém dados altamente sensíveis (Senhas, CPF). Jamais exportar para o Frontend.
+ */
 export interface UserI {
 	readonly id: DatabaseID;
 	readonly publicId: AppID;
@@ -21,6 +26,11 @@ export interface UserI {
 	deletedAt: Date | null;
 }
 
+/**
+ * DTO de Apresentação (Frontend).
+ * Representa a visão dessecada e segura de um Usuário.
+ * Dados de auditoria interna e PII (Pessoalmente Identificáveis) foram removidos.
+ */
 export interface PublicUserI {
 	readonly id: AppID;
 	username: string;
@@ -29,6 +39,11 @@ export interface PublicUserI {
 	hasBillingProfile: boolean;
 }
 
+/**
+ * DTO de Criação (Boundary Contract).
+ * Contrato estrito que os Services/Controllers devem preencher para alimentar a Factory (User.create).
+ * Exige Senha em texto puro, pois a Fábrica fará a criptografia de forma isolada.
+ */
 export interface CreateUserExpectedData {
 	username: string;
 	email: string;

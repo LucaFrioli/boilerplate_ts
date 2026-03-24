@@ -10,6 +10,10 @@ import {
 	isHashedString,
 } from '@Types';
 
+/**
+ * Validador de Nomes de Usuários Públicos.
+ * Exige caixa baixa e caracteres seguros em URL/Regex (Regras de Segurança Básicas).
+ */
 export const usernameValidationSchema = z
 	.string()
 	.trim()
@@ -20,6 +24,10 @@ export const usernameValidationSchema = z
 		error: ' Nomes de usuários podem conter apenas letras, números, e _ - .',
 	});
 
+/**
+ * Validador de Identificadores internos ao banco de dados
+ * Usa os safeTypesGuards já inferidos diretamente nos tipos
+ */
 const dbIdSchema = z.custom<DatabaseID>((val) => {
 	if (typeof val !== 'string') {
 		return false;
@@ -28,13 +36,26 @@ const dbIdSchema = z.custom<DatabaseID>((val) => {
 	return isDatabaseID(val);
 });
 
+/**
+ * Validador Estrutural de Email.
+ * Usa validação RFC oficial do Zod.
+ */
 export const emailValidationSchema = z.email();
 
+/**
+ * Validador de Cadastro de Pessoas Físicas (Brasil).
+ * Chama o Validador customizado CpfValidator que atesta o dígito verificador matemático, não apenas a estrutura da string.
+ */
 export const cpfValidationSchema = z
 	.string()
 	.trim()
 	.transform((val) => CpfValidator.validateAndSanitize(val));
 
+/**
+ * Schema Root da Entidade User.
+ * Usado exclusivamente pelo Construtor (Constructor) da Entidade Base para garantir
+ * que a Injeção/Hidratação do Banco de Dados não crie instâncias corrompidas na memória.
+ */
 const baseUserSchema: z.ZodType<UserI> = z.object({
 	id: dbIdSchema,
 	publicId: z.custom<AppID>((val) => {
