@@ -108,17 +108,25 @@ export default defineConfig({
 		},
 
 		/**
-		 * Configuração do ambiente de variáveis para os testes.
-		 * O arquivo `.env.test` (se vier a existir) é carregado antes dos testes.
-		 * Isso permite ter um banco de dados separado, hasher mais rápido, etc.
+		 * setupFiles — Arquivos executados ANTES de qualquer arquivo de teste.
 		 *
-		 * `.env.test` NUNCA deve ser commitado se contiver segredos reais.
+		 * O `loadTestEnv.ts` é responsável por carregar o `.env.test` via `dotenv`,
+		 * injetando todas as variáveis de ambiente de teste em `process.env` antes
+		 * que qualquer `import` de `src/configs/env.ts` aconteça.
 		 *
-		 * Use `.env.test.example` como template e adicione `.env.test`
-		 * ao .gitignore se for um requisito futuro.
+		 * ## Por que setupFiles e não a opção `env: {}` daqui?
+		 * A opção `env: {}` exigiria listar manualmente CADA variável de ambiente.
+		 * O setupFile lê o `.env.test` inteiro de uma vez, do mesmo jeito que
+		 * o `dotenv/config` já faz no código de produção — consistência total.
+		 *
+		 * ## Ordem de execução garantida pelo Vitest:
+		 * 1. setupFiles rodam (→ .env.test é carregado em process.env)
+		 * 2. Cada arquivo .test.ts é importado (→ env.ts valida process.env via Zod)
+		 * 3. Os testes dentro do arquivo são executados
+		 *
+		 * @see {@link tests/helpers/env/loadTestEnv.ts} — implementação e documentação completa
+		 * @see {@link .env.test.example} — template com justificativas de cada valor
 		 */
-		env: {
-			NODE_ENV: 'test',
-		},
+		setupFiles: ['./tests/helpers/env/loadTestEnv.ts'],
 	},
 });
