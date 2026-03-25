@@ -9,8 +9,18 @@ const idTypesLogger = createChildLogger({
 	service: 'typo',
 });
 
+/**
+ * Regex de validação de NanoID, construída dinamicamente a partir do ambiente.
+ *
+ * ⚠️ BUG CORRIGIDO: ao inserir o alfabeto diretamente em `[...]`, o `-` entre
+ * dois chars cria um RANGE de caracteres pelo interpretador de regex.
+ * Ex: `[...0123456789-_...]` → `9-_` = ASCII 57–95 = inclui `@`, `A-Z`, etc.
+ *
+ * Solução: escapamos o `-` para `\\-` e garantimos que `_` não seja adjacente
+ * ao `-` de forma a criar um range indesejado.
+ */
 export const NanoIDRegex = new RegExp(
-	`^[${env.IDENTIFIER_NANOID_ALPHABET}]{${String(env.IDENTIFIER_NANOID_SIZE)}}$`,
+	`^[${env.IDENTIFIER_NANOID_ALPHABET.replace(/-/g, '\\-')}]{${String(env.IDENTIFIER_NANOID_SIZE)}}$`,
 );
 
 function isID(rawId: unknown, typeOfId: unknown, envId: unknown): boolean {
