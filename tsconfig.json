@@ -1,7 +1,27 @@
 {
+	/**
+	 * tsconfig.json — Raiz de Referências TypeScript (Project References).
+	 *
+	 * Este arquivo NÃO configura compilação diretamente.
+	 * Ele age como um "índice" que declara todos os sub-projetos TypeScript,
+	 * permitindo que o TS Server e ferramentas como `tsc --build` entendam
+	 * a estrutura completa do projeto.
+	 *
+	 * Referências registradas:
+	 * - tsconfig.app.json     → código de produção em src/
+	 * - tsconfig.tooling.json → ferramentas de desenvolvimento (ex: eslint.config.ts)
+	 * - tsconfig.test.json    → ambiente de testes em tests/ + vitest.config.ts
+	 */
 	"files": [],
 	"references": [
-		{"path": "./tsconfig.app.json"},
-		{"path": "./tsconfig.tooling.json"}
+		{ "path": "./tsconfig.app.json" },
+		{ "path": "./tsconfig.tooling.json" },
+		/**
+		 * Referência para o ambiente de testes.
+		 * Garante que o TS Server dê autocomplete e type-check corretos
+		 * nos arquivos dentro de tests/ sem poluir o build de produção.
+		 */
+		{ "path": "./tsconfig.test.json" }
 	]
 }
+

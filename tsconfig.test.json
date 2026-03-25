@@ -1,0 +1,64 @@
+{
+	/**
+	 * tsconfig.test.json - Configuração TypeScript exclusiva para o ambiente de testes.
+	 *
+	 * ## Por que um tsconfig separado para testes?
+	 *
+	 * O `tsconfig.app.json` é configurado para compilar APENAS o código de produção em `src/`.
+	 * Ele usa `"module": "nodenext"` que exige extensões `.js` nos imports focado para produção.
+	 *
+	 * Os testes têm necessidades ligeiramente diferentes:
+	 * 1. Precisam de tipos do Vitest (`import { describe } from 'vitest'`)
+	 * 2. O `rootDir` precisa englobar tanto `src/` quanto `tests/`
+	 * 3. Não geram output (nenhum `.js` é emitido - o Vitest transpila em memória)
+	 *
+	 * ## Relação com tsconfig.tooling.json
+	 * O `tsconfig.tooling.json` usa o mesmo padrão: estende `tsconfig.app.json` e alarga o
+	 * `rootDir` para incluir arquivos fora de `src/` (no caso dele, o `eslint.config.ts`).
+	 * Este arquivo segue exatamente o mesmo princípio, ambos são "extensões de tooling"
+	 * do tsconfig principal de aplicação.
+	 *
+	 * ## O que herdamos do tsconfig.app.json
+	 * - Todos os `compilerOptions` (strict, noUncheckedIndexedAccess, etc.)
+	 * - Todos os `paths` (aliases @Types, @Configs, @Hash, etc.)
+	 * - Targets e lib (esnext)
+	 * Sobrescrevemos apenas o que os testes precisam de diferente.
+	 */
+	"extends": "./tsconfig.app.json",
+	"compilerOptions": {
+		/**
+		 * `noEmit: true` - O TypeScript apenas verifica os tipos, não gera arquivos `.js`.
+		 * O Vitest transpila o TypeScript em memória usando esbuild/vite internamente.
+		 * Emitir arquivos compilados dos testes seria desperdício e confusão.
+		 */
+		"noEmit": true,
+
+		/**
+		 * Alarga o `rootDir` para a raiz do projeto (`.`).
+		 * Necessário porque os arquivos de teste estão em `tests/`, fora do `src/`.
+		 *
+		 * Mesma lógica usada no tsconfig.tooling.json para o eslint.config.ts.
+		 */
+		"rootDir": ".",
+
+		/**
+		 * Tipos globais disponíveis no ambiente de teste.
+		 * - `"node"` → tipos do Node.js (process, Buffer, etc.)
+		 * - `"vitest/globals"` → atualmente NÃO incluído porque iremos utilizar `globals: false`
+		 *   no vitest.config.ts. Os imports são explícitos (`import { expect } from 'vitest'`).
+		 *   Se for necessário futuramente mudar para `globals: true`, adicione `"vitest/globals"` aqui.
+		 */
+		"types": ["node"]
+	},
+
+	/**
+	 * Quais arquivos este tsconfig enxerga.
+	 * - `src/**\/*`   → todo o código de produção (necessário para resolver os imports dos testes)
+	 * - `tests/**\/*` → todos os arquivos de teste
+	 * - `vitest.config.ts` → o próprio arquivo de configuração do Vitest precisa ser tipado
+	 *
+	 * Nota: NÃO incluímos `eslint.config.ts` aqui (ele pertence ao tsconfig.tooling.json).
+	 * Cada arquivo de tooling tem seu tsconfig responsável visando separação de responsabilidades.
+	 */
+	"include": ["src/**/*", "tests/**/*", "vitest.config.ts"]
+}
