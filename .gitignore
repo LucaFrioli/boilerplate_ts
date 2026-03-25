@@ -3,4 +3,8 @@ node_modules
 .env.*
 logs
 dist
+# Templates públicos de env — são documentação e DEVEM ser commitados
 !.env.example
+!.env.test.example
+# Pasta gerada pelo `npm run test:coverage` — não commitar relatórios de cobertura
+coverage
