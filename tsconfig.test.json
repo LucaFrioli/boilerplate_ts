@@ -48,7 +48,33 @@
 		 *   no vitest.config.ts. Os imports são explícitos (`import { expect } from 'vitest'`).
 		 *   Se for necessário futuramente mudar para `globals: true`, adicione `"vitest/globals"` aqui.
 		 */
-		"types": ["node"]
+		"types": ["node"],
+
+		/**
+		 * `paths` — aliases de importação disponíveis nos arquivos de teste.
+		 *
+		 * ⚠️ IMPORTANTE: TypeScript NÃO faz merge de `paths` do tsconfig pai.
+		 * Ao declarar `paths` aqui, todos os aliases do `tsconfig.app.json`
+		 * deixariam de funcionar nos testes. Por isso TODOS os aliases devem
+		 * ser redeclarados aqui (copiados de tsconfig.app.json) mais o @tests.
+		 *
+		 * Produção (copiado de tsconfig.app.json):
+		 */
+		"paths": {
+			"@/*": ["./src/*"],
+			"@Validations/*": ["./src/validations/*"],
+			"@Configs/*": ["./src/configs/*"],
+			"@Auth/*": ["./src/auth/*"],
+			"@Utils/*": ["./src/utils/*"],
+			"@Database/*": ["./src/databases/*"],
+			"@Contracts/*": ["./src/resources/contracts/*"],
+			"@Types/*": ["./src/shared/types/*"],
+			"@Types": ["./src/shared/types/index.ts"],
+			"@Hash/*": ["./src/auth/hash/*"],
+			"@Id/*": ["./src/core/identity/*"],
+			// Exclusivo do ambiente de teste:
+			"@tests/*": ["./tests/*"]
+		}
 	},
 
 	/**
