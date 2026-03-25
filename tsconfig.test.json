@@ -74,7 +74,8 @@
 			"@Id/*": ["./src/core/identity/*"],
 			"@Resources/*": ["./src/resources/*"],
 			// Exclusivo do ambiente de teste:
-			"@tests/*": ["./tests/*"]
+			"@tests/*": ["./tests/*"],
+			"@Mocks/*": ["./tests/helpers/mocks/*"]
 		}
 	},
 

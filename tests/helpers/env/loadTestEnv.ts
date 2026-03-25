@@ -57,8 +57,8 @@ if (result.error) {
 	 */
 	throw new Error(
 		`[Vitest Setup] Falha ao carregar o .env.test.\n` +
-			`Arquivo esperado em: ${testEnvPath}\n` +
-			`Solução: execute 'cp .env.test.example .env.test' na raiz do projeto.\n` +
-			`Detalhe do erro: ${result.error.message}`,
+		`Arquivo esperado em: ${testEnvPath}\n` +
+		`Solução: execute 'cp .env.test.example .env.test' na raiz do projeto.\n` +
+		`Detalhe do erro: ${result.error.message}`,
 	);
 }
