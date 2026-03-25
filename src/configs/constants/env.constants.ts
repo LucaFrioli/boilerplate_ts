@@ -9,7 +9,9 @@ export const envLogger = createChildLogger({
 });
 
 // node_env defaults and supported
-export const nodeEnvSupported = ['development', 'stage', 'production'] as const;
+// 'test' é obrigatório aqui: o Vitest injeta NODE_ENV=test automaticamente em todos os workers.
+// Sem este valor, qualquer módulo que importe env.ts falharia na inicialização dos testes.
+export const nodeEnvSupported = ['development', 'stage', 'production', 'test'] as const;
 
 // loacale and date constants
 
