@@ -72,6 +72,7 @@
 			"@Types": ["./src/shared/types/index.ts"],
 			"@Hash/*": ["./src/auth/hash/*"],
 			"@Id/*": ["./src/core/identity/*"],
+			"@Resources/*": ["./src/resources/*"],
 			// Exclusivo do ambiente de teste:
 			"@tests/*": ["./tests/*"]
 		}

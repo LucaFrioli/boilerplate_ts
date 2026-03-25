@@ -51,7 +51,8 @@
       "@Types/*": ["./src/shared/types/*"],
       "@Types": ["./src/shared/types/index.ts"],
       "@Hash/*": ["./src/auth/hash/*"],
-      "@Id/*": ["./src/core/identity/*"]
+      "@Id/*": ["./src/core/identity/*"],
+      "@Resources/*": ["./src/resources/*"]
     }
   },
   "include": ["src/**/*", "test/**/*"],
