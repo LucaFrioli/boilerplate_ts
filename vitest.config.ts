@@ -17,6 +17,24 @@
  */
 import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { config as loadEnv } from 'dotenv';
+import { resolve } from 'node:path';
+
+/**
+ * --------------- CARREGAMENTO ANTECIPADO DO .env.test ------------------
+ *
+ * O dotenv é executado AQUI, no nível do processo principal do Vitest
+ * (antes de qualquer worker ser criado), para garantir que as variáveis
+ * estejam disponíveis no processo pai. As variáveis críticas também são
+ * declaradas no bloco `test.env` abaixo para garantir que cada worker
+ * isolado as receba antes da avaliação dos módulos ESM.
+ *
+ * ## Arquitetura de dois níveis:
+ * 1. `loadEnv()` aqui → popula o processo principal (vitest CLI)
+ * 2. `test.env` em defineConfig → popula cada worker antes de qualquer import
+ * 3. `setupFiles` → segunda linha de defesa para overrides em runtime
+ */
+loadEnv({ path: resolve(process.cwd(), '.env.test'), override: true });
 
 export default defineConfig({
 	/**
@@ -70,6 +88,50 @@ export default defineConfig({
 		include: ['tests/**/*.test.ts'],
 
 		/**
+		 * `env` — injeta variáveis diretamente no `process.env` de cada worker do Vitest
+		 * ANTES de qualquer módulo ser avaliado (module evaluation).
+		 *
+		 * ## Por que é necessário além do setupFile?
+		 * Workers do Vitest nascem com `process.env` isolado do processo principal.
+		 * O setupFile (`loadTestEnv.ts`) roda depois que os módulos ESM do worker já foram
+		 * importados e avaliados. Módulos como `identity.type.ts` importam `env.ts`
+		 * no nível superior — e `env.ts` chama `process.exit(1)` se as variáveis
+		 * estiverem ausentes ou inválidas.
+		 *
+		 * O `env` aqui é a garantia de que as variáveis críticas estarão disponíveis
+		 * no momento exato em que os módulos ESM são avaliados pelos workers.
+		 * O setupFile continua existindo para sobrescrever/complementar em runtime.
+		 *
+		 * ⚠️ Valores aqui devem ser strings — `process.env` é sempre `Record<string, string>`.
+		 * ⚠️ NODE_ENV=test é injetado pelo Vitest automaticamente — está aqui por explicitez.
+		 */
+		env: {
+			NODE_ENV: 'test',
+			APP_NAME: 'Boilerplate_Test',
+			APP_TIMEZONE: 'UTC',
+			APP_LOCALE: 'pt-BR',
+			PORT: '3000',
+			EMAIL_TO_CONTACT: 'test-admin@boilerplate-test.local',
+			DATABASE_TYPE: 'mongodb',
+			DATABASE_HOST: 'localhost',
+			DATABASE_PORT: '27017',
+			DATABASE_NAME: 'boilerplate_test',
+			DATABASE_PASSWORD: 'TestDb@Pass123!',
+			DATABASE_ID_DEFAULT: 'uuidv7',
+			HASHER_PROVIDER: 'argon2',
+			HASHER_SECURITY_PEPPER: 'Test@Pepper123#Ficticio!456',
+			HASHER_LENGTH: '32',
+			HASHER_SALT_LENGTH: '16',
+			HASHER_PARALLELISM: '2',
+			HASHER_TIME_COST: '3',
+			HASHER_MEMORY_COST: '65536',
+			IDENTIFIER_PATTERN: 'nanoid',
+			IDENTIFIER_NANOID_ALPHABET:
+				'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',
+			IDENTIFIER_NANOID_SIZE: '21',
+		},
+
+		/**
 		 * Configuração de relatório de cobertura de código (Code Coverage).
 		 * Requer o pacote `@vitest/coverage-v8` (já instalado).
 		 *
@@ -120,9 +182,10 @@ export default defineConfig({
 		 * o `dotenv/config` já faz no código de produção — consistência total.
 		 *
 		 * ## Ordem de execução garantida pelo Vitest:
-		 * 1. setupFiles rodam (→ .env.test é carregado em process.env)
-		 * 2. Cada arquivo .test.ts é importado (→ env.ts valida process.env via Zod)
-		 * 3. Os testes dentro do arquivo são executados
+		 * 1. test.env é injetado em process.env de cada worker
+		 * 2. setupFiles rodam (→ .env.test sobrescreve com override: true)
+		 * 3. Cada arquivo .test.ts é importado (→ env.ts valida process.env via Zod)
+		 * 4. Os testes dentro do arquivo são executados
 		 *
 		 * @see {@link tests/helpers/env/loadTestEnv.ts} — implementação e documentação completa
 		 * @see {@link .env.test.example} — template com justificativas de cada valor
