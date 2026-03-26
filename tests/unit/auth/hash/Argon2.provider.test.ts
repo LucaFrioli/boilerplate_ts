@@ -15,7 +15,7 @@
  * @see {@link src/auth/hash/providers/Argon2.service.auth.ts}
  */
 import { vi, describe, it, expect } from 'vitest';
-import { weakPassword } from '@tests/helpers/mocks/test.fixtures.js';
+import { weakPassword } from '@Mocks/test.fixtures.js';
 
 // Mock do env para garantir que pepper e custos sejam constantes controladas
 vi.mock('@Configs/env.js', () => ({

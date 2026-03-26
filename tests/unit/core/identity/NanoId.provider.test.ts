@@ -26,7 +26,7 @@
  * @see {@link tests/helpers/mocks/test.fixtures.ts}
  */
 import { vi, describe, it, expect } from 'vitest';
-import { validNanoId } from '@tests/helpers/mocks/test.fixtures.js';
+import { validNanoId } from '@Mocks/test.fixtures.js';
 
 vi.mock('@Configs/env.js', () => ({
 	env: {

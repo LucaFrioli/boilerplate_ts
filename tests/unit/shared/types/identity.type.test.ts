@@ -59,7 +59,7 @@ import { regexValidationToIdentitySupported } from '@Configs/constants/env.const
 // IDs válidos hardcodados — representam output real dos providers conforme .env.test
 // ---------------------------------------------------------------------------
 
-import { validNanoId, validUuidV7, validUuidV4 } from '../../../helpers/mocks/test.fixtures.js';
+import { validNanoId, validUuidV7, validUuidV4 } from '@Mocks/test.fixtures.js';
 
 describe('identity.type', () => {
 	// =========================================================================
