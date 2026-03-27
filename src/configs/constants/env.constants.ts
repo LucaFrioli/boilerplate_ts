@@ -28,6 +28,7 @@ const acceptedDatabaseProtocols: readonly string[] = [
 	'postgresql',
 ];
 
+// domínios para poder criar uris mongo compatíveis com mongoDB em server mode
 export const acceptedMongoSrvDomains = [
 	'.mongo.net',
 	'.mongodb.net',
@@ -35,6 +36,17 @@ export const acceptedMongoSrvDomains = [
 ] as const;
 
 export const dbProtocols: readonly string[] = Object.freeze(acceptedDatabaseProtocols);
+
+export const enableMemDatabaseConnections = ['redis', 'valkey'] as const;
+
+export const acceptedMemDatabaseProtocols: readonly string[] = [
+	'redis',
+	'rediss',
+	// Os prefixos valkey e valkeys são future-proofing caso drivers futuros
+	// exijam alias nominal explícito, mas operam no mesmo protocolo RESP.
+	'valkey',
+	'valkeys',
+];
 
 // hasher constants
 export const supportedHashProviders = ['argon2', 'bcrypt'] as const;

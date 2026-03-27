@@ -1,5 +1,6 @@
 import {
 	dbProtocols,
+	acceptedMemDatabaseProtocols,
 	regexValidationToHasherProvidersSupported,
 } from '@Configs/constants/env.constants.js';
 import { createChildLogger } from '@Configs/logger.js';
@@ -81,4 +82,19 @@ export function isDatabaseUri(uri: unknown): uri is DatabaseURI {
 	const protocol: string = parsedUrl.protocol.replace(':', '');
 
 	return dbProtocols.includes(protocol);
+}
+
+/**
+ * String que representa uma URI de conexão validada para Bancos em Memória.
+ * Evita a injeção acidental de um banco relacional onde se espera um Cache/Store.
+ */
+export type MemDatabaseURI = Brand<string, 'MemDatabaseURI'>;
+
+export function isMemDatabaseUri(uri: unknown): uri is MemDatabaseURI {
+	if (!isValidUri(uri) || typeof uri !== 'string') return false;
+
+	const parsedUrl: URL = new URL(uri);
+	const protocol: string = parsedUrl.protocol.replace(':', '');
+
+	return acceptedMemDatabaseProtocols.includes(protocol);
 }
