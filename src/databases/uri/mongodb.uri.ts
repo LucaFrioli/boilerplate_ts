@@ -21,6 +21,7 @@ class MongoConnectionString extends BaseUri {
 				error: {
 					rawValue: this._baseEnvValues,
 				},
+				method: 'guardBroken',
 			});
 		}
 
@@ -32,6 +33,7 @@ class MongoConnectionString extends BaseUri {
 					specify: 'Tentativa de formação MongoURI porém DATABASE_TYPE é incompatível',
 				},
 				message: `FATAL ERROR tetativa de fromação de URI Mongo porém env configurda como ${this._baseEnvValues.DATABASE_TYPE}`,
+				method: 'guardBroken',
 			});
 		}
 
@@ -57,6 +59,7 @@ class MongoConnectionString extends BaseUri {
 					typeofUserName: typeof validatedEnvValues.DATABASE_USERNAME,
 					typeofPassword: typeof validatedEnvValues.DATABASE_PASSWORD,
 				},
+				method: 'generateAuth',
 			});
 		}
 
@@ -80,6 +83,7 @@ class MongoConnectionString extends BaseUri {
 					guardResult: isDatabaseUri(formatedUrl),
 				},
 				message: 'Erro ao validar como uma url válida para banco de dados',
+				method: 'generateUriToDev',
 			});
 		}
 
@@ -100,6 +104,7 @@ class MongoConnectionString extends BaseUri {
 				},
 				message:
 					'Falha ao gerar autenticação para a URI, verifique a env, ou lógic aplicada',
+				method: 'generateUriToProd',
 			});
 
 		const isSRV: boolean = acceptedMongoSrvDomains.some((domain) =>
@@ -121,6 +126,7 @@ class MongoConnectionString extends BaseUri {
 						modality: '+srv',
 					},
 					message: 'Erro ao criar connection string para Mongodb em modalidade srv',
+					method: 'generateUriToProd',
 				});
 			}
 
@@ -145,6 +151,7 @@ class MongoConnectionString extends BaseUri {
 					},
 					message:
 						'Erro ao criar connection string para Mongodb em modalidade multi host',
+					method: 'generateUriToProd',
 				});
 			}
 
@@ -167,6 +174,7 @@ class MongoConnectionString extends BaseUri {
 					modality: 'Single-host',
 				},
 				message: 'Erro ao criar connection string para Mongodb em modalidade single-host',
+				method: 'generateUriToProd',
 			});
 		}
 

@@ -58,6 +58,7 @@ export abstract class BaseUri implements IDatabaseUri {
 				erroLevel: 'fatal',
 				error: { uriType: typeof this._uri, rawUri: this._uri },
 				message: 'A uri é indefinidia, ou mal formada',
+				method: 'get uri',
 			});
 		}
 		return this._uri;
@@ -77,6 +78,7 @@ export abstract class BaseUri implements IDatabaseUri {
 				error: { rawValidetedEnv: this._baseEnvValues },
 				message:
 					'Erro ao inicializar criação de string de conexão, verifique por qual motivo a base de hambiente não se ncontra formada',
+				method: 'init',
 			});
 		}
 
@@ -132,6 +134,7 @@ export abstract class BaseUri implements IDatabaseUri {
 					error: z.treeifyError(shildResult.error),
 					message:
 						'Variáveis de ambiente base foram maculadas após a inicialização do app.',
+					method: 'validateBaseEnvDatas',
 				});
 			}
 
@@ -188,7 +191,7 @@ export abstract class BaseUri implements IDatabaseUri {
 	// lida com erros que possam acontecer nas classes concretas dde forma elegante enrriquecendo ainda mais o contexto e garantindo rastreabilidade, além de lançar um erro garantindo que nada passe
 	protected handlerErrors(params: handlerContractsErrorsParams): never {
 		this.BaseUriLogger[params.erroLevel](
-			{ module: this.uriGeneratorName, error: params.error },
+			{ module: this.uriGeneratorName, error: params.error, method: params.method },
 			params.message,
 		);
 		throw new Error(

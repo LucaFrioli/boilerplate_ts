@@ -50,6 +50,7 @@ export interface handlerContractsErrorsParams {
 	erroLevel: errorLevels;
 	error: unknown;
 	message: string;
+	method: string;
 }
 
 const pinoConfigs = {
