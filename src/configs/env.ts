@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { dbEnvValidationSchema } from './schemas/dbEnv.schema.js';
 import { idEnvValidationsSchema } from './schemas/idEnv.schema.js';
 import { hasherEnvValidationSchema } from './schemas/hasherEnv.schema.js';
+import { memEnvValidationSchema } from './schemas/memDbEnv.schema.js';
 import {
 	nodeEnvSupported,
 	timezoneSupported,
@@ -33,6 +34,8 @@ const envSchema = z.object({
 
 	// Definição identificadores da aplicação
 	...idEnvValidationsSchema.shape,
+
+	...memEnvValidationSchema.shape
 });
 
 const _env = envSchema.safeParse(process.env);
