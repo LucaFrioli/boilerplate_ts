@@ -35,7 +35,8 @@ const envSchema = z.object({
 	// Definição identificadores da aplicação
 	...idEnvValidationsSchema.shape,
 
-	...memEnvValidationSchema.shape
+	// Definição de configuração do banco em memória
+	...memEnvValidationSchema.shape,
 });
 
 const _env = envSchema.safeParse(process.env);
