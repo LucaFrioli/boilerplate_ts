@@ -202,11 +202,11 @@ describe('identity.type', () => {
 		 * imediatamente — o que é desejável.
 		 */
 		it('deve corresponder ao NanoID de referência', () => {
-			expect(NanoIDRegex.test(validNanoId)).toBe(true);
+			expect(NanoIDRegex().test(validNanoId)).toBe(true);
 		});
 
 		it('deve rejeitar string com comprimento diferente do configurado', () => {
-			expect(NanoIDRegex.test('curto')).toBe(false);
+			expect(NanoIDRegex().test('curto')).toBe(false);
 		});
 	});
 

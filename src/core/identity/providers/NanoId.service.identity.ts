@@ -46,6 +46,6 @@ export default class NanoIdProvider extends BaseIdentityGenerator {
 			return false;
 		}
 
-		return NanoIDRegex.test(id);
+		return NanoIDRegex().test(id);
 	}
 }

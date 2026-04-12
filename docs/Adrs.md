@@ -94,3 +94,19 @@ Este documento registra as decisões técnicas fundamentais tomadas durante a co
 **Decisão**: Adotar TDD como padrão obrigatório para qualquer novo **`provider`**, **`usecase`**, **`factory`** ou **`entity`** a partir desta fase.
 
 **Justificativa**: Com o sistema de contratos abstratos (`BaseHasher`, `ITokenProvider`, e outros futuros), o teste do contrato precede a implementação. Isso garante que qualquer novo provider seja drop-in sem risco de regressão.
+
+---
+
+## ADR 011: Proibição de Side-Effects em Avaliação de Módulos Barrel-Exported (Lazy Initialization)
+**Data: 2026-04-12** *Contexto*: A estratégia de **Barrel Exports** (`shared/types/index.ts`) centraliza todas as exportações de tipos, guards e utilitários em um único ponto de importação (`@Types`). No entanto, no modelo ESM nativo do Node, `import { X } from '@Types'` dispara a **avaliação de todos os módulos re-exportados**, mesmo que o consumidor precise apenas de `X`. Se qualquer módulo do barrel executar lógica dependente de runtime (como ler `env`) no nível superior (top-level), todos os consumidores transitivos herdam essa dependência oculta. Isso gera falhas em testes onde `env` é mockada parcialmente: ao importar qualquer tipo de `@Types`, o runtime avalia `identity.type.ts` que lê `env.IDENTIFIER_NANOID_ALPHABET` no top-level, e o mock do teste de hashing não define essa variável, pois não tem relação com identidade.
+
+**Decisão**: Proibir `export const` com dependências de runtime (`env`, I/O, `crypto`) no nível superior de qualquer módulo pertencente a um **barrel export** (`shared/types/`, ou futuros barrels). Valores que dependem de `env` devem ser encapsulados em padrão **Lazy Singleton**, uma função que computa e cacheia o valor na primeira invocação *Vide o [NanoIDRegex](../src/shared/types/identity.type.ts)*
+
+**Justificativa**:
+- **Isolamento de testes**: Cada suite de testes deve poder mockar apenas as dependências que seu módulo consome diretamente, sem ser afetada por dependências transitivas de outros módulos do barrel. O lazy singleton garante que a leitura de `env` só acontece quando o guard/regex é efetivamente **chamado**, não quando o módulo é **importado**.
+
+- **Segurança da Barrel Strategy**: O padrão barrel (`export * from`) é valioso para DX — permite importações limpas (`from '@Types'`) em vez de caminhos granulares. Esta ADR protege essa estratégia eliminando o único vetor de falha: side-effects na avaliação.
+
+- **Coerência com o Lazy Singleton já praticado**: `HasherFactory` e `IdentityFactory` já usam este exato padrão (instância cacheada, criada na primeira chamada). Esta ADR apenas estende a mesma disciplina para a camada de tipos.
+
+- **Inspiração no Rust** — `lazy_static!`: Em Rust, constantes computadas em runtime não existem. Valores que dependem de estado externo usam `lazy_static!` ou `OnceLock` — inicializados na primeira leitura, imutáveis depois. O padrão Lazy Singleton é o equivalente TypeScript direto, mantendo a filosofia de preparação para migração.

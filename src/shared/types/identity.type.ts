@@ -19,9 +19,15 @@ const idTypesLogger = createChildLogger({
  * Solução: escapamos o `-` para `\\-` e garantimos que `_` não seja adjacente
  * ao `-` de forma a criar um range indesejado.
  */
-export const NanoIDRegex = new RegExp(
-	`^[${env.IDENTIFIER_NANOID_ALPHABET.replace(/-/g, '\\-')}]{${String(env.IDENTIFIER_NANOID_SIZE)}}$`,
-);
+let _nanoIDRegEx: RegExp | null = null;
+export function NanoIDRegex(): RegExp {
+	if (!_nanoIDRegEx) {
+		_nanoIDRegEx = new RegExp(
+			`^[${env.IDENTIFIER_NANOID_ALPHABET.replace(/-/g, '\\-')}]{${String(env.IDENTIFIER_NANOID_SIZE)}}$`,
+		);
+	}
+	return _nanoIDRegEx;
+}
 
 function isID(rawId: unknown, typeOfId: unknown, envId: unknown): boolean {
 	if (typeof typeOfId !== 'string' || typeof envId !== 'string') {
@@ -43,7 +49,7 @@ function isID(rawId: unknown, typeOfId: unknown, envId: unknown): boolean {
 
 	switch (envId) {
 		case 'nanoid':
-			return NanoIDRegex.test(rawId);
+			return NanoIDRegex().test(rawId);
 		case 'uuidv4':
 			return regexValidationToIdentitySupported.uuidv4.test(rawId);
 		case 'uuidv7':
