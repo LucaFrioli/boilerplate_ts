@@ -1,12 +1,13 @@
 import { env } from '@Configs/env.js';
 import { createChildLogger } from '@Configs/logger.js';
+import { isHashedString, type HashedString } from '@Types/index.js';
 
 export interface IHasherProvider {
 	/**
 	 * Recebe uma string limpa e retorna o hash gerado.
 	 * @param payload - O dado sensível (ex: senha)
 	 */
-	generate(payload: string): Promise<string>;
+	generate(payload: string): Promise<HashedString>;
 
 	/**
 	 * Compara um texto puro com um hash existente.
@@ -48,7 +49,7 @@ export abstract class BaseHasher implements IHasherProvider {
 
 	protected abstract executeValidation(hashedString: string): boolean;
 
-	public async generate(payload: string): Promise<string> {
+	public async generate(payload: string): Promise<HashedString> {
 		if (!payload || payload.trim().length === 0) {
 			this.hasherLogger.warn(
 				{ serviceName: this.ServiceName },
@@ -58,7 +59,9 @@ export abstract class BaseHasher implements IHasherProvider {
 		}
 
 		try {
-			return await this.executeHash(payload);
+			const hash = await this.executeHash(payload);
+			if (!isHashedString(hash)) throw new Error('Erro ao tentar gerar a string');
+			return hash;
 		} catch (e) {
 			this.handleFatalErrors(e, 'generate');
 		}

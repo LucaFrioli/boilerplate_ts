@@ -41,6 +41,8 @@ export class CpfValidator {
 			throw new Error('Ops! Digite um cpf válido para poder continuaar com a operação');
 		}
 
+		// aqui estva pensando em implementar uma chamada de um outro método privado para focar em uma validação a nível de api da receita federal
+
 		return Object.freeze(clearCpf);
 	}
 
@@ -55,4 +57,6 @@ export class CpfValidator {
 		const digit = 11 - (total % 11);
 		return digit > 9 ? `0` : String(digit);
 	}
+
+	// private static validateOnPF(mathValidCPF: string): object /*Objeto vindo da API da receita*/ {}
 }
