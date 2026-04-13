@@ -124,7 +124,7 @@ partir da arquitetura, mas não a define.
 ### Dívidas Técnicas já registradas
 - [x] Guard de inicialização para `MEM_DB_INDEX_OR_PATH` em `memDbEnv.schema.ts`
 - [ ] Ponderar e adicionar logs informativos em métodos de `UserMethods` na entidade `User`
-- [ ] Refatorar Hasher, Identity e verificar se refatoração quebrou algo
+- [/] Refatorar Hasher, Identity e verificar se refatoração quebrou algo
 
 ### Correção de Typos em nomes de arquivo/tipo
 - [ ] `StringWithLegth` → `StringWithLength` (arquivo + tipo + função)

@@ -38,7 +38,10 @@ export const memEnvValidationSchema = z.object({
 				}
 
 				if (val.length < 15) {
-					envLogger.fatal({ length: val.length }, 'A senha do banco de dados em produção deve ser configurada com ao menos 15 caracters');
+					envLogger.fatal(
+						{ length: val.length },
+						'A senha do banco de dados em produção deve ser configurada com ao menos 15 caracters',
+					);
 					return false;
 				}
 				return passwordStrength(val, { securityLevel: 'strong', personalize: false });
