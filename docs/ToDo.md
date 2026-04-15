@@ -104,8 +104,8 @@ partir da arquitetura, mas não a define.
 > *Isso garante que as fases seguintes construam sobre uma base sólida.*
 
 ### Correções de Bugs
-- [ ] Corrigir `changeEmail()` no `User.ts` — passa `string` onde `z.object` espera `object`
-- [ ] Corrigir `validateSpecificEnvValues()` em `mongodb.uri.ts` — lança `throw new Error('Method not implemented.')` (dead-code ou implementar de fato)
+- [x] Corrigir `changeEmail()` no `User.ts` — passa `string` onde `z.object` espera `object`
+- [x] Corrigir `validateSpecificEnvValues()` em `mongodb.uri.ts` — lança `throw new Error('Method not implemented.')` (dead-code ou implementar de fato)
 
 ### Refinamento de Tipos (Branded Types faltantes)
 - [ ] Criar `ValidatedCPF = Brand<string, 'ValidatedCPF'>` + guard + atualizar `UserI.cpf`
@@ -182,7 +182,7 @@ partir da arquitetura, mas não a define.
 
 ---
 
-## Fase 4 — Autenticação & Sessão 🔑
+## Fase 4 — Autenticação & Sessão 🔑 - Quando concluida transferir para main branch como v 0.1.0
 
 > *Sistema de login/logout stateless (JWT) com suporte a refresh e blacklist.*
 
