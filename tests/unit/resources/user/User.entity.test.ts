@@ -10,6 +10,9 @@ import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { User } from '@Resources/User/User.js';
 import { validCreateUserPayload } from '@Mocks/test.fixtures.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
+import baseUserSchema from '@Resources/User/User.validation.js';
+import type { AppID, DatabaseID, HashedString } from '@Types';
+import type { UserI } from '@Resources/User/User.interface.js';
 
 // Mocks de infraestrutura para isolar a Entidade Parcialmente
 vi.mock('@Configs/env.js', () => ({
@@ -90,6 +93,38 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 			expect(dto.email).toBe('old@email.com');
 		});
 
+		it('deve chamar validate e retornar true salvando dados e formatando os logs de depuração', () => {
+			vi.spyOn(baseUserSchema, 'safeParse').mockReturnValueOnce({
+				success: true,
+				data: {
+					publicId: 'app_id' as AppID, username: 'mocked',
+					id: 'id' as DatabaseID,
+					active: false,
+					email: '',
+					passwordHash: '' as HashedString,
+					cpf: '',
+					stripeId: null,
+					walletId: null,
+					profileId: 'id_app' as DatabaseID,
+					createdAt: new Date(),
+					updatedAt: null,
+					deletedAt: null
+				},
+			});
+
+			const testInstance = Object.create(User.prototype) as {
+				logInfo: ReturnType<typeof vi.fn>;
+				validate: (data: unknown) => UserI;
+			};
+			testInstance.logInfo = vi.fn();
+
+			const res = testInstance.validate({});
+
+			expect(testInstance.logInfo).toHaveBeenCalledWith('debug', 'app_id transitando por dentro do sistema!', expect.any(Object));
+			expect(res.username).toBe('mocked');
+			vi.restoreAllMocks();
+		});
+
 
 		it('deve disparar erro se tentar alterar email com input estrito (comportamento nativo do safeParse z.object)', () => {
 			expect(() => {
@@ -112,6 +147,10 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 
 		it('deve disparar erro de maculação se a senha enviada produzir o mesmo Hash (comportamento nativo)', async () => {
 			await expect(userMocked.changePassword('SenhaQualquer@123')).rejects.toThrow('Falha Interna Simulada: Tentativa de maculação de hash após troca de senha');
+		});
+
+		it('deve disparar erro se a senha provida for fraca demais / invalida', async () => {
+			await expect(userMocked.changePassword('fraca')).rejects.toThrow('Falha Interna Simulada: Erro ao tentar trocar senha! Tente novamente');
 		});
 
 		it('deve trocar a senha corretamente se a nova senha for válida e não maculada', async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import DateManager from '@Utils/dateManager.util.js';
 
 describe('DateManager Util (Black-Box)', () => {
@@ -36,6 +36,12 @@ describe('DateManager Util (Black-Box)', () => {
 
 		it('deve lançar um erro caso seja provida uma data inválida', () => {
 			expect(() => DateManager.toFileSafe('invalida')).toThrow('Data inválida');
+		});
+
+		it('deve formatar erro fatal persistente (Edge case falsy substring) mockando interno', () => {
+			vi.spyOn(DateManager, 'toIsoString').mockReturnValueOnce('');
+			expect(() => DateManager.toFileSafe(new Date())).toThrow('Erro crítico na criação de nome de arquivos baseados em datas');
+			vi.restoreAllMocks();
 		});
 	});
 
