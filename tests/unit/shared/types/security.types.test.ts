@@ -47,7 +47,7 @@ vi.mock('@Configs/env.js', () => ({
 	},
 }));
 
-import { isHashedString, isValidUri, isDatabaseUri } from '@Types/security.types.js';
+import { isHashedString, isValidUri, isDatabaseUri, isMemDatabaseUri } from '@Types/security.types.js';
 
 describe('security.types', () => {
 	// =========================================================================
@@ -238,6 +238,42 @@ describe('security.types', () => {
 
 		it('deve rejeitar string vazia', () => {
 			expect(isDatabaseUri('')).toBe(false);
+		});
+	});
+
+	// isMemDatabaseUri — Fronteira contra protocolos in-memory
+	describe('isMemDatabaseUri', () => {
+		it('deve aceitar URI com protocolo redis', () => {
+			expect(isMemDatabaseUri('redis://localhost:6379')).toBe(true);
+		});
+
+		it('deve aceitar URI com protocolo rediss (seguro)', () => {
+			expect(isMemDatabaseUri('rediss://user:pass@host.cache.net:6379')).toBe(true);
+		});
+
+		it('deve aceitar URI com protocolo valkey', () => {
+			expect(isMemDatabaseUri('valkey://localhost:6379')).toBe(true);
+		});
+
+		it('deve aceitar URI com protocolo valkeys (seguro)', () => {
+			expect(isMemDatabaseUri('valkeys://user:pass@host.cache.net:6379')).toBe(true);
+		});
+
+		it('deve rejeitar URI com protocolo mongodb (não autorizado)', () => {
+			expect(isMemDatabaseUri('mongodb://localhost:27017/db')).toBe(false);
+		});
+
+		it('deve rejeitar URI HTTP (não é banco em memória)', () => {
+			expect(isMemDatabaseUri('https://example.com')).toBe(false);
+		});
+
+		it('deve rejeitar string inválida como URI', () => {
+			expect(isMemDatabaseUri('nao-e-uma-uri')).toBe(false);
+		});
+
+		it('deve rejeitar para valor não nulo ou incorreto (typeof fails)', () => {
+			expect(isMemDatabaseUri(null)).toBe(false);
+			expect(isMemDatabaseUri(undefined)).toBe(false);
 		});
 	});
 });

@@ -54,6 +54,7 @@ vi.mock('@Configs/env.js', () => ({
 
 import { isAppID, isDatabaseID, NanoIDRegex } from '@Types/identity.type.js';
 import { regexValidationToIdentitySupported } from '@Configs/constants/env.constants.js';
+import { env } from '@Configs/env.js';
 
 // ---------------------------------------------------------------------------
 // IDs válidos hardcodados — representam output real dos providers conforme .env.test
@@ -189,9 +190,7 @@ describe('identity.type', () => {
 		});
 	});
 
-	// =========================================================================
 	// NanoIDRegex — Regex derivada do ambiente (IDENTIFIER_NANOID_ALPHABET + SIZE)
-	// =========================================================================
 	describe('NanoIDRegex (consistência com configuração)', () => {
 		/**
 		 * A regex é construída dinamicamente a partir do env:
@@ -233,6 +232,42 @@ describe('identity.type', () => {
 
 		it('regex uuidv4 deve rejeitar UUIDv7', () => {
 			expect(regexValidationToIdentitySupported.uuidv4.test(validUuidV7)).toBe(false);
+		});
+	});
+
+	// =========================================================================
+	// Falhas internas (Branches de segurança) do isID
+	// =========================================================================
+	describe('Falhas de segurança internas (isID / env)', () => {
+		it('deve disparar erro fatal se a variável de ambiente não for uma string', () => {
+			const originalEnvPattern = env.IDENTIFIER_PATTERN;
+			// Corrompendo temporariamente o mock validado do ambiente (simulando falha de import)
+			// @ts-expect-error testando edge case
+			env.IDENTIFIER_PATTERN = undefined;
+
+			expect(() => isAppID(validNanoId)).toThrow('Erro fatal dentro do módulo identityTypes');
+
+			// Restaurando
+			env.IDENTIFIER_PATTERN = originalEnvPattern;
+		});
+
+		it('deve rejeitar como false por padrão (default switch) se uma provider string desconhecida vazar', () => {
+			const originalEnvPattern = env.IDENTIFIER_PATTERN;
+			// @ts-expect-error testando edge case
+			env.IDENTIFIER_PATTERN = 'invalid_protocol_mock';
+
+			expect(isAppID(validNanoId)).toBe(false);
+
+			env.IDENTIFIER_PATTERN = originalEnvPattern;
+		});
+
+		it('deve validar uuidv4 caso o switch estoure para a label uuidv4', () => {
+			const originalEnvPattern = env.IDENTIFIER_PATTERN;
+			env.IDENTIFIER_PATTERN = 'uuidv4';
+
+			expect(isAppID(validUuidV4)).toBe(true);
+
+			env.IDENTIFIER_PATTERN = originalEnvPattern;
 		});
 	});
 });
