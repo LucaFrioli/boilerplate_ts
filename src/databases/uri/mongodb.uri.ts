@@ -2,12 +2,14 @@ import { type DatabaseURI, isDatabaseUri } from '@Types/security.types.js';
 import { BaseUri, type EnvDataForUri } from './contracts/BaseUri.contract.js';
 import { acceptedMongoSrvDomains } from '@Configs/constants/env.constants.js';
 
-class MongoConnectionString extends BaseUri {
+export class MongoConnectionString extends BaseUri {
 	protected get uriGeneratorName(): string {
 		return 'MongoConnectionString';
 	}
-	private _fine_settings: string = 'retryWrites=true&w=majority&authSource=admin';
-	private auth: string = '';
+	protected get _fine_settings(): string {
+		return 'retryWrites=true&w=majority&authSource=admin';
+	}
+	private auth!: string;
 
 	protected validateSpecificEnvValues(): void {
 		throw new Error('Method not implemented.');
@@ -43,6 +45,8 @@ class MongoConnectionString extends BaseUri {
 		}
 	}
 	protected maskUriToLog(unmaskUri: string): string {
+		// por momento em prol da entrga ficará como dívida técnica a necessidade de realizar um braker ou algo do genero aqui, por momento iremos retornar uma string vazia
+		if (!unmaskUri) return '';
 		return unmaskUri.replace(/:([^:@]+)@/, ':*********@');
 	}
 
@@ -94,12 +98,15 @@ class MongoConnectionString extends BaseUri {
 		return formatedUrl;
 	}
 	protected generateUriToProd(validatedEnvValues: EnvDataForUri): DatabaseURI {
-		if (this.auth === '' || typeof this.auth !== 'string')
+		const authIsString = typeof this.auth === 'string';
+		if (this.auth === '' || !authIsString)
 			this.handlerErrors({
 				erroLevel: 'fatal',
 				error: {
 					rawAuth: this.maskUriToLog(this.auth),
-					authLength: this.auth.length,
+					authLength: !authIsString
+						? 'Não foi possível verificar tamnaho pois auth não é string'
+						: this.auth.length,
 					typeof: typeof this.auth,
 				},
 				message:
