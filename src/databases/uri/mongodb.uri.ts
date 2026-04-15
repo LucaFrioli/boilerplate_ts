@@ -11,9 +11,6 @@ export class MongoConnectionString extends BaseUri {
 	}
 	private auth!: string;
 
-	protected validateSpecificEnvValues(): void {
-		throw new Error('Method not implemented.');
-	}
 	protected guardBroken(): void {
 		if (!this._baseEnvValues) {
 			this.handlerErrors({
