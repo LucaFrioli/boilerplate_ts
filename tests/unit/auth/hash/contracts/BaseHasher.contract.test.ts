@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BaseHasher } from '../../../../../src/auth/hash/contracts/IHasher.contract.js';
+import { BaseHasher } from '@Hash/contracts/IHasher.contract.js';
 
 vi.mock('@Configs/env.js', () => ({
 	env: {
