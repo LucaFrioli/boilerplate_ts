@@ -172,9 +172,16 @@ export abstract class BaseUri implements IDatabaseUri {
 	 * @returns {void}
 	 */
 	protected validateSpecificEnvValues(): void {
-		const e = new Error('Erro ao tentar executar o método, por gentileza implemente o método referido');
-		this.handlerErrors({ message: 'Implemente o método antes de utilizá-lo', erroLevel: 'fatal', method: 'validateSpecificEnvValues', error: e });
-	};
+		const e = new Error(
+			'Erro ao tentar executar o método, por gentileza implemente o método referido',
+		);
+		this.handlerErrors({
+			message: 'Implemente o método antes de utilizá-lo',
+			erroLevel: 'fatal',
+			method: 'validateSpecificEnvValues',
+			error: e,
+		});
+	}
 
 	/**
 	 * Gerador de uri para ambiente de desenvolvimento.
