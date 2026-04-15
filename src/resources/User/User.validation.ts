@@ -40,7 +40,7 @@ const dbIdSchema = z.custom<DatabaseID>((val) => {
  * Validador Estrutural de Email.
  * Usa validação RFC oficial do Zod.
  */
-export const emailValidationSchema = z.email();
+export const emailValidationSchema = z.email().nonempty();
 
 /**
  * Validador de Cadastro de Pessoas Físicas (Brasil).

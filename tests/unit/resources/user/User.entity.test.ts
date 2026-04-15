@@ -90,18 +90,6 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 			expect(dto.email).toBe('old@email.com');
 		});
 
-		it('deve disparar throw no envio de email no formato string ao inves de objeto (comportamento arquitetural)', () => {
-			expect(() => {
-				userMocked.changeEmail('new@email.com');
-			}).toThrow('Falha Interna Simulada: Tentativa de trocar email com valor inválido');
-
-			const reflector = userMocked as unknown as { handlingError: ReturnType<typeof vi.fn> };
-			expect(reflector.handlingError).toHaveBeenCalledWith(
-				'warn',
-				expect.anything(),
-				'Tentativa de trocar email com valor inválido'
-			);
-		});
 
 		it('deve disparar erro se tentar alterar email com input estrito (comportamento nativo do safeParse z.object)', () => {
 			expect(() => {
@@ -114,6 +102,12 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 				expect.anything(),
 				'Tentativa de trocar email com valor inválido'
 			);
+		});
+
+		it('deve trocar o email corretamente se a nova string for válida (Happy Path)', () => {
+			userMocked.changeEmail('novo.email@perfeito.com');
+			const dbDto = userMocked.toDatabaseDTO();
+			expect(dbDto.email).toBe('novo.email@perfeito.com');
 		});
 
 		it('deve disparar erro de maculação se a senha enviada produzir o mesmo Hash (comportamento nativo)', async () => {

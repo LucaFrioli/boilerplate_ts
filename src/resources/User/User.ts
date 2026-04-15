@@ -163,11 +163,7 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 	 * Realiza validação pontual de RFC e gera Log Fatal se injetarem strings inválidas.
 	 */
 	public changeEmail(newEmail: string): void {
-		const validateEmail = z
-			.object({
-				email: z.email({ error: 'o email deve ser válido, tente novamente!' }).nonempty(),
-			})
-			.safeParse(newEmail);
+		const validateEmail = emailValidationSchema.safeParse(newEmail);
 
 		if (!validateEmail.success) {
 			this.handlingError(
@@ -181,7 +177,7 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 			);
 		}
 
-		this.props.email = validateEmail.data.email;
+		this.props.email = validateEmail.data;
 		this.updateDate();
 	}
 
