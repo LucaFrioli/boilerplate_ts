@@ -4,7 +4,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
 import { passwordStrength } from '@Validations/Password.validations.js';
-import { usernameValidationSchema } from '@Resources/User/User.validation.js';
+import baseUserSchema, { usernameValidationSchema } from '@Resources/User/User.validation.js';
+import { validUuidV7 } from '@Mocks/test.fixtures.js';
+import z from 'zod';
 
 // Mock de env completo
 vi.mock('@Configs/env.js', () => ({
@@ -65,6 +67,93 @@ describe('User Validations', () => {
 		it('deve rejeitar usernames com caracteres especiais @', () => {
 			const result = usernameValidationSchema.safeParse('luca@frioli');
 			expect(result.success).toBe(false);
+		});
+	});
+
+	describe('baseUserSchema', () => {
+		it('deve testar os defaults e transforms nulos e de data corretamente (createdAt, updatedAt, deletedAt nulos/string)', () => {
+			const mockPayload = {
+				id: validUuidV7,
+				publicId: validUuidV7,
+				active: true,
+				username: 'luca_teste',
+				email: 'teste@teste.com',
+				// Simulamos como hash Argon2 válido via regex para passar type guard
+				passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$c2FsdHNhbHRzYWx0c2FsdA$hashhashhashhashhashhash',
+				cpf: '123.456.789-09',
+				profileId: validUuidV7,
+				// omitimos stripeId, walletId, updatedAt e deletedAt para checar defaults nulos
+				createdAt: new Date().toISOString(), // iso string obrigatorio
+			};
+
+			const parsed = baseUserSchema.safeParse(mockPayload);
+			if (!parsed.success) { console.error('baseUserSchema parsing failed:', z.treeifyError(parsed.error)); }
+			expect(parsed.success).toBe(true);
+
+			if (parsed.success) {
+				// Assert defaults nulables formados corretamente
+				expect(parsed.data.stripeId).toBe(null);
+				expect(parsed.data.walletId).toBe(null);
+				expect(parsed.data.updatedAt).toBe(null);
+				expect(parsed.data.deletedAt).toBe(null);
+				// Assert transform Date
+				expect(parsed.data.createdAt).toBeInstanceOf(Date);
+			}
+		});
+
+		it('deve rejeitar atributos (id, publicId, passwordHash) que não sejam strings no z.custom', () => {
+			const basePayload = {
+				id: validUuidV7,
+				publicId: validUuidV7,
+				active: true,
+				username: 'luca_teste',
+				email: 'teste@teste.com',
+				passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$c2FsdHNhbHRzYWx0c2FsdA$hashhashhashhashhashhash',
+				cpf: '123.456.789-09',
+				profileId: validUuidV7,
+				createdAt: new Date().toISOString(),
+			};
+
+			// Fails id string check (line 33)
+			expect(baseUserSchema.safeParse({ ...basePayload, id: 1234 }).success).toBe(false);
+			// Fails publicId string check (line 62)
+			expect(baseUserSchema.safeParse({ ...basePayload, publicId: 1234 }).success).toBe(false);
+			// Fails passwordHash string check (line 70)
+			expect(baseUserSchema.safeParse({ ...basePayload, passwordHash: { hash: 123 } }).success).toBe(false);
+		});
+
+		it('deve formatar updatedAt e deletedAt caso sejam passados via data', () => {
+			const date1 = new Date('2026-03-25T10:00:00Z').toISOString();
+			const date2 = new Date('2026-03-26T10:00:00Z').toISOString();
+
+			const mockPayload = {
+				id: validUuidV7,
+				publicId: validUuidV7,
+				active: false,
+				username: 'luca_teste',
+				email: 'teste@teste.com',
+				passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$c2FsdHNhbHRzYWx0c2FsdA$hashhashhashhashhashhash',
+				cpf: '123.456.789-09',
+				profileId: validUuidV7,
+				createdAt: new Date().toISOString(),
+				// values passed explicitly
+				updatedAt: date1,
+				deletedAt: date2,
+				stripeId: 'xyz',
+			};
+
+			const parsed = baseUserSchema.safeParse(mockPayload);
+			if (!parsed.success) { console.error('baseUserSchema parsing failed (dates passing):', z.treeifyError(parsed.error)); }
+			expect(parsed.success).toBe(true);
+
+			if (parsed.success) {
+				// Lines 79-87 transform
+				expect(parsed.data.updatedAt).toBeInstanceOf(Date);
+				expect(parsed.data.updatedAt?.toISOString()).toBe(date1);
+				expect(parsed.data.deletedAt).toBeInstanceOf(Date);
+				expect(parsed.data.deletedAt?.toISOString()).toBe(date2);
+				expect(parsed.data.stripeId).toBe('xyz');
+			}
 		});
 	});
 });
