@@ -5,9 +5,11 @@ import {
 	type DatabaseID,
 	type AppID,
 	type HashedString,
+	type ValidCPF,
 	isDatabaseID,
 	isAppID,
 	isHashedString,
+	isValidCPF,
 } from '@Types';
 
 /**
@@ -46,10 +48,14 @@ export const emailValidationSchema = z.email().nonempty();
  * Validador de Cadastro de Pessoas Físicas (Brasil).
  * Chama o Validador customizado CpfValidator que atesta o dígito verificador matemático, não apenas a estrutura da string.
  */
-export const cpfValidationSchema = z
-	.string()
-	.trim()
-	.transform((val) => CpfValidator.validateAndSanitize(val, false));
+export const cpfValidationSchema = z.custom<ValidCPF>((val) => {
+	if (typeof val !== 'string') {
+		return false;
+	}
+
+	val = CpfValidator.cleanigCpf(val);
+	return isValidCPF(val);
+});
 
 /**
  * Schema Root da Entidade User.

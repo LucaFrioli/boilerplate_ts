@@ -7,6 +7,10 @@ export class CpfValidator {
 		service: 'util',
 	});
 
+	public static cleanigCpf(rawValue: string): string {
+		return rawValue.replace(/\D/g, '');
+	}
+
 	/**
 	 * validateAndSaniteze
 	 * @param rawCpf string
@@ -15,7 +19,7 @@ export class CpfValidator {
 	public static validateAndSanitize(rawCpf: string, verifyInApi: boolean): string {
 		if (typeof rawCpf !== 'string') throw new Error('O cpf passado deve ser uma string');
 
-		const clearCpf = rawCpf.replace(/\D/g, '');
+		const clearCpf = this.cleanigCpf(rawCpf);
 
 		if (clearCpf.length !== 11)
 			throw new Error(

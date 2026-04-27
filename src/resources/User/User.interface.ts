@@ -1,4 +1,4 @@
-import type { DatabaseID, AppID, HashedString } from '@Types';
+import type { DatabaseID, AppID, HashedString, ValidCPF } from '@Types';
 
 /**
  * DTO de Domínio e Persistência.
@@ -12,7 +12,7 @@ export interface UserI {
 	username: string;
 	email: string;
 	passwordHash: HashedString;
-	cpf: string;
+	cpf: ValidCPF;
 
 	//--- Aqqui podemos ver campos que podem ser utilizados em relações 1:1 como o usuário é o pilar da maioria das aplicações e é com base nele que os acessos são concedidos, optei por deixar no boilerplate relação 1:1 nas relações já que cobre 90% dos usos recorrentes em aplicações mais padrões
 	//####
@@ -47,6 +47,6 @@ export interface PublicUserI {
 export interface CreateUserExpectedData {
 	username: string;
 	email: string;
-	cpf: string;
+	cpf: ValidCPF;
 	rawPassword: string;
 }
