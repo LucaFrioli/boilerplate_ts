@@ -8,10 +8,26 @@ describe('configs/env.ts', () => {
 		// Salva o env original para restaurar depois
 		originalEnv = { ...process.env };
 
+		// Limpa o ambiente atual para evitar vazamentos de variáveis locais (.env)
+		for (const key in process.env) {
+			// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+			delete process.env[key];
+		}
+
 		// Injetamos um processo 100% sadio para o Happy Path garantido
 		process.env.APP_NAME = 'Boilerplate_Test_Env';
 		process.env.NODE_ENV = 'test';
 		process.env.EMAIL_TO_CONTACT = 'admin@admin.com';
+
+		// Database (Obrigatórios no schema)
+		process.env.DATABASE_TYPE = 'mongodb';
+		process.env.DATABASE_PORT = '27017';
+		process.env.DATABASE_NAME = 'test_db';
+		process.env.DATABASE_PASSWORD = 'SuperStrongP@ssw0rd!2026';
+
+		// MemDB
+		process.env.MEM_DB_PASSWORD = 'SuperStrongP@ssw0rd!2026';
+
 		process.env.HASHER_PROVIDER = 'argon2';
 		// Password super forte para passar no passwordStrength (uppercase, lowercase, number, special char, > 20 chars)
 		process.env.HASHER_SECURITY_PEPPER = 'SuperStrongP@ssw0rd!2026-Ficticio';
@@ -21,9 +37,19 @@ describe('configs/env.ts', () => {
 		process.env.HASHER_TIME_COST = '3';
 		process.env.HASHER_MEMORY_COST = '65536';
 		process.env.IDENTIFIER_PATTERN = 'nanoid';
-		process.env.IDENTIFIER_NANOID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+		process.env.IDENTIFIER_NANOID_ALPHABET =
+			'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 		process.env.IDENTIFIER_NANOID_SIZE = '21';
 		process.env.DATABASE_ID_DEFAULT = 'uuidv7';
+
+
+		process.env.MEM_DB_TYPE= 'valkey';
+		process.env.MEM_DB_PROTOCOL = 'valkey';
+		process.env.MEM_DB_HOST = 'localhost';
+		process.env.MEM_DB_PORT = '6379';
+		process.env.MEM_DB_USERNAME = 'testeUname';
+		process.env.MEM_DB_PASSWORD = 'Password@T3st0fEnv';
+		process.env.MEM_DB_INDEX_OR_PATH = '0';
 
 		// Limpa o cache para forçar env.ts a re-avaliar o process.env a cada teste
 		vi.resetModules();
@@ -34,8 +60,8 @@ describe('configs/env.ts', () => {
 		});
 
 		// Mockamos apenas globais, pois vi.resetModules cria novas referências locais
-		vi.spyOn(console, 'error').mockImplementation(() => {});
-		vi.spyOn(console, 'dir').mockImplementation(() => {});
+		vi.spyOn(console, 'error').mockImplementation(() => { });
+		vi.spyOn(console, 'dir').mockImplementation(() => { });
 	});
 
 	afterEach(() => {

@@ -33,7 +33,7 @@ export const memEnvValidationSchema = z.object({
 		})
 		.refine(
 			(val) => {
-				if (process.env.NODE_ENV === 'development') {
+				if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 					return passwordStrength(val);
 				}
 
