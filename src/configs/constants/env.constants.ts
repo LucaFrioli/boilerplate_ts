@@ -88,3 +88,11 @@ export const regexValidationToIdentitySupported = {
 	uuidv7: /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
 	uuidv4: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
 } as const;
+
+
+// piis
+
+/**
+ * String de 11 caracteres numerais
+*/
+export const cpf_raw_regexp = /^\d{11}$/;

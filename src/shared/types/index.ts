@@ -3,3 +3,4 @@ export * from './identity.type.js';
 export * from './primitives.type.js';
 export * from './security.types.js';
 export * from './static.types.js';
+export * from './pii.types.js';

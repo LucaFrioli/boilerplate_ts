@@ -49,7 +49,7 @@ export const emailValidationSchema = z.email().nonempty();
 export const cpfValidationSchema = z
 	.string()
 	.trim()
-	.transform((val) => CpfValidator.validateAndSanitize(val));
+	.transform((val) => CpfValidator.validateAndSanitize(val, false));
 
 /**
  * Schema Root da Entidade User.

@@ -12,7 +12,7 @@ export class CpfValidator {
 	 * @param rawCpf string
 	 * @returns string
 	 **/
-	public static validateAndSanitize(rawCpf: string): string {
+	public static validateAndSanitize(rawCpf: string, verifyInApi: boolean): string {
 		if (typeof rawCpf !== 'string') throw new Error('O cpf passado deve ser uma string');
 
 		const clearCpf = rawCpf.replace(/\D/g, '');
@@ -41,12 +41,23 @@ export class CpfValidator {
 			throw new Error('Ops! Digite um cpf válido para poder continuaar com a operação');
 		}
 
-		// aqui estva pensando em implementar uma chamada de um outro método privado para focar em uma validação a nível de api da receita federal
+		if (verifyInApi) {
+			// aqui estva pensando em implementar uma chamada de um outro método privado para focar em uma validação a nível de api da receita federal
+		}
 
 		return Object.freeze(clearCpf);
 	}
 
 	private static generateDigit(numberCalculus: string): string {
+		if (isNaN(Number(numberCalculus))) {
+			this.cpfValidatorLogger.error(
+				{
+					value: numberCalculus,
+				},
+				'Tentativa de validar cpf com valor inválido, impossível transformar em número',
+			);
+		}
+
 		const cpfArray = Array.from(numberCalculus);
 		let regressive = cpfArray.length + 1;
 		const total = cpfArray.reduce((acu, v) => {
