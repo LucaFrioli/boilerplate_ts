@@ -21,7 +21,7 @@ import { cpf_raw_regexp } from '@Configs/constants/env.constants.js';
 
 const piiLogger = createChildLogger({ fileType: 'type', module: 'PII', service: 'typo' });
 
-function maskPII(rawValue: unknown): string {
+export function maskPII(rawValue: unknown): string {
 	try {
 		String(rawValue);
 	} catch (e) {
@@ -60,7 +60,7 @@ export function isValidCPF(rawValue: unknown): rawValue is ValidCPF {
 		piiLogger.error(
 			{
 				function: 'isValidCPF',
-				rawValue,
+				value: maskPII(rawValue),
 				typeOfRawValue: typeof rawValue,
 			},
 			'Tentativa de validaçãode cpf, com valor diferente de uma string',

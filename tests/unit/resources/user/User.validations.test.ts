@@ -4,7 +4,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
 import { passwordStrength } from '@Validations/Password.validations.js';
-import baseUserSchema, { usernameValidationSchema } from '@Resources/User/User.validation.js';
+import baseUserSchema, {
+	usernameValidationSchema,
+	cpfValidationSchema,
+} from '@Resources/User/User.validation.js';
 import { validUuidV7 } from '@Mocks/test.fixtures.js';
 import z from 'zod';
 
@@ -29,21 +32,21 @@ describe('User Validations', () => {
 	describe('CpfValidator', () => {
 		it('deve aceitar um CPF válido e retornar apenas números', () => {
 			const validCpf = '123.456.789-09';
-			const sanitized = CpfValidator.validateAndSanitize(validCpf);
+			const sanitized = CpfValidator.validateAndSanitize(validCpf, false);
 			expect(sanitized).toBe('12345678909');
 		});
 
 		it('deve rejeitar CPF com dígitos verificadores inválidos', () => {
 			const invalidCpf = '123.456.789-00';
 			expect(() => {
-				CpfValidator.validateAndSanitize(invalidCpf);
+				CpfValidator.validateAndSanitize(invalidCpf, false);
 			}).toThrow('Ops! Digite um cpf válido');
 		});
 
 		it('deve rejeitar CPF com números repetidos', () => {
 			const repeatedCpf = '111.111.111-11';
 			expect(() => {
-				CpfValidator.validateAndSanitize(repeatedCpf);
+				CpfValidator.validateAndSanitize(repeatedCpf, false);
 			}).toThrow();
 		});
 	});
@@ -67,6 +70,26 @@ describe('User Validations', () => {
 		it('deve rejeitar usernames com caracteres especiais @', () => {
 			const result = usernameValidationSchema.safeParse('luca@frioli');
 			expect(result.success).toBe(false);
+		});
+	});
+
+	describe('cpfValidationSchema', () => {
+		it('deve aceitar um CPF válido (com ou sem máscara)', () => {
+			expect(cpfValidationSchema.safeParse('123.456.789-09').success).toBe(true);
+			expect(cpfValidationSchema.safeParse('12345678909').success).toBe(true);
+		});
+
+		it('deve rejeitar CPF que não seja string', () => {
+			expect(cpfValidationSchema.safeParse(12345678909).success).toBe(false);
+			expect(cpfValidationSchema.safeParse(null).success).toBe(false);
+		});
+
+		it('deve rejeitar CPF matematicamente inválido', () => {
+			expect(cpfValidationSchema.safeParse('12345678900').success).toBe(false);
+		});
+
+		it('deve rejeitar CPF com formato de string inválido (não 11 dígitos após limpeza)', () => {
+			expect(cpfValidationSchema.safeParse('123.456.78').success).toBe(false);
 		});
 	});
 
@@ -120,6 +143,8 @@ describe('User Validations', () => {
 			expect(baseUserSchema.safeParse({ ...basePayload, publicId: 1234 }).success).toBe(false);
 			// Fails passwordHash string check (line 70)
 			expect(baseUserSchema.safeParse({ ...basePayload, passwordHash: { hash: 123 } }).success).toBe(false);
+			// Fails cpf string check (line 53)
+			expect(baseUserSchema.safeParse({ ...basePayload, cpf: 12345678909 }).success).toBe(false);
 		});
 
 		it('deve formatar updatedAt e deletedAt caso sejam passados via data', () => {
