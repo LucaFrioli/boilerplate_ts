@@ -11,7 +11,7 @@ import { User } from '@Resources/User/User.js';
 import { validCreateUserPayload } from '@Mocks/test.fixtures.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
 import baseUserSchema from '@Resources/User/User.validation.js';
-import type { AppID, DatabaseID, HashedString } from '@Types';
+import type { AppID, DatabaseID, HashedString, ValidCPF } from '@Types';
 import type { UserI } from '@Resources/User/User.interface.js';
 
 // Mocks de infraestrutura para isolar a Entidade Parcialmente
@@ -97,12 +97,13 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 			vi.spyOn(baseUserSchema, 'safeParse').mockReturnValueOnce({
 				success: true,
 				data: {
-					publicId: 'app_id' as AppID, username: 'mocked',
+					publicId: 'app_id' as AppID,
+					username: 'mocked',
 					id: 'id' as DatabaseID,
 					active: false,
 					email: '',
 					passwordHash: '' as HashedString,
-					cpf: '',
+					cpf: '' as ValidCPF,
 					stripeId: null,
 					walletId: null,
 					profileId: 'id_app' as DatabaseID,
