@@ -14,6 +14,7 @@ class MongodbConnect extends BaseConnectDb {
 		if (env.DATABASE_TYPE !== 'mongodb') {
 			this.handlerErrors({
 				erroLevel: 'fatal',
+				method: 'connect',
 				error: 'Tentativa de conexão em mongo db sem credenciais ou tipo definido em env',
 				message: 'Erro no tipo de banco da env verifique se DATABSE_TYPE é mongodb',
 			});
@@ -27,6 +28,7 @@ class MongodbConnect extends BaseConnectDb {
 			this.connectionStatus = false;
 			this.handlerErrors({
 				erroLevel: 'fatal',
+				method: 'connect',
 				error: e,
 				message: 'Falha na conexão do banco!',
 			});
@@ -41,6 +43,7 @@ class MongodbConnect extends BaseConnectDb {
 		} catch (e) {
 			this.handlerErrors({
 				erroLevel: 'fatal',
+				method: 'disconnect',
 				error: e,
 				message: 'Falha ao realizar a desconexão com o banco de dados',
 			});
