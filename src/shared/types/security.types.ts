@@ -6,6 +6,7 @@ import {
 import { createChildLogger } from '@Configs/logger.js';
 import type { Brand } from './brand.type.js';
 import { env } from '@Configs/env.js';
+import { DatabaseUsernameValidator, type dbsAcepteds } from '@Validations/DatabaseUsername.validation.js';
 
 const securityTypesLogger = createChildLogger({
 	fileType: 'type',
@@ -65,6 +66,40 @@ export function isValidUri(uri: unknown): uri is Uri {
 		);
 		return false;
 	}
+}
+
+
+/**
+ * **DatabaseUsername**
+ * Typo que permite uma verificação de integridade sobre o username
+ * de banco de dados bem como faz com que ele siga um padrão mínimo
+ * de segurança, para assegurar typagem utilize isDatabaseUsername
+*/
+export type DatabaseUsername = Brand<string, 'DatabaseUsername'>;
+export function isDatabaseUsername(dbUname: unknown, dbName: dbsAcepteds): dbUname is DatabaseUsername {
+	if (dbUname || typeof dbUname !== 'string') return false;
+	return DatabaseUsernameValidator.verifyUsername(dbUname, dbName)
+}
+export function assertsDatabaseUsername(dbUname: unknown, dbName: dbsAcepteds): asserts dbUname is DatabaseUsername {
+	if (isDatabaseUsername(dbUname, dbName)) return;
+
+	securityTypesLogger.fatal(
+		{
+			assertion: 'assertsDatabaseUsername',
+			dbName,
+			error: {
+				dbUname,
+				typeofUname: typeof dbUname,
+				expectedUnameMorphology: {
+					enviromental: 'prd|stg|dev|tst',
+					serviceOrApp: 'string com 3+ characters',
+					permissions: 'ro|rw|adm',
+					id: 'number com dois caraceres',
+					uname: 'adição de entropia com string contendo 9+ characteres com números, letras maísculas/minúsculas, e characters especiais url-safty',
+				},
+			}
+		}, 'O username não apresenta uma morfologia válida! Verifique o fluxo!'
+	);
 }
 
 /**

@@ -50,30 +50,6 @@ export class DatabaseUsernameValidator {
 			);
 		}
 
-		const result: boolean = dbUsernamePattern.test(uname);
-
-		if (!result) {
-			this.handlingError(
-				{
-					erroLevel: 'fatal',
-					method: 'verifyUsername',
-					error: {
-						uname,
-						typeofUname: typeof uname,
-						expectedUnameMorphology: {
-							enviromental: 'prd|stg|dev|tst',
-							serviceOrApp: 'string com 3+ characters',
-							permissions: 'ro|rw|adm',
-							id: 'number com dois caraceres',
-							uname: 'adição de entropia com string contendo 9+ characteres com números, letras maísculas/minúsculas, e characters especiais url-safty',
-						},
-					},
-					message: 'O username não apresenta uma morfologia válida! Verifique o fluxo!',
-				},
-				dbname,
-			);
-		}
-
-		return result;
+		return dbUsernamePattern.test(uname);
 	}
 }
