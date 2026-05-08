@@ -19,6 +19,13 @@ export const timezoneSupported = ['UTC', 'America/Sao_Paulo', 'Europa/Rome'] as 
 export const localeSupported = ['pt-BR', 'en-US', 'it-IT'] as const;
 
 // database constants
+
+/**
+ * Regex: ambiente (3 letras) _ serviço/app (3+ letras) _ permissão (ro|rw|adm) _ id (2 digitos) _ UnameAleatório (6+ letras, números e símbolos urlsafty)
+ */
+export const dbUsernamePattern =
+	/^(prd|stg|dev|tst)_[a-z]{3,}_(ro|rw|adm)_[0-9]{2}_[a-zA-Z0-9\-_.~]{9,}$/;
+
 export const enabledDatabaseConections = ['mongodb', 'postgres'] as const;
 
 const acceptedDatabaseProtocols: readonly string[] = [

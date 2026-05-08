@@ -5,6 +5,7 @@ import {
 	envLogger,
 } from '@Configs/constants/env.constants.js';
 import { passwordStrength } from '@Validations/Password.validations.js';
+import { DatabaseUsernameValidator } from '@Validations/DatabaseUsername.validation.js';
 
 export const memEnvValidationSchema = z.object({
 	MEM_DB_TYPE: z
@@ -21,15 +22,23 @@ export const memEnvValidationSchema = z.object({
 	MEM_DB_HOST: z.string().default('localhost'),
 	MEM_DB_PORT: z.coerce.number().int().default(6379),
 	MEM_DB_USERNAME: z
-		.string({ error: 'O username deve ser obrigatóriamente uma sstring' })
-		.optional(),
+		.string({ error: 'O username deve ser obrigatóriamente uma string' })
+		.optional()
+		.refine(
+			(val) => {
+				if (typeof val !== 'string') return false;
+				if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') return true;
+				return DatabaseUsernameValidator.verifyUsername(val, 'envBoot');
+			},
+			{ error: 'O Username não corresponde a um usuário com formação de segurança!' },
+		),
 	MEM_DB_PASSWORD: z
 		.string()
 		.min(10, {
 			error: ' A senha do banco de dados em memória deve pelo menos ter 10 cracteres',
 		})
 		.max(120, {
-			error: ' a senhan do banco de dados em meemória não pode exceder 120 caracteres',
+			error: ' A senha do banco de dados em memória não pode exceder 120 caracteres',
 		})
 		.refine(
 			(val) => {
