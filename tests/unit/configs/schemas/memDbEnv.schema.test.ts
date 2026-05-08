@@ -70,7 +70,7 @@ describe('memDbEnv.schema (Black-Box)', () => {
 		const result = memEnvValidationSchema.safeParse(veryLong);
 		expect(result.success).toBe(false);
 		if(!result.success) {
-			expect(result.error.issues[0]?.message).toBe(' a senhan do banco de dados em meemória não pode exceder 120 caracteres');
+			expect(result.error.issues[0]?.message).toBe('A senha do banco de dados em memória não pode exceder 120 caracteres');
 		}
 	});
 

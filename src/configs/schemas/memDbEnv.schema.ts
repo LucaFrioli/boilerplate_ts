@@ -38,7 +38,7 @@ export const memEnvValidationSchema = z.object({
 			error: ' A senha do banco de dados em memória deve pelo menos ter 10 cracteres',
 		})
 		.max(120, {
-			error: ' A senha do banco de dados em memória não pode exceder 120 caracteres',
+			error: 'A senha do banco de dados em memória não pode exceder 120 caracteres',
 		})
 		.refine(
 			(val) => {
@@ -56,7 +56,7 @@ export const memEnvValidationSchema = z.object({
 				return passwordStrength(val, { securityLevel: 'strong', personalize: false });
 			},
 			{
-				error: ' A senha para o banco em memória não corresponnde ao padrão recomendado para segurnaça da aplicação',
+				error: 'A senha para o banco em memória não corresponnde ao padrão recomendado para segurnaça da aplicação',
 			},
 		)
 		.optional(),
