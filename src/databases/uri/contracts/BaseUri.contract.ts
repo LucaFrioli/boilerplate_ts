@@ -194,8 +194,15 @@ export abstract class BaseUri implements IDatabaseUri {
 	protected abstract generateUriToProd(validatedEnvValues: EnvDataForUri): DatabaseURI;
 
 	// Permite gravar informações importantes no log, de maneira mais fácil
-	protected logInfo(message: string, method: string, refineInfosObject: pino.LogFnFields = {}): void {
-		this.BaseUriLogger.info({ module: this.uriGeneratorName, method ,...refineInfosObject }, message);
+	protected logInfo(
+		message: string,
+		method: string,
+		refineInfosObject: pino.LogFnFields = {},
+	): void {
+		this.BaseUriLogger.info(
+			{ module: this.uriGeneratorName, method, ...refineInfosObject },
+			message,
+		);
 	}
 
 	// lida com erros que possam acontecer nas classes concretas dde forma elegante enrriquecendo ainda mais o contexto e garantindo rastreabilidade, além de lançar um erro garantindo que nada passe

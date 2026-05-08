@@ -27,7 +27,8 @@ export const memEnvValidationSchema = z.object({
 		.refine(
 			(val) => {
 				if (typeof val !== 'string') return false;
-				if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') return true;
+				if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test')
+					return true;
 				return DatabaseUsernameValidator.verifyUsername(val, 'envBoot');
 			},
 			{ error: 'O Username não corresponde a um usuário com formação de segurança!' },

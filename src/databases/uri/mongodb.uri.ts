@@ -66,8 +66,8 @@ export class MongoConnectionString extends BaseUri {
 
 		this.auth =
 			validatedEnvValues.DATABASE_USERNAME &&
-				validatedEnvValues.DATABASE_PASSWORD &&
-				this._password
+			validatedEnvValues.DATABASE_PASSWORD &&
+			this._password
 				? `${validatedEnvValues.DATABASE_USERNAME}:${this._password}@`
 				: '';
 	}
@@ -88,9 +88,13 @@ export class MongoConnectionString extends BaseUri {
 			});
 		}
 
-		this.logInfo('String de conexão ccom o banco de dados mongodb formada', 'GeneraateUriToDev', {
-			connectionString: this.maskUriToLog(formatedUrl),
-		});
+		this.logInfo(
+			'String de conexão ccom o banco de dados mongodb formada',
+			'GeneraateUriToDev',
+			{
+				connectionString: this.maskUriToLog(formatedUrl),
+			},
+		);
 
 		return formatedUrl;
 	}
@@ -134,10 +138,14 @@ export class MongoConnectionString extends BaseUri {
 				});
 			}
 
-			this.logInfo('String de conexão para mongodb formada com sucesso', 'generateUriToProd', {
-				connectionString: this.maskUriToLog(formatedUri),
-				modality: '+srv',
-			});
+			this.logInfo(
+				'String de conexão para mongodb formada com sucesso',
+				'generateUriToProd',
+				{
+					connectionString: this.maskUriToLog(formatedUri),
+					modality: '+srv',
+				},
+			);
 			return formatedUri;
 		}
 
@@ -159,10 +167,14 @@ export class MongoConnectionString extends BaseUri {
 				});
 			}
 
-			this.logInfo('String de conexão para mongodb formada com sucesso', 'generateUriToProd', {
-				connectionString: this.maskUriToLog(formatedUri),
-				modality: 'Multi-hosted',
-			});
+			this.logInfo(
+				'String de conexão para mongodb formada com sucesso',
+				'generateUriToProd',
+				{
+					connectionString: this.maskUriToLog(formatedUri),
+					modality: 'Multi-hosted',
+				},
+			);
 			return formatedUri;
 		}
 
