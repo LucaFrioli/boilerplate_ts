@@ -72,17 +72,20 @@ export function isValidUri(uri: unknown): uri is Uri {
 }
 
 /**
- * **DatabaseUsername**
- * Typo que permite uma verificação de integridade sobre o username
+ *  **DatabaseUsername**
+ *
+ *  - Typo que permite uma verificação de integridade sobre o username
  * de banco de dados bem como faz com que ele siga um padrão mínimo
- * de segurança, para assegurar typagem utilize isDatabaseUsername
+ * de segurança.
+ * - Para assegurar typo utilize **`isDatabaseUsername`** para validação simples.
+ * - Utilize **`assertDatabaseUsername`** para validação mais rígida
  */
 export type DatabaseUsername = Brand<string, 'DatabaseUsername'>;
 export function isDatabaseUsername(
 	dbUname: unknown,
 	dbName: dbsAcepteds,
 ): dbUname is DatabaseUsername {
-	if (dbUname || typeof dbUname !== 'string') return false;
+	if (!dbUname || typeof dbUname !== 'string') return false;
 	return DatabaseUsernameValidator.verifyUsername(dbUname, dbName);
 }
 export function assertsDatabaseUsername(
@@ -109,6 +112,7 @@ export function assertsDatabaseUsername(
 		},
 		'O username não apresenta uma morfologia válida! Verifique o fluxo!',
 	);
+	throw new Error('A morfologia do username foi violada. Execução abortada por segurança.');
 }
 
 /**

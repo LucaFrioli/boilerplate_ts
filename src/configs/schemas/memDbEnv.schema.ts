@@ -31,7 +31,7 @@ export const memEnvValidationSchema = z.object({
 					return true;
 				return DatabaseUsernameValidator.verifyUsername(val, 'envBoot');
 			},
-			{ error: 'O Username não corresponde a um usuário com formação de segurança!' },
+			{ error: 'O Username não corresponde a um usuário com formatação de segurança!' },
 		),
 	MEM_DB_PASSWORD: z
 		.string()
