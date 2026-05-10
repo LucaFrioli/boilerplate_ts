@@ -8,3 +8,4 @@ dist
 !.env.test.example
 # Pasta gerada pelo `npm run test:coverage` — não commitar relatórios de cobertura
 coverage
+/docs/Auditoria

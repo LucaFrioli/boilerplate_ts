@@ -108,7 +108,7 @@ partir da arquitetura, mas não a define.
 - [x] Corrigir `validateSpecificEnvValues()` em `mongodb.uri.ts` — lança `throw new Error('Method not implemented.')` (dead-code ou implementar de fato)
 
 ### Refinamento de Tipos (Branded Types faltantes)
-- [ ] Criar `ValidatedCPF = Brand<string, 'ValidatedCPF'>` + guard + atualizar `UserI.cpf`
+- [x] Criar `ValidatedCPF = Brand<string, 'ValidatedCPF'>` + guard + atualizar `UserI.cpf`
 - [ ] Criar `ValidatedEmail = Brand<string, 'ValidatedEmail'>` + guard + atualizar `UserI.email`
 - [ ] Avaliar `ValidatedUsername` (menor prioridade — apenas por consistência)
 
@@ -125,6 +125,9 @@ partir da arquitetura, mas não a define.
 - [x] Guard de inicialização para `MEM_DB_INDEX_OR_PATH` em `memDbEnv.schema.ts`
 - [ ] Ponderar e adicionar logs informativos em métodos de `UserMethods` na entidade `User`
 - [/] Refatorar Hasher, Identity e verificar se refatoração quebrou algo
+- [ ] Adicionar lógica no logger para que nada seja logado no console em ambientes diferentes de dev
+- [ ] Revisar mascaras de dados espalhadas por toda a aplicação e centraliza-las em `masks.util.ts`
+
 
 ### Correção de Typos em nomes de arquivo/tipo
 - [ ] `StringWithLegth` → `StringWithLength` (arquivo + tipo + função)
