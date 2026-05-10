@@ -79,8 +79,19 @@ export function isValidUri(uri: unknown): uri is Uri {
  * de segurança.
  * - Para assegurar typo utilize **`isDatabaseUsername`** para validação simples.
  * - Utilize **`assertDatabaseUsername`** para validação mais rígida
+ * - Ao logar por segurança utilize **`maskLogDatabaseUsername`**
+ *
+ * @see {@link /src/utils/masks.util.ts} - `maskLogDatabaseUsername`
  */
 export type DatabaseUsername = Brand<string, 'DatabaseUsername'>;
+
+/**
+ * **isDatabaseUri**
+ * Validação para garantia de tipagem de uma string em uma **`DatabaseUsername`**
+ *
+ * Se quiser utilizar um erro padronizado o que é altamente recomendável basta utilizar,
+ * a assertion com nome de **`assertsDatabaseUsername`**
+ */
 export function isDatabaseUsername(
 	dbUname: unknown,
 	dbName: dbsAcepteds,
@@ -88,6 +99,13 @@ export function isDatabaseUsername(
 	if (!dbUname || typeof dbUname !== 'string') return false;
 	return DatabaseUsernameValidator.verifyUsername(dbUname, dbName);
 }
+
+/**
+ * **assertsDatabaseUsername**
+ *
+ * Permite que além de validar o username passado, haja um asserção de tipo,
+ * garantindo failfast antes de qualquer tentativa de operação com o username;
+ */
 export function assertsDatabaseUsername(
 	dbUname: unknown,
 	dbName: dbsAcepteds,
