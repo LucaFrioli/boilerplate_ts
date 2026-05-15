@@ -72,6 +72,30 @@ export default defineConfig([
 		}
 	},
 
+	/**
+	* **ADR 012 — Invariante de Fluxo Unidirecional (types → validators)**
+	* Validadores NUNCA devem importar de @Types (shared/types/).
+	* Quebrar esta regra cria risco de dependência circular em ESM,
+	* onde bindings parciais (undefined) bypassam Type Guards silenciosamente.
+    */
+	{
+		files: ['src/validations/**/*.ts'],
+		rules: {
+			'no-restricted-imports': ['error', {
+				patterns: [
+					{
+						group: ['@Types', '@Types/*'],
+						message: ' ADR 012: Validadores não podem importar de @Types. Isso criaria dependência circular com shared/types/ (que importa validadores). Consulte docs/Adrs.md → ADR 012.',
+					},
+					{
+						group: ['**/shared/types/*', '**/shared/types'],
+						message: ' ADR 012: Validadores não podem importar de shared/types/ (nem via caminho relativo). Consulte docs/Adrs.md → ADR 012.',
+					},
+				],
+			}],
+		},
+	},
+
 
 
 
