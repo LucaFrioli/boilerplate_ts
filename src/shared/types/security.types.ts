@@ -1,15 +1,13 @@
 import {
 	dbProtocols,
-	acceptedMemDatabaseProtocols,
 	regexValidationToHasherProvidersSupported,
+	type dbsAcepteds,
 } from '@Configs/constants/env.constants.js';
 import { createChildLogger } from '@Configs/logger.js';
 import type { Brand } from './brand.type.js';
 import { env } from '@Configs/env.js';
-import {
-	DatabaseUsernameValidator,
-	type dbsAcepteds,
-} from '@Validations/DatabaseUsername.validation.js';
+import { DatabaseUsernameValidator } from '@Validations/DatabaseUsername.validation.js';
+import { DatabaseMemoryUriValidation } from '@/validations/DatabaseInMemoryUri.validation.js';
 
 const securityTypesLogger = createChildLogger({
 	fileType: 'type',
@@ -156,11 +154,23 @@ export function isDatabaseUri(uri: unknown): uri is DatabaseURI {
  */
 export type MemDatabaseURI = Brand<string, 'MemDatabaseURI'>;
 
-export function isMemDatabaseUri(uri: unknown): uri is MemDatabaseURI {
-	if (!isValidUri(uri) || typeof uri !== 'string') return false;
+export function isMemDatabaseUri(uri: unknown, dbName: dbsAcepteds): uri is MemDatabaseURI {
+	if (typeof uri !== 'string') return false;
+	return DatabaseMemoryUriValidation.verifyUrl(uri, dbName);
+}
 
-	const parsedUrl: URL = new URL(uri);
-	const protocol: string = parsedUrl.protocol.replace(':', '');
-
-	return acceptedMemDatabaseProtocols.includes(protocol);
+export function assertsMemDatabaseURI(
+	uri: unknown,
+	dbName: dbsAcepteds,
+): asserts uri is MemDatabaseURI {
+	if (isMemDatabaseUri(uri, dbName)) return;
+	securityTypesLogger.fatal(
+		{
+			assertion: 'assertsMemDatabaseURI',
+			typeofUri: typeof uri,
+			dbName,
+		},
+		'Tentativa de validação de uri de banco de memória inválida',
+	);
+	throw new Error('Tentativa de validação de uri de banco de memória inválida');
 }

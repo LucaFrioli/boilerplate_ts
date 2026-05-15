@@ -1,5 +1,5 @@
 import { memEnvValidationSchema } from '@Configs/schemas/memDbEnv.schema.js';
-import { nodeEnvSupported } from '@Configs/constants/env.constants.js';
+import { nodeEnvSupported, type dbsAcepteds } from '@Configs/constants/env.constants.js';
 import { env } from '@Configs/env.js';
 import { createChildLogger, type handlerContractsErrorsParams } from '@Configs/logger.js';
 import { isMemDatabaseUri, type MemDatabaseURI } from '@Types';
@@ -27,6 +27,7 @@ export abstract class BaseMemUri implements IMemDatabaseUri {
 	protected _uri?: MemDatabaseURI;
 	protected _baseEnvMemDb?: EnvDataForMemDbUri;
 	protected _password?: string;
+	protected abstract readonly dbName: dbsAcepteds;
 	private _internalLogger: pino.Logger = createChildLogger({
 		fileType: 'uri',
 		service: 'database',
@@ -34,7 +35,7 @@ export abstract class BaseMemUri implements IMemDatabaseUri {
 	});
 
 	public get uri(): MemDatabaseURI {
-		if (!isMemDatabaseUri(this._uri)) {
+		if (!isMemDatabaseUri(this._uri, this.dbName)) {
 			this.handlerErrors({
 				erroLevel: 'fatal',
 				error: {},
