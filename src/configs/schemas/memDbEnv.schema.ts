@@ -4,8 +4,8 @@ import {
 	enableMemDatabaseConnections,
 	envLogger,
 } from '@Configs/constants/env.constants.js';
-import { passwordStrength } from '@Validations/Password.validations.js';
 import { DatabaseUsernameValidator } from '@Validations/DatabaseUsername.validation.js';
+import { DatabasePasswordValidation } from '@/validations/DatabasePassword.validation.js';
 
 export const memEnvValidationSchema = z.object({
 	MEM_DB_TYPE: z
@@ -43,18 +43,7 @@ export const memEnvValidationSchema = z.object({
 		})
 		.refine(
 			(val) => {
-				if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
-					return passwordStrength(val);
-				}
-
-				if (val.length < 15) {
-					envLogger.fatal(
-						{ length: val.length },
-						'A senha do banco de dados em produção deve ser configurada com ao menos 15 caracters',
-					);
-					return false;
-				}
-				return passwordStrength(val, { securityLevel: 'strong', personalize: false });
+				return DatabasePasswordValidation.isValid(val, envLogger);
 			},
 			{
 				error: 'A senha para o banco em memória não corresponnde ao padrão recomendado para segurnaça da aplicação',
