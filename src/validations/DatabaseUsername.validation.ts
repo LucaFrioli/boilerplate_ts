@@ -1,12 +1,5 @@
 import { createChildLogger, type handlerContractsErrorsParams } from '@Configs/logger.js';
-import {
-	dbUsernamePattern,
-	enableMemDatabaseConnections,
-	enabledDatabaseConections,
-} from '@Configs/constants/env.constants.js';
-
-const dbslist = [...enableMemDatabaseConnections, ...enabledDatabaseConections] as const;
-export type dbsAcepteds = (typeof dbslist)[number] | 'envBoot';
+import { dbUsernamePattern, dbslist, type dbsAcepteds } from '@Configs/constants/env.constants.js';
 
 export class DatabaseUsernameValidator {
 	private static DBUnameValidatorLogger = createChildLogger({

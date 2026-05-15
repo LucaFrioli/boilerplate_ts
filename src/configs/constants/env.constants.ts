@@ -53,7 +53,11 @@ export const acceptedMemDatabaseProtocols: readonly string[] = [
 	// exijam alias nominal explícito, mas operam no mesmo protocolo RESP.
 	'valkey',
 	'valkeys',
+	'valkey+sentinel',
 ];
+
+export const dbslist = [...enableMemDatabaseConnections, ...enabledDatabaseConections] as const;
+export type dbsAcepteds = (typeof dbslist)[number] | 'envBoot';
 
 // hasher constants
 export const supportedHashProviders = ['argon2', 'bcrypt'] as const;
