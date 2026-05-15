@@ -67,12 +67,16 @@ Este documento registra as decisões técnicas fundamentais tomadas durante a co
 
  ---
 
-## ADR 008: Segregação de Constantes e Metadados (Level 0)
-**Data: 2026-03-16** *Contexto*: O crescimento da aplicação e a separação de schemas geraram dependências circulares (`env -> schema -> env`). Isso impedia a inferência correta de tipos via `Pick` em contratos de infraestrutura.
+## ADR 008: Segregação de Constantes e Metadados (Level 0) —  DEPRECIADA
+**Data: 2026-03-16** | **Depreciada em: 2026-05-15** — Substituída pela **[ADR 012](#adr-012-hierarquia-de-dependências-baseada-em-imports-reais-pirâmide-de-níveis-v2)** que formaliza e corrige o sistema de níveis com base em análise de imports reais.
+
+*Contexto*: O crescimento da aplicação e a separação de schemas geraram dependências circulares (`env -> schema -> env`). Isso impedia a inferência correta de tipos via `Pick` em contratos de infraestrutura.
 
 **Decisão**: Extrair arrays de suporte e constantes estáticas (*`dbProtocols`, `identityTypeSupported`, etc.*) para arquivos exclusivos em `src/configs/constants/`.
 
 **Justificativa**: Cria uma "Base de Pirâmide" (Level 0) que não depende de ninguém. Permite que *Tipos*, *TypeGuards* e *Schemas* consumam a mesma verdade absoluta sem gerar ciclos, mantendo a inferência de tipo do TypeScript íntegra e robusta para o "Estado da Arte".
+
+> **Nota de depreciação:** Esta ADR definiu corretamente o Level 0 e a motivação por trás da segregação de constantes. Porém, a hierarquia de níveis atribuída aos módulos superiores (Level 1–3) foi baseada em **localização de diretório** e não em **dependências reais de import**. A ADR 012 corrige essa imprecisão, reclassificando módulos como `validations/` que estavam em Level 3 mas cujos imports reais são exclusivamente Level 0 — tornando-os Level 1 efetivo.
 
 ---
 
@@ -110,3 +114,65 @@ Este documento registra as decisões técnicas fundamentais tomadas durante a co
 - **Coerência com o Lazy Singleton já praticado**: `HasherFactory` e `IdentityFactory` já usam este exato padrão (instância cacheada, criada na primeira chamada). Esta ADR apenas estende a mesma disciplina para a camada de tipos.
 
 - **Inspiração no Rust** — `lazy_static!`: Em Rust, constantes computadas em runtime não existem. Valores que dependem de estado externo usam `lazy_static!` ou `OnceLock` — inicializados na primeira leitura, imutáveis depois. O padrão Lazy Singleton é o equivalente TypeScript direto, mantendo a filosofia de preparação para migração.
+
+---
+
+## ADR 012: Hierarquia de Dependências Baseada em Imports Reais (Pirâmide de Níveis v2)
+**Data: 2026-05-15** — Substitui a **[ADR 008](#adr-008-segregação-de-constantes-e-metadados-level-0--️-depreciada)** que estava parcialmente incorreta.
+
+*Contexto*: A ADR 008 estabeleceu o conceito fundamental de Level 0 (constantes puras sem dependências internas) e a motivação para segregá-las. Porém, a hierarquia de níveis superiores (Level 1–3) foi definida por **localização de diretório** (`validations/` = Level 3, `shared/types/` = Level 1) em vez de **dependências reais de import**. Durante auditoria técnica em 2026-05-15, identificou-se que todos os módulos em `validations/` importam **exclusivamente** de Level 0 (`env.constants.ts`, `logger.ts`) e de peers dentro do mesmo diretório — nunca de `env.ts` (Level 2) nem de `shared/types/` (Level 1). Isso torna os validadores **Level 1 efetivo**, não Level 3 como documentado. A classificação por diretório mascarava a realidade do grafo de dependências e poderia levar a decisões arquiteturais equivocadas.
+
+**Decisão**: O nível de um módulo é determinado pelo **nível mais alto que ele importa + 1**, não pela sua localização no filesystem. A pirâmide corrigida fica:
+
+```
+Level 0 — Folhas Puras (zero imports internos)
+├── configs/constants/env.constants.ts    → constantes, regex, listas
+└── configs/logger.ts                     → pino + process.env direto (sem env.ts)
+
+Level 1 — Consumidores de Level 0 (peers entre si)
+├── shared/types/*                        → Brand types, Type Guards, utility types
+├── configs/schemas/*.schema.ts           → Zod schemas de validação de env
+└── validations/*                         → Classes validadoras (CPF, Password, Username, URI)
+    ┌──────────────────────────────────────────────────────────────────────────┐
+    │ Types, Schemas e Validators são PEERS.                                   │
+    │ Todos importam apenas de Level 0 e podem referenciar-se mutuamente,      │
+    │ RESPEITANDO a regra de fluxo unidirecional (ver abaixo).                 │
+    └──────────────────────────────────────────────────────────────────────────┘
+
+Level 2 — Agregador de Configuração
+└── configs/env.ts                        → agrega e valida todos os schemas
+
+Level 3 — Infraestrutura de Serviço (importam env.ts / Level 2)
+├── core/identity/                        → IdentityFactory, providers (NanoID, UUID)
+├── auth/hash/                            → HasherFactory, providers (Argon2, Bcrypt)
+└── databases/uri/                        → URI factories (MongoDB, Valkey)
+
+Level 4 — Domínio
+└── resources/                            → Entidades (User), usa Level 3 + Level 2
+
+Level 5 — Bootstrap
+└── server.ts                             → ponto de entrada da aplicação
+```
+
+**Justificativa**:
+
+- **Correção factual**: A análise de imports reais demonstrou que nenhum módulo em `validations/` importa de `env.ts` (Level 2) nem de `shared/types/` (Level 1). Classificá-los como Level 3 era impreciso e induzia a conclusões erradas em auditorias (ex: "types importando validators viola a pirâmide" — quando na verdade são peers).
+
+- **Precedente já consolidado**: O padrão `types → validators` já existia no codebase antes desta formalização. `pii.types.ts` importa `CpfValidator`, `dbEnv.schema.ts` importa `passwordStrength`, `security.types.ts` importa `DatabaseUsernameValidator`. Não é exceção — é regra.
+
+- **Regra de Ouro — Fluxo Unidirecional**: Para que types e validators coexistam como peers sem risco de ciclo, um invariante **DEVE** ser respeitado:
+
+```
+ ┌──────────────────────────────────────────────────────────────┐
+ │  INVARIANTE OBRIGATÓRIO:                                     │
+ │                                                              │
+ │  shared/types/*  ──────→  validations/*     ✅ PERMITIDO     │
+ │  validations/*   ──╳───→  shared/types/*    ❌ PROIBIDO      │
+ │                                                              │
+ │  A dependência é UNIDIRECIONAL:                              │
+ │  types podem importar validators,                            │
+ │  mas validators NUNCA devem importar de @Types.              │
+ └──────────────────────────────────────────────────────────────┘
+```
+
+- **Por que esse invariante é crítico**: No ESM nativo do Node, imports circulares não causam crash — são resolvidos com **bindings parciais**. Se `security.types.ts` importa `DatabaseMemoryUriValidation` e este importa `isValidUri` de `security.types.ts`, durante a resolução do módulo o ESM entrega `isValidUri` como `undefined` (o módulo ainda não terminou de avaliar). O resultado: Type Guards retornam `undefined` em vez de `boolean`, fronteiras de segurança são **bypassadas silenciosamente**, e URIs não-validadas escapam para a infraestrutura. Nenhum erro é lançado — o sistema continua operando em estado corrompido. Isso é fundamentalmente incompatível com a filosofia Fail-Fast da aplicação.

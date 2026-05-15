@@ -141,10 +141,10 @@ partir da arquitetura, mas não a define.
 > *Completa a infraestrutura de cache/sessão. Necessária antes de implementar autenticação.*
 
 ### URI Builder
-- [ ] Implementar `BaseMemUri.init()` com lógica de validação (hoje está vazio)
+- [x] Implementar `BaseMemUri.init()` com lógica de validação (hoje está vazio)
 - [ ] Criar `valkey.uri.ts` implementando `BaseMemUri` (construção de URI Valkey/Redis)
 - [ ] Adicionar validações específicas de parâmetros (protocolo, porta, senha em prod)
-- [ ] Guard de `MEM_DB_INDEX_OR_PATH` — validar se é inteiro (index) ou caminho Unix (.sock)
+- [x] Guard de `MEM_DB_INDEX_OR_PATH` — validar se é inteiro (index) ou caminho Unix (.sock)
 - [ ] Testes unitários + integração para formação de URI Valkey
 
 ### Conexão
