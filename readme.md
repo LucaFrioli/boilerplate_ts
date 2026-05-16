@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏗️ HabitosApp — Enterprise API Boilerplate
+# 🏗️ WildcardBoiler — Enterprise API Boilerplate
 
 ### Construído em TypeScript. Pensado como Rust. Testado como produção.
 
@@ -50,7 +50,7 @@ A maioria dos boilerplates Node.js/TypeScript entrega o **mínimo viável**: um 
 | Validação apenas na borda | **Defense in Depth** — Zod valida em **todas** as fronteiras (env, entity, DTO, URI) |
 | Processo zumbi após erro | **Fail-Fast** — todos os handlers retornam `: never` e matam o processo |
 | Trocar provider = refatorar tudo | **Factory Pattern** — trocar de Argon2 para Bcrypt = **mudar 1 variável de ambiente** |
-| Testes como afterthought | **TDD obrigatório** — contrato testado antes da implementação (20+ arquivos de teste) |
+| Testes como afterthought | **TDD obrigatório** — contrato testado antes da implementação (25 suítes, 267 testes) |
 | Configuração descentralizada | **Zero-Config DX** — um `.env` controla hasher, banco, IDs, segurança — tudo |
 
 ---
@@ -104,7 +104,7 @@ A infraestrutura se auto-constrói a partir do `.env`. Trocar de Argon2 para Bcr
 <td>
 
 #### 🧪 TDD Obrigatório
-Não é sugestão — é lei (ADR 010). O teste do contrato precede a implementação. 20+ arquivos de teste, fixtures centralizadas, ambiente isolado com 3 camadas de carregamento de env, e hasher configs reduzidos para velocidade.
+Não é sugestão — é lei (ADR 010). O teste do contrato precede a implementação. 25 suítes com 267 testes, fixtures centralizadas, ambiente isolado com 3 camadas de carregamento de env, e hasher configs reduzidos para velocidade.
 
 </td>
 </tr>
@@ -127,6 +127,8 @@ Ecossistema MCP (Model Context Protocol) integrado com 7 servidores locais: mem�
 ---
 
 ## 🏛️ Arquitetura
+
+> 📖 Para uma visão técnica aprofundada (boot flow, pirâmide de níveis, invariantes, guia de extensão de contratos), consulte o **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)**.
 
 ### Visão Geral do Sistema
 
@@ -166,7 +168,8 @@ src/
 ├── databases/                    # 🗄️ Infraestrutura de Banco de Dados
 │   ├── uri/                      # Construção e validação de URIs
 │   │   ├── contracts/            # BaseUri · BaseMemUri (abstratas)
-│   │   └── mongodb.uri.ts        # dev, SRV, multi-host, single-host
+│   │   ├── mongodb.uri.ts        # dev, SRV, multi-host, single-host
+│   │   └── valkey.uri.ts         # TCP/IP · Unix Domain Socket (UDS)
 │   └── connections/              # Gerenciamento de conexões
 │       ├── contracts/            # BaseConnectDb (abstrata)
 │       └── mongodb.database.ts   # Mongoose connect/disconnect
@@ -178,49 +181,58 @@ src/
 │       ├── User.interface.ts     # UserI · PublicUserI · CreateUserDTO
 │       └── User.validation.ts    # Schemas Zod para User
 │
-├── validations/                  # ✅ Validadores de Negócio
+├── validations/                  # ✅ Validadores de Negócio (Level 1 — peers de types/)
 │   ├── Cpf.validations.ts        # Validação matemática de dígitos
-│   └── Password.validations.ts   # 3 níveis: low · medium · strong
+│   ├── Password.validations.ts   # 3 níveis: low · medium · strong
+│   ├── DatabaseUsername.validation.ts  # Morfologia de usernames de DB
+│   ├── DatabasePassword.validation.ts  # Força de senhas de DB
+│   └── DatabaseInMemoryUri.validation.ts  # URI + Unix Socket para cache
 │
 └── utils/                        # 🛠️ Utilitários
     └── dateManager.util.ts       # ISO, fileSafe, display, validation
 ```
 
-### Hierarquia de Dependências (Pirâmide)
+### Hierarquia de Dependências (Pirâmide — ADR 012)
 
-A arquitetura segue uma **pirâmide de dependências** rigorosa que elimina ciclos e garante inferência de tipo intacta:
+O nível de um módulo é definido pelo **nível mais alto que ele importa + 1** ([ADR 012](./docs/Adrs.md#adr-012-hierarquia-de-dependências-baseada-em-imports-reais-pirâmide-de-níveis-v2)):
 
 ```
                     ┌─────────────┐
                     │  server.ts  │  Level 5 — Bootstrap
                     └──────┬──────┘
                            │
+                    ┌──────┴──────┐
+                    │ resources/  │  Level 4 — Domínio
+                    └──────┬──────┘
+                           │
               ┌────────────┼────────────┐
               │            │            │
         ┌─────┴──────┐ ┌───┴───┐ ┌──────┴──────┐
-        │ resources/ │ │ auth/ │ │  databases/ │  Level 4 — Domínio
+        │ identity/  │ │ auth/ │ │  databases/ │  Level 3 — Infraestrutura
         └─────┬──────┘ └───┬───┘ └──────┬──────┘
               │            │            │
               └────────────┼────────────┘
                            │
                     ┌──────┴──────┐
                     │  configs/   │
-                    │   env.ts    │  Level 2 — Validação Global
+                    │   env.ts    │  Level 2 — Agregador de Configuração
                     └──────┬──────┘
                            │
               ┌────────────┼────────────┐
               │            │            │
         ┌─────┴──────┐ ┌───┴────┐ ┌─────┴──────┐
-        │  schemas/  │ │ types/ │ │validations/│  Level 1
+        │  schemas/  │ │ types/ │ │validations/│  Level 1 — Peers
         └─────┬──────┘ └───┬────┘ └─────┬──────┘
               │            │            │
               └────────────┼────────────┘
                            │
                    ┌───────┴───────┐
-                   │  constants/   │  Level 0 — Base Pura
-                   │ (sem deps)    │  (ADR 008)
+                   │  constants/   │  Level 0 — Folhas Puras
+                   │  logger.ts    │  (zero imports internos)
                    └───────────────┘
 ```
+
+> **Invariante (ADR 012):** `types/` pode importar de `validations/`, mas `validations/` **nunca** importa de `types/`. Essa regra é enforced por ESLint (`no-restricted-imports`) para prevenir ciclos ESM.
 
 ### Padrão Contracts-First
 
@@ -303,7 +315,7 @@ Três provedores de ID, todos com implementação **zero-dependências externas*
 
 ## 🧪 Testes
 
-O boilerplate adota **TDD obrigatório** (ADR 010) com Vitest:
+O boilerplate adota **TDD obrigatório** ([ADR 010](./docs/Adrs.md#adr-010-adoção-de-metodologia-tdd)) com Vitest:
 
 ```
 tests/
@@ -340,24 +352,6 @@ npm run test:watch
 # Relatório de cobertura (text + JSON + HTML)
 npm run test:coverage
 ```
-
----
-
-## 📋 Stack Tecnológica
-
-| Camada | Tecnologia | Propósito |
-|---|---|---|
-| **Runtime** | Node.js (ESM nativo) | `"type": "module"` — sem CommonJS |
-| **Linguagem** | TypeScript 5.9 | Strict mode + `noUncheckedIndexedAccess` |
-| **Framework** | Express 5 | HTTP server |
-| **Banco Principal** | MongoDB via Mongoose 9 | Persistência |
-| **Banco em Memória** | Redis / Valkey | Cache (infraestrutura pronta) |
-| **Validação** | Zod 4 | Schemas + Type inference |
-| **Hashing** | Argon2 + Bcrypt | Criptografia de senhas |
-| **Logging** | Pino 10 | Structured logging (console + arquivo) |
-| **Testes** | Vitest 4 + Coverage V8 | TDD |
-| **Build** | tsup (prod) / tsx (dev) | Zero-config bundling |
-| **Linting** | ESLint + Prettier | `strictTypeChecked` + formatação |
 
 ---
 
@@ -413,7 +407,7 @@ DATABASE_NAME=meu_banco
 
 # Segurança (Hasher)
 HASHER_PROVIDER=argon2         # argon2 | bcrypt
-HASHER_SECURITY_PEPPER=MeuPepperSecreto@SHA256  # ⚠️ NUNCA perca este valor
+HASHER_SECURITY_PEPPER=MeuPepperSecreto@SHA256  # ⚠️ NUNCA perca este valor e o altere para um ssecreto só seu =:-)
 
 # Identificadores
 IDENTIFIER_PATTERN=nanoid      # nanoid | uuidv4 | uuidv7
@@ -437,9 +431,11 @@ Cada decisão técnica é registrada formalmente em [docs/Adrs.md](./docs/Adrs.m
 | **005** | Aliases sobre caminhos relativos | Elegância > estabilidade do linter |
 | **006** | URI Factory ≠ Connection Factory | SRP — cada fábrica faz uma coisa |
 | **007** | Schemas em `configs/` | Zero-Config — `env.ts` é o painel de controle |
-| **008** | Constants como Level 0 | Resolve ciclos de dependência |
+| ~~**008**~~ | ~~Constants como Level 0~~ | *Depreciada → substituída pela ADR 012* |
 | **009** | Type Guards sobre `as` | Segurança de runtime alinhada com compile-time |
 | **010** | TDD obrigatório | Contrato testado antes da implementação |
+| **011** | Zero Side-Effects em Barrel Exports | Lazy Singleton para isolamento de testes |
+| **012** | Pirâmide de Níveis v2 (por imports reais) | Corrige hierarquia + invariante unidirecional |
 
 ---
 
@@ -474,20 +470,24 @@ Configuração em [`.mcp/mcp_config.local.json`](./.mcp/mcp_config.local.json). 
 - [x] Logging estruturado com Pino (console + arquivo)
 - [x] Entidade User como Root Aggregate (Rich Domain Model)
 - [x] MongoDB: URI builder + Connection manager
-- [x] TDD com 20+ arquivos de teste e cobertura V8
-- [x] ESLint strictTypeChecked + Prettier
-- [x] 10 ADRs documentados
+- [x] Valkey/Redis: URI builder com suporte TCP/IP + Unix Domain Socket
+- [x] Validadores dedicados (CPF, Password, DatabaseUsername, DatabasePassword, DatabaseInMemoryUri)
+- [x] TDD com 25 suítes de teste e 267 testes (cobertura V8)
+- [x] ESLint strictTypeChecked + Prettier + boundary enforcement (ADR 012)
+- [x] 12 ADRs documentados
+- [x] Documentação arquitetural completa ([ARCHITECTURE.md](./docs/ARCHITECTURE.md))
 - [x] Ecossistema MCP integrado
 
 ### 🔄 Próxima Fase — Infraestrutura Completa
 
-- [ ] Redis/Valkey: URI builder + Connection manager
+- [ ] Valkey/Redis: Connection manager (URI builder ✅ concluído)
 - [ ] Sistema de Login/Autenticação (JWT / Sessions)
 - [ ] Rotas HTTP com controllers e middlewares
 - [ ] Repositórios (Repository Pattern) para User
 - [ ] Validação de CPF via API da Receita Federal
 - [ ] Branded Types para Email e CPF (`ValidatedEmail`, `ValidatedCPF`)
 - [ ] Assert functions (`assertAppID`, `assertDatabaseID`)
+- [ ] CI/CD pipeline com lint + testes como gate de merge
 
 ### 🔮 Visão de Longo Prazo
 
@@ -498,6 +498,7 @@ Configuração em [`.mcp/mcp_config.local.json`](./.mcp/mcp_config.local.json). 
 - [ ] CI/CD pipeline com GitHub Actions
 - [ ] Docker Compose para ambiente de desenvolvimento completo
 - [ ] Documentação de API com Swagger/OpenAPI
+- *... E muito mais por vir*
 
 ---
 
