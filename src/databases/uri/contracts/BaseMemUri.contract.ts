@@ -16,6 +16,9 @@ export type EnvDataForMemDbUri = Pick<
 	| 'MEM_DB_USERNAME'
 	| 'MEM_DB_PASSWORD'
 	| 'MEM_DB_INDEX_OR_PATH'
+	| 'MEM_DB_SENTINEL_MASTER_ID'
+	| 'MEM_DB_SENTINEL_USERNAME'
+	| 'MEM_DB_SENTINEL_PASSWORD'
 >;
 
 export interface IMemDatabaseUri {
@@ -80,6 +83,9 @@ export abstract class BaseMemUri implements IMemDatabaseUri {
 				MEM_DB_INDEX_OR_PATH: memEnvValidationSchema.shape.MEM_DB_INDEX_OR_PATH,
 				MEM_DB_PASSWORD: memEnvValidationSchema.shape.MEM_DB_PASSWORD,
 				MEM_DB_USERNAME: memEnvValidationSchema.shape.MEM_DB_USERNAME,
+				MEM_DB_SENTINEL_MASTER_ID: memEnvValidationSchema.shape.MEM_DB_SENTINEL_MASTER_ID,
+				MEM_DB_SENTINEL_USERNAME: memEnvValidationSchema.shape.MEM_DB_SENTINEL_USERNAME,
+				MEM_DB_SENTINEL_PASSWORD: memEnvValidationSchema.shape.MEM_DB_SENTINEL_PASSWORD,
 				NODE_ENV: z.enum(nodeEnvSupported),
 			});
 

@@ -51,4 +51,31 @@ export const memEnvValidationSchema = z.object({
 		)
 		.optional(),
 	MEM_DB_INDEX_OR_PATH: z.union([z.coerce.number().int().min(0), z.string()]).default(0),
+	MEM_DB_SENTINEL_MASTER_ID: z.coerce.string().optional().default(''),
+	MEM_DB_SENTINEL_USERNAME: z.coerce.string({ error: 'O SentinelUsername deve ser uma string' }).optional()
+		.refine(
+			(val) => {
+				if (typeof val !== 'string') return false;
+				if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test')
+					return true;
+				return DatabaseUsernameValidator.verifyUsername(val, 'envBoot');
+			},
+			{ error: 'O SentinelUsername não corresponde a um usuário com formatação de segurança!' },
+		).default(''),
+	MEM_DB_SENTINEL_PASSWORD: z.string()
+		.min(10, {
+			error: ' A senha do banco de dados em memória deve pelo menos ter 10 cracteres',
+		})
+		.max(120, {
+			error: 'A senha do banco de dados em memória não pode exceder 120 caracteres',
+		})
+		.refine(
+			(val) => {
+				return DatabasePasswordValidation.isValid(val, envLogger);
+			},
+			{
+				error: 'A senha para o banco em memória não corresponnde ao padrão recomendado para segurnaça da aplicação',
+			},
+		)
+		.optional()
 });
