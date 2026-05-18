@@ -8,7 +8,17 @@ import { acceptedMemDatabaseProtocols } from '@Configs/constants/env.constants.j
 import { maskLogDatabaseUsername } from '@Utils/masks.util.js';
 import { BaseMemUri, type EnvDataForMemDbUri } from './contracts/BaseMemUri.contract.js';
 
-// protocolo://[usuario]:[senha]@[host]:[porta]/[index]
+/**
+ * Gerador de String de Conexão para o Valkey (e Redis-compatible).
+ * Responsável por montar URIs validadas de acordo com a modalidade
+ * de rede selecionada (TCP/IP, Unix Sockets, TLS ou Sentinel).
+ *
+ * Segue a filosofia Fail-Fast e Contracts-First, abortando a
+ * inicialização caso credenciais, protocolos ou parâmetros essenciais
+ * estejam ausentes ou mal formatados na variável de ambiente.
+ *
+ * Formato padrão: protocolo://[usuario]:[senha]@[host]:[porta]/[index]
+ */
 export class ValkeyConnectionString extends BaseMemUri {
 	private _auth?: string;
 	protected readonly dbName = 'valkey' as const;
@@ -21,6 +31,18 @@ export class ValkeyConnectionString extends BaseMemUri {
 	protected get ServiceName(): string {
 		return 'ValkeyConnectionString';
 	}
+	
+	/**
+	 * Verifica a integridade mínima dos parâmetros obrigatórios
+	 * de conexão presentes no objeto instanciado a partir da Env.
+	 *
+	 * Este método é chamado na fase de inicialização (boot) da classe.
+	 * Valida o tipo de banco (MEM_DB_TYPE), se as credenciais (username/password)
+	 * são strings válidas, aciona os devidos parsers e delega a montagem
+	 * inicial da parte de autenticação.
+	 *
+	 * @throws Error - Fatal caso os tipos sejam incompatíveis ou maculados.
+	 */
 	protected guardBroken(): void {
 		if (!this._baseEnvMemDb) {
 			this.handlerErrors({
@@ -84,6 +106,15 @@ export class ValkeyConnectionString extends BaseMemUri {
 		this.generateAuth(this._baseEnvMemDb);
 	}
 
+	/**
+	 * Constrói e centraliza a porção de autenticação (username:password@) da URI.
+	 *
+	 * Em produção, impõe a obrigatoriedade de credenciais de forma estrita.
+	 * Apenas em desenvolvimento/testes é permitido rodar sem usuário ou senha.
+	 *
+	 * @param baseEnv Objeto contendo as variáveis de ambiente base já validadas pelo contrato.
+	 * @throws Error - Fatal caso as credenciais faltem fora do ambiente dev/test.
+	 */
 	private generateAuth(baseEnv: EnvDataForMemDbUri): void {
 		if (
 			baseEnv.NODE_ENV !== 'development' &&
@@ -120,6 +151,16 @@ export class ValkeyConnectionString extends BaseMemUri {
 		return;
 	}
 
+	/**
+	 * Sanitiza a URI antes de registrá-la nos logs da aplicação.
+	 *
+	 * Aplica ofuscação (mascaramento) em senhas tanto da instância principal
+	 * quanto do cluster Sentinel, impedindo que vazem em plain-text no SIEM.
+	 * Utiliza ofuscação parcial para o username para fins de rastreabilidade.
+	 *
+	 * @param unmaskUri URI em formato bruto recém-gerada, contendo dados sensíveis.
+	 * @returns String formatada e segura para log.
+	 */
 	protected maskUriToLog(unmaskUri: string): string {
 		if (this._password && this._uname) {
 			unmaskUri
@@ -150,6 +191,16 @@ export class ValkeyConnectionString extends BaseMemUri {
 		return unmaskUri;
 	}
 
+	/**
+	 * Gera a String de Conexão focada em ambientes de Desenvolvimento (DEV).
+	 *
+	 * Prioriza uma verificação flexível. Permite conexão via protocolo plaintext
+	 * e socket UDS livre de TLS. Adere o princípio "fail-fast" apenas para
+	 * corrupção grave da URI resultante.
+	 *
+	 * @param validatedEnvValues - Valores sanitizados do banco em memória.
+	 * @returns URI final validada.
+	 */
 	protected generateUriDev(validatedEnvValues: EnvDataForMemDbUri): MemDatabaseURI {
 		if (!this._auth && typeof this._auth !== 'string') {
 			this.handlerErrors({
@@ -197,6 +248,19 @@ export class ValkeyConnectionString extends BaseMemUri {
 		}
 	}
 
+	/**
+	 * Gera a String de Conexão hiper-restrita para ambientes de Produção e Staging.
+	 *
+	 * Opera como um Strategy Pattern/Roteador implementando *Defense in Depth*:
+	 * 1. **UDS (Unix Socket):** Exige protocolo plaintext (`valkey://`) confinado ao SO.
+	 * 2. **TLS:** TCP/IP genérico exige protocolo criptografado (`valkeys://`) + parâmetros de rejeição.
+	 * 3. **Sentinel:** Suporte a Multi-Host TCP com parâmetros obrigatórios de master node.
+	 *
+	 * Extrema a filosofia Fail-Fast para proibir configurações falhas ou inseguras.
+	 *
+	 * @param validatedEnvValues Valores sanitizados do banco em memória.
+	 * @returns URI final de produção, estruturalmente garantida e imutável.
+	 */
 	protected generateUriProd(validatedEnvValues: EnvDataForMemDbUri): MemDatabaseURI {
 		let modality: string = '';
 		if (!this._auth || typeof this._auth !== 'string' || this._auth === '') {
