@@ -122,11 +122,8 @@ describe('DatabaseMemoryUriValidation (Black-Box)', () => {
 
 		it('deve retornar true para URI Sentinel com um único nó', () => {
 			const uri = 'valkey+sentinel://10.0.0.1:26379/0?sentinelMasterId=mymaster';
-			// Nota: isMultiHostUri retorna false (sem vírgula), então cai no canParse.
-			// URL.canParse('valkey+sentinel://10.0.0.1:26379/0?sentinelMasterId=mymaster') — depende do Node
-			// Se canParse retornar true, valida via isAcceptedProtocol
 			const result = DatabaseMemoryUriValidation.verifyUrl(uri, 'valkey');
-			expect(typeof result).toBe('boolean');
+			expect(result).toBe(true);
 		});
 	});
 
