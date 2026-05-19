@@ -166,13 +166,9 @@ export class ValkeyConnectionString extends BaseMemUri {
 			unmaskUri = unmaskUri
 				.replace(/:([^:@]+)@/, ':*********@')
 				.replace(this._uname, maskLogDatabaseUsername(this._uname));
-		}
-
-		if (this._password) {
-			unmaskUri =unmaskUri.replace(/:([^:@]+)@/, ':*********@');
-		}
-
-		if (this._uname) {
+		} else if (this._password) {
+			unmaskUri = unmaskUri.replace(/:([^:@]+)@/, ':*********@');
+		} else if (this._uname) {
 			unmaskUri = unmaskUri.replace(this._uname, maskLogDatabaseUsername(this._uname));
 		}
 
