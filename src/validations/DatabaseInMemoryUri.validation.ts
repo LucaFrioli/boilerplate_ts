@@ -470,6 +470,7 @@ export class DatabaseMemoryUriValidation {
 			return this.verifyIsSocketUri(url, dbName);
 		}
 
+		// Chamada intencional, permitindo maior flexibilização da classe manter assim!
 		if (!fn(url)) {
 			return false;
 		}
