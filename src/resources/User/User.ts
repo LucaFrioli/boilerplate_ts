@@ -229,7 +229,7 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 					rawValue: newUsername,
 					errorsCatched: z.treeifyError(validatedUsername.error),
 				},
-				'tentativa de trocar senha para uma senha inválida',
+				'tentativa de trocar username por um username inválido',
 			);
 		}
 		this.props.username = validatedUsername.data;

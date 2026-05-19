@@ -173,8 +173,7 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 		it('deve disparar throw se o Username não for válido', () => {
 			expect(() => {
 				userMocked.changeUsername('NOME COM ESPAÇOS E MAIÚSCULAS!');
-			}).toThrow('Falha Interna Simulada: tentativa de trocar senha para uma senha inválida');
-			// Nota: a mensagem original de handlingError p/ Username acidentalmente diz "senha inválida" no src, cobrimos o erro real.
+			}).toThrow('Falha Interna Simulada: tentativa de trocar username por um username inválido');
 		});
 
 		it('deve ativar o usuário (activateUser)', () => {
