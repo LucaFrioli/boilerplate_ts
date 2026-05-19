@@ -82,4 +82,58 @@ describe('memDbEnv.schema (Black-Box)', () => {
 			expect(result.data.MEM_DB_INDEX_OR_PATH).toBe('/var/run/redis/redis.sock');
 		}
 	});
+
+	it('deve validar MEM_DB_USERNAME rigorosamente em produção (inválido)', () => {
+		process.env.NODE_ENV = 'production';
+		const payload = { MEM_DB_USERNAME: 'inválido!@#' }; // Caracteres não permitidos em envBoot
+		const result = memEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(false);
+		if(!result.success) {
+			expect(result.error.issues[0]?.message).toBe('O Username não corresponde a um usuário com formatação de segurança!');
+		}
+	});
+
+	it('deve aceitar MEM_DB_USERNAME correto em produção', () => {
+		process.env.NODE_ENV = 'production';
+		const payload = { MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz' }; // Morphologia válida para envBoot
+		const result = memEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(true);
+	});
+
+	it('deve aplicar defaults e validações corretas para variáveis de Sentinel', () => {
+		const payload = { 
+			MEM_DB_SENTINEL_MASTER_ID: 'mymaster',
+		};
+		const result = memEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(true);
+		if(result.success) {
+			expect(result.data.MEM_DB_SENTINEL_MASTER_ID).toBe('mymaster');
+			expect(result.data.MEM_DB_SENTINEL_USERNAME).toBe('');
+		}
+	});
+
+	it('deve validar MEM_DB_SENTINEL_USERNAME rigorosamente em produção', () => {
+		process.env.NODE_ENV = 'production';
+		const payload = { MEM_DB_SENTINEL_USERNAME: 'wrong_format_#$' };
+		const result = memEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(false);
+	});
+
+	it('deve validar MEM_DB_SENTINEL_PASSWORD em produção garantindo os requisitos de segurança', () => {
+		process.env.NODE_ENV = 'production';
+		const payload = { MEM_DB_SENTINEL_PASSWORD: 'UmaSenhaSuperForte$$2026!' };
+		const result = memEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(true);
+		
+		const badPayload = { MEM_DB_SENTINEL_PASSWORD: 'curta' };
+		const badResult = memEnvValidationSchema.safeParse(badPayload);
+		expect(badResult.success).toBe(false);
+	});
+
+	it('deve pular a validação rigorosa de MEM_DB_SENTINEL_USERNAME se estiver em ambiente de test', () => {
+		// NODE_ENV é 'test' por default
+		const payload = { MEM_DB_SENTINEL_USERNAME: 'qualquer_coisa_serve_em_dev' };
+		const result = memEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(true);
+	});
 });
