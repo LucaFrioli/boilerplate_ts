@@ -223,7 +223,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 		try {
 			if (this.candidateUri === '') {
 				throw new Error('Tentativa de realizar validação com uri inválida e vazia,', {
-					cause: 'Erro na execução de criação da Uri verifique o método',
+					cause: 'Erro na execução de criação da Uri possível tentativa de alteração da memória durante operação',
 				});
 			}
 			assertsMemDatabaseURI(this.candidateUri, this.dbName);
@@ -377,7 +377,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 		try {
 			if (this.candidateUri === '') {
 				throw new Error('Tentativa de realizar validação com uri inválida e vazia em produção', {
-					cause: 'Erro na execução de criação da Uri verifique o método',
+					cause: 'Erro na execução de criação da Uri possível tentativa de alteração da memória durante operação',
 				});
 			}
 			assertsMemDatabaseURI(this.candidateUri, this.dbName);
