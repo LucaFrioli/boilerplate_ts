@@ -11,7 +11,7 @@ const providers: Record<supportedProviders, new () => IHasherProvider> = {
 	bcrypt: BcryptService,
 };
 
-class HasherFactory {
+export class HasherFactory {
 	private static instance?: IHasherProvider;
 
 	public static getProvider(): IHasherProvider {

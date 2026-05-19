@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /**
  * @fileoverview Testes da HasherFactory — Gestão de Instâncias de Hashing.
  *
@@ -25,20 +28,22 @@ vi.mock('@Configs/env.js', () => ({
 	env: mockEnv,
 }));
 
-import { Hasher } from '@Hash/hashesFactory.auth.js';
+import { Hasher, HasherFactory } from '@Hash/hashesFactory.auth.js';
 import Argon2Provider from '@Hash/providers/Argon2.service.auth.js';
-// BcryptService removido pois não é usado explicitamente no teste de factory padrão
 
 describe('HasherFactory', () => {
 	it('deve retornar uma instância de Argon2Provider por padrão', () => {
 		expect(Hasher).toBeInstanceOf(Argon2Provider);
 	});
 
-	it('deve ser um Singleton (retornar a mesma instância)', () => {
-		const instance1 = Hasher;
-		const instance2 = Hasher;
+	it('deve ser um Singleton (retornar a mesma instância chamando getProvider)', () => {
+		// A primeira chamada ocorreu no import (export const Hasher)
+		// A segunda chamada vai testar a branch if (!this.instance) sendo falsa
+		const instance1 = HasherFactory.getProvider();
+		const instance2 = HasherFactory.getProvider();
 
 		expect(instance1).toBe(instance2);
+		expect(instance1).toBe(Hasher);
 	});
 
 	it('deve gerar um HashedString (Branded Type)', async () => {
