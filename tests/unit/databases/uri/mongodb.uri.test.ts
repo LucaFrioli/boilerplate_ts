@@ -137,6 +137,30 @@ describe('Databases / MongoConnectionString', () => {
 			}
 		});
 
+		it('deve atingir falhas condicionais de tipagem e tamanho (Branches 68 e 108) burlando _password falsy com truthy original', () => {
+			const BaseUriPrototype = Object.getPrototypeOf(MongoConnectionString.prototype);
+			const originalValidate = BaseUriPrototype.validateBaseEnvDatas;
+
+			try {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				BaseUriPrototype.validateBaseEnvDatas = function (this: any): void {
+					// Um array vazio `[]` é truthy no JS (passa no if), mas encodeURIComponent([]) é "" (falsy).
+					// Isso aciona a ramificação falsa do ternary operator em generateAuth (this.auth = '')
+					// E a ramificação falsa do tamanho em generateUriToProd (this.auth.length).
+					this._baseEnvValues = {
+						NODE_ENV: 'production',
+						DATABASE_TYPE: 'mongodb',
+						DATABASE_USERNAME: 'prod_user', // string normal
+						DATABASE_PASSWORD: [] // Array vazio! Truthy condicional -> falsy transformado
+					};
+				};
+
+				expect(() => new MongoConnectionString()).toThrow(/Falha ao gerar autenticação para a URI/);
+			} finally {
+				BaseUriPrototype.validateBaseEnvDatas = originalValidate;
+			}
+		});
+
 		it('deve formatar erro fatal se gerar uma URI mal-formada em desenvolvimento', () => {
 			env.NODE_ENV = 'development';
 			env.DATABASE_TYPE = 'mongodb';
