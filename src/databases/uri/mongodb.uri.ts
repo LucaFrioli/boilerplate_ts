@@ -73,7 +73,7 @@ export class MongoConnectionString extends BaseUri {
 	}
 
 	protected generateUriToDev(validatedEnvValues: EnvDataForUri): DatabaseURI {
-		const formatedUrl = `mongodb://${this.auth}${validatedEnvValues.DATABASE_HOST}:${String(validatedEnvValues.DATABASE_PORT)}?retryWrites=true&authSource=admin`;
+		const formatedUrl = `mongodb://${this.auth}${validatedEnvValues.DATABASE_HOST}:${String(validatedEnvValues.DATABASE_PORT)}/${validatedEnvValues.DATABASE_NAME}?retryWrites=true&authSource=admin`;
 
 		if (!isDatabaseUri(formatedUrl)) {
 			this.handlerErrors({

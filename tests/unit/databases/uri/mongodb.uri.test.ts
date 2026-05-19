@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@Configs/env.js', () => ({
@@ -42,12 +44,11 @@ describe('Databases / MongoConnectionString', () => {
 			env.DATABASE_PORT = 27017;
 			env.DATABASE_USERNAME = 'dev_user';
 			env.DATABASE_PASSWORD = 'Dev!Password12345678#';
-			// env.DATABASE_NAME é indiferente no generateUriToDev que por algum motivo não concatena database name
-			// "mongodb://${this.auth}${validatedEnvValues.DATABASE_HOST}:${String(validatedEnvValues.DATABASE_PORT)}?retryWrites=true&authSource=admin"
+			env.DATABASE_NAME = 'test_db';
 
 			const connection = new MongoConnectionString();
 			const uri = connection.uri;
-			expect(uri).toBe('mongodb://dev_user:Dev!Password12345678%23@localhost:27017?retryWrites=true&authSource=admin');
+			expect(uri).toBe('mongodb://dev_user:Dev!Password12345678%23@localhost:27017/test_db?retryWrites=true&authSource=admin');
 			expect(isDatabaseUri(uri)).toBe(true);
 		});
 	});
@@ -97,15 +98,88 @@ describe('Databases / MongoConnectionString', () => {
 			expect(() => new MongoConnectionString()).toThrow(/FATAL ERROR tetativa de fromação de URI Mongo porém env configurda como postgres/);
 		});
 
+		it('deve disparar erro fatal se _baseEnvValues for falsy (Dead Code do guardBroken)', () => {
+			const BaseUriPrototype = Object.getPrototypeOf(MongoConnectionString.prototype);
+			const originalValidate = BaseUriPrototype.validateBaseEnvDatas;
+
+			try {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				BaseUriPrototype.validateBaseEnvDatas = function (this: any): void {
+					// Seta null para burlar o '=== undefined' de BaseUri e atingir o '!this._baseEnvValues' de guardBroken
+					this._baseEnvValues = null;
+				};
+
+				expect(() => new MongoConnectionString()).toThrow(/Algo deu errado ao instânciar as variaveis/);
+			} finally {
+				BaseUriPrototype.validateBaseEnvDatas = originalValidate;
+			}
+		});
+
+		it('deve disparar erro fatal em produção se credenciais não forem strings, porém forem avaliadas como truthy (Dead code do generateAuth)', () => {
+			const BaseUriPrototype = Object.getPrototypeOf(MongoConnectionString.prototype);
+			const originalValidate = BaseUriPrototype.validateBaseEnvDatas;
+
+			try {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				BaseUriPrototype.validateBaseEnvDatas = function (this: any): void {
+					// Burlar o Zod do BaseUri para passar credenciais truthy porém non-strings
+					this._baseEnvValues = {
+						NODE_ENV: 'production',
+						DATABASE_TYPE: 'mongodb',
+						DATABASE_USERNAME: 12345,
+						DATABASE_PASSWORD: 67890
+					};
+				};
+
+				expect(() => new MongoConnectionString()).toThrow(/Em produção adicione as credências/);
+			} finally {
+				BaseUriPrototype.validateBaseEnvDatas = originalValidate;
+			}
+		});
+
 		it('deve formatar erro fatal se gerar uma URI mal-formada em desenvolvimento', () => {
 			env.NODE_ENV = 'development';
 			env.DATABASE_TYPE = 'mongodb';
 			env.DATABASE_PASSWORD = 'Dev!Password12345678#';
 			// Host string inválida no mongo
 			env.DATABASE_HOST = 'host invalido';
+			env.DATABASE_NAME = 'test_db';
 
 			// Nota: isValidUri no isDatabaseUri não aprovará a regex ou new URL
 			expect(() => new MongoConnectionString()).toThrow(/Erro de módulo MongoConnectionString: erro detectado Erro ao validar como uma url válida/);
+		});
+
+		it('deve formatar erro fatal se gerar uma URI mal-formada em produção modalidade SRV', () => {
+			env.NODE_ENV = 'production';
+			env.DATABASE_TYPE = 'mongodb';
+			env.DATABASE_USERNAME = 'prod_user';
+			env.DATABASE_PASSWORD = 'Prod!Password12345678#';
+			env.DATABASE_HOST = 'cluster0.mongodb.net!!! host invalido';
+			env.DATABASE_NAME = 'prod_db';
+
+			expect(() => new MongoConnectionString()).toThrow(/Erro ao criar connection string para Mongodb em modalidade srv/);
+		});
+
+		it('deve formatar erro fatal se gerar uma URI mal-formada em produção modalidade Multi-hosted', () => {
+			env.NODE_ENV = 'production';
+			env.DATABASE_TYPE = 'mongodb';
+			env.DATABASE_USERNAME = 'prod_user';
+			env.DATABASE_PASSWORD = 'Prod!Password12345678#';
+			env.DATABASE_HOST = 'host1.com, host invalido!!!';
+			env.DATABASE_NAME = 'prod_db';
+
+			expect(() => new MongoConnectionString()).toThrow(/Erro ao criar connection string para Mongodb em modalidade multi host/);
+		});
+
+		it('deve formatar erro fatal se gerar uma URI mal-formada em produção modalidade Single-host', () => {
+			env.NODE_ENV = 'production';
+			env.DATABASE_TYPE = 'mongodb';
+			env.DATABASE_USERNAME = 'prod_user';
+			env.DATABASE_PASSWORD = 'Prod!Password12345678#';
+			env.DATABASE_HOST = 'host invalido!!!'; // Nao srv, sem virgula
+			env.DATABASE_NAME = 'prod_db';
+
+			expect(() => new MongoConnectionString()).toThrow(/Erro ao criar connection string para Mongodb em modalidade single-host/);
 		});
 	});
 });
