@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /**
  * @fileoverview Testes dos Type Guards de Segurança — `security.types.ts`.
  *
@@ -34,7 +36,7 @@
  * @see {@link src/shared/types/security.types.ts}
  * @see {@link src/configs/constants/env.constants.ts} — regexes dos hashes
  */
-import { vi, describe, it, expect } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
 /**
  * Mock de env.ts — fornece apenas HASHER_PROVIDER que security.types.ts consome.
@@ -46,6 +48,8 @@ vi.mock('@Configs/env.js', () => ({
 		HASHER_PROVIDER: 'argon2',
 	},
 }));
+
+import { env } from '@Configs/env.js';
 
 import {
 	isHashedString,
@@ -116,6 +120,47 @@ describe('security.types', () => {
 			 */
 			it('deve rejeitar string vazia', () => {
 				expect(isHashedString('')).toBe(false);
+			});
+		});
+
+		describe('quando configurado para bcrypt (env.HASHER_PROVIDER = "bcrypt")', () => {
+			let originalProvider: typeof env.HASHER_PROVIDER;
+
+			beforeEach(() => {
+				originalProvider = env.HASHER_PROVIDER;
+				env.HASHER_PROVIDER = 'bcrypt' as any;
+			});
+
+			afterEach(() => {
+				env.HASHER_PROVIDER = originalProvider;
+			});
+
+			it('deve aceitar hash bcrypt válido', () => {
+				const bcryptHash = '$2b$12$NqL7n20QnK2Qz1K1H4d5kO7T3tN0/v4PZzQ1pC3W5H6Q8G9X2U0L.';
+				expect(isHashedString(bcryptHash)).toBe(true);
+			});
+
+			it('deve rejeitar hash argon2 (incompatível com a env configurada)', () => {
+				const argon2Hash = '$argon2id$v=19$m=65536,t=3,p=4$R1hS2A7b9C3d4E5f$W8x9Y0z1A2b3C4d5E6f7G8h9I0j1K2l3M4n5O6p7Q8r9';
+				expect(isHashedString(argon2Hash)).toBe(false);
+			});
+		});
+
+		describe('quando configurado com provedor desconhecido (fallback default)', () => {
+			let originalProvider: typeof env.HASHER_PROVIDER;
+
+			beforeEach(() => {
+				originalProvider = env.HASHER_PROVIDER;
+				env.HASHER_PROVIDER = 'md5' as any;
+			});
+
+			afterEach(() => {
+				env.HASHER_PROVIDER = originalProvider;
+			});
+
+			it('deve retornar false para qualquer string, já que não é suportado', () => {
+				const anyString = '$argon2id$v=19$m=65536,t=3,p=4$R1hS2A7b9C3d4E5f$W8x9Y0z1A2b3C4d5E6f7G8h9I0j1K2l3M4n5O6p7Q8r9';
+				expect(isHashedString(anyString)).toBe(false);
 			});
 		});
 
