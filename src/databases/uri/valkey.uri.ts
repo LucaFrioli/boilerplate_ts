@@ -24,14 +24,14 @@ export class ValkeyConnectionString extends BaseMemUri {
 	protected readonly dbName = 'valkey' as const;
 	private _uname?: DatabaseUsername;
 	private candidateUri: string = '';
-	private readonly secParamsTls: string = '?tls=true&rejectUnauthorized=true&timeout=5000';
-	private readonly secParamSocket: string = '?maxRetriesPerRequest=3&enableReadyCheck=true';
-	private readonly secParamsSentinel: string = '&timeout=5000&role=master';
+	private static readonly secParamsTls: string = '?tls=true&rejectUnauthorized=true&timeout=5000';
+	private static readonly secParamSocket: string = '?maxRetriesPerRequest=3&enableReadyCheck=true';
+	private static readonly secParamsSentinel: string = '&timeout=5000&role=master';
 
 	protected get ServiceName(): string {
 		return 'ValkeyConnectionString';
 	}
-	
+
 	/**
 	 * Verifica a integridade mínima dos parâmetros obrigatórios
 	 * de conexão presentes no objeto instanciado a partir da Env.
@@ -163,17 +163,17 @@ export class ValkeyConnectionString extends BaseMemUri {
 	 */
 	protected maskUriToLog(unmaskUri: string): string {
 		if (this._password && this._uname) {
-			unmaskUri
+			unmaskUri = unmaskUri
 				.replace(/:([^:@]+)@/, ':*********@')
 				.replace(this._uname, maskLogDatabaseUsername(this._uname));
 		}
 
 		if (this._password) {
-			unmaskUri.replace(/:([^:@]+)@/, ':*********@');
+			unmaskUri =unmaskUri.replace(/:([^:@]+)@/, ':*********@');
 		}
 
 		if (this._uname) {
-			unmaskUri.replace(this._uname, maskLogDatabaseUsername(this._uname));
+			unmaskUri = unmaskUri.replace(this._uname, maskLogDatabaseUsername(this._uname));
 		}
 
 		if (unmaskUri.includes('sentinelPassword=')) {
@@ -313,7 +313,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 				});
 			}
 
-			this.candidateUri = `${validatedEnvValues.MEM_DB_PROTOCOL}://${this._auth}${String(validatedEnvValues.MEM_DB_INDEX_OR_PATH)}${this.secParamSocket}`;
+			this.candidateUri = `${validatedEnvValues.MEM_DB_PROTOCOL}://${this._auth}${String(validatedEnvValues.MEM_DB_INDEX_OR_PATH)}${ValkeyConnectionString.secParamSocket}`;
 			modality = 'socket connection'
 		}
 
@@ -348,7 +348,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 				? validatedEnvValues.MEM_DB_HOST
 				: `${validatedEnvValues.MEM_DB_HOST}:${String(validatedEnvValues.MEM_DB_PORT)}`;
 
-			let sentinelQueryParams = `?sentinelMasterId=${sentinelMasterId}${this.secParamsSentinel}`;
+			let sentinelQueryParams = `?sentinelMasterId=${sentinelMasterId}${ValkeyConnectionString.secParamsSentinel}`;
 
 			if (validatedEnvValues.MEM_DB_SENTINEL_USERNAME && validatedEnvValues.MEM_DB_SENTINEL_PASSWORD) {
 				sentinelQueryParams += `&sentinelUsername=${validatedEnvValues.MEM_DB_SENTINEL_USERNAME}&sentinelPassword=${validatedEnvValues.MEM_DB_SENTINEL_PASSWORD}`;
@@ -373,7 +373,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 					message: 'Tentativa de construção de string de conexão valkey TSL em prod com index invalido'
 				});
 			}
-			this.candidateUri = `${validatedEnvValues.MEM_DB_PROTOCOL}://${this._auth}${validatedEnvValues.MEM_DB_HOST}:${String(validatedEnvValues.MEM_DB_PORT)}/${String(validatedEnvValues.MEM_DB_INDEX_OR_PATH)}${this.secParamsTls}`
+			this.candidateUri = `${validatedEnvValues.MEM_DB_PROTOCOL}://${this._auth}${validatedEnvValues.MEM_DB_HOST}:${String(validatedEnvValues.MEM_DB_PORT)}/${String(validatedEnvValues.MEM_DB_INDEX_OR_PATH)}${ValkeyConnectionString.secParamsTls}`
 
 			modality = 'Default Connection'
 		}
