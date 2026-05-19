@@ -47,7 +47,16 @@ vi.mock('@Configs/env.js', () => ({
 	},
 }));
 
-import { isHashedString, isValidUri, isDatabaseUri, isMemDatabaseUri } from '@Types/security.types.js';
+import {
+	isHashedString,
+	isValidUri,
+	isDatabaseUri,
+	isMemDatabaseUri,
+	isDatabaseUsername,
+	assertsDatabaseUsername,
+	assertsMemDatabaseURI,
+} from '@Types/security.types.js';
+import { validDbUsername, validTcpUri } from '@tests/helpers/mocks/test.fixtures.js';
 
 describe('security.types', () => {
 	// =========================================================================
@@ -241,39 +250,118 @@ describe('security.types', () => {
 		});
 	});
 
+	// =========================================================================
+	// isDatabaseUsername — Fronteira contra usernames fora da morfologia
+	// =========================================================================
+	describe('isDatabaseUsername', () => {
+		it('deve retornar true para username com morfologia válida', () => {
+			expect(isDatabaseUsername(validDbUsername, 'valkey')).toBe(true);
+		});
+
+		it('deve retornar false para username com morfologia inválida', () => {
+			expect(isDatabaseUsername('admin', 'valkey')).toBe(false);
+		});
+
+		it('deve retornar false para valor não-string', () => {
+			expect(isDatabaseUsername(123, 'valkey')).toBe(false);
+		});
+
+		it('deve retornar false para null', () => {
+			expect(isDatabaseUsername(null, 'valkey')).toBe(false);
+		});
+
+		it('deve retornar false para string vazia', () => {
+			expect(isDatabaseUsername('', 'valkey')).toBe(false);
+		});
+	});
+
+	// =========================================================================
+	// assertsDatabaseUsername — Fail-Fast para username inválido
+	// =========================================================================
+	describe('assertsDatabaseUsername', () => {
+		it('não deve lançar throw para username válido', () => {
+			expect(() => {
+				assertsDatabaseUsername(validDbUsername, 'valkey');
+			}).not.toThrow();
+		});
+
+		it('deve lançar throw para username com morfologia inválida', () => {
+			expect(() => {
+				assertsDatabaseUsername('admin', 'valkey');
+			}).toThrow('A morfologia do username foi violada. Execução abortada por segurança.');
+		});
+
+		it('deve lançar throw para valor null', () => {
+			expect(() => {
+				assertsDatabaseUsername(null, 'valkey');
+			}).toThrow();
+		});
+	});
+
+	// =========================================================================
 	// isMemDatabaseUri — Fronteira contra protocolos in-memory
+	// =========================================================================
 	describe('isMemDatabaseUri', () => {
 		it('deve aceitar URI com protocolo redis', () => {
-			expect(isMemDatabaseUri('redis://localhost:6379')).toBe(true);
+			expect(isMemDatabaseUri('redis://localhost:6379', 'redis')).toBe(true);
 		});
 
 		it('deve aceitar URI com protocolo rediss (seguro)', () => {
-			expect(isMemDatabaseUri('rediss://user:pass@host.cache.net:6379')).toBe(true);
+			expect(isMemDatabaseUri('rediss://localhost:6379', 'redis')).toBe(true);
 		});
 
 		it('deve aceitar URI com protocolo valkey', () => {
-			expect(isMemDatabaseUri('valkey://localhost:6379')).toBe(true);
+			expect(isMemDatabaseUri(validTcpUri, 'valkey')).toBe(true);
 		});
 
 		it('deve aceitar URI com protocolo valkeys (seguro)', () => {
-			expect(isMemDatabaseUri('valkeys://user:pass@host.cache.net:6379')).toBe(true);
+			expect(isMemDatabaseUri('valkeys://localhost:6379', 'valkey')).toBe(true);
 		});
 
 		it('deve rejeitar URI com protocolo mongodb (não autorizado)', () => {
-			expect(isMemDatabaseUri('mongodb://localhost:27017/db')).toBe(false);
+			expect(isMemDatabaseUri('mongodb://localhost:27017/db', 'valkey')).toBe(false);
 		});
 
 		it('deve rejeitar URI HTTP (não é banco em memória)', () => {
-			expect(isMemDatabaseUri('https://example.com')).toBe(false);
+			expect(isMemDatabaseUri('https://example.com', 'valkey')).toBe(false);
 		});
 
 		it('deve rejeitar string inválida como URI', () => {
-			expect(isMemDatabaseUri('nao-e-uma-uri')).toBe(false);
+			expect(isMemDatabaseUri('nao-e-uma-uri', 'valkey')).toBe(false);
 		});
 
 		it('deve rejeitar para valor não nulo ou incorreto (typeof fails)', () => {
-			expect(isMemDatabaseUri(null)).toBe(false);
-			expect(isMemDatabaseUri(undefined)).toBe(false);
+			expect(isMemDatabaseUri(null, 'valkey')).toBe(false);
+			expect(isMemDatabaseUri(undefined, 'valkey')).toBe(false);
+		});
+	});
+
+	// =========================================================================
+	// assertsMemDatabaseURI — Fail-Fast para URI de banco em memória inválida
+	// =========================================================================
+	describe('assertsMemDatabaseURI', () => {
+		it('não deve lançar throw para URI valkey válida', () => {
+			expect(() => {
+				assertsMemDatabaseURI(validTcpUri, 'valkey');
+			}).not.toThrow();
+		});
+
+		it('deve lançar throw para URI com protocolo não aceito', () => {
+			expect(() => {
+				assertsMemDatabaseURI('http://localhost:6379', 'valkey');
+			}).toThrow('Tentativa de validação de uri de banco de memória inválida');
+		});
+
+		it('deve lançar throw para string inválida', () => {
+			expect(() => {
+				assertsMemDatabaseURI('nao-e-uri', 'valkey');
+			}).toThrow();
+		});
+
+		it('deve lançar throw para valor null', () => {
+			expect(() => {
+				assertsMemDatabaseURI(null, 'valkey');
+			}).toThrow();
 		});
 	});
 });
