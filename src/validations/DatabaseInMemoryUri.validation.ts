@@ -98,8 +98,7 @@ export class DatabaseMemoryUriValidation {
 
 		// Valida o Username (se fornecido) usando o Schema/Morfologia rígida definida para o dbName
 		if (unameAndPass[0] !== '' && typeof unameAndPass[0] === 'string') {
-			if (!DatabaseUsernameValidator.verifyUsername(unameAndPass[0], dbName))
-				return false;
+			if (!DatabaseUsernameValidator.verifyUsername(unameAndPass[0], dbName)) return false;
 		}
 
 		// Valida a Password (se fornecida) usando a verificação de entropia/força mínima do sistema
@@ -243,7 +242,6 @@ export class DatabaseMemoryUriValidation {
 		}
 	}
 
-
 	/**
 	 * Heurística rápida para detectar URIs Multi-Host (clusters distribuídos).
 	 *
@@ -282,7 +280,6 @@ export class DatabaseMemoryUriValidation {
 		return hostSection.includes(',');
 	}
 
-
 	/**
 	 * Validador completo para URIs Multi-Host (Valkey Sentinel / Redis Cluster).
 	 *
@@ -307,7 +304,7 @@ export class DatabaseMemoryUriValidation {
 			if (!protocol || !acceptedMemDatabaseMultiHostProtocols.includes(protocol)) {
 				this.databaseMemoryUriValidationLogger.error(
 					{ method: 'verifyIsMultiHostUri', protocol, dbName },
-					'Protocolo inválido para conexões Multi-Host. Esperado valkey+sentinel ou redis+sentinel.'
+					'Protocolo inválido para conexões Multi-Host. Esperado valkey+sentinel ou redis+sentinel.',
 				);
 				return false;
 			}
@@ -325,7 +322,8 @@ export class DatabaseMemoryUriValidation {
 					erroLevel: 'fatal',
 					method: 'verifyIsMultiHostUri',
 					error: { queryParams: queryString || 'vazio', dbName },
-					message: 'URIs do tipo Sentinel exigem obrigatoriamente o parâmetro sentinelMasterId'
+					message:
+						'URIs do tipo Sentinel exigem obrigatoriamente o parâmetro sentinelMasterId',
 				});
 			}
 
@@ -339,7 +337,8 @@ export class DatabaseMemoryUriValidation {
 					erroLevel: 'fatal',
 					method: 'verifyIsMultiHostUri',
 					error: { extractedMasterId: masterId, dbName },
-					message: 'O sentinelMasterId fornecido na URL possui caracteres inválidos ou morfologia incorreta'
+					message:
+						'O sentinelMasterId fornecido na URL possui caracteres inválidos ou morfologia incorreta',
 				});
 			}
 
@@ -347,7 +346,9 @@ export class DatabaseMemoryUriValidation {
 			// Se houver '@', a mainSection é dividida em [auth, hosts+path].
 			// Se não houver '@', a mainSection inteira representa hosts+path (sem credenciais).
 			if (!mainSection) return false;
-			const authAndHostArray = mainSection.includes('@') ? mainSection.split('@') : mainSection;
+			const authAndHostArray = mainSection.includes('@')
+				? mainSection.split('@')
+				: mainSection;
 
 			// Se authAndHostArray for um Array, há credenciais para validar
 			if (Array.isArray(authAndHostArray) && authAndHostArray[0]) {
@@ -356,7 +357,9 @@ export class DatabaseMemoryUriValidation {
 			}
 
 			// Extrai a seção de hosts: se houve split por '@', pega a parte após; senão, usa a mainSection inteira
-			const hostSection = Array.isArray(authAndHostArray) ? mainSection.split('@')[1] : mainSection;
+			const hostSection = Array.isArray(authAndHostArray)
+				? mainSection.split('@')[1]
+				: mainSection;
 
 			// Remove o índice do banco (/0) se ele existir ao final dos hosts
 			if (!hostSection) return false;
@@ -381,22 +384,25 @@ export class DatabaseMemoryUriValidation {
 				if (!match) {
 					this.databaseMemoryUriValidationLogger.error(
 						{ method: 'verifyIsMultiHostUri', nodeMalformado: node, dbName },
-						'Um dos nós da infraestrutura distribuída não segue o padrão host:porta'
+						'Um dos nós da infraestrutura distribuída não segue o padrão host:porta',
 					);
 					return false;
 				}
 
 				if (!match[1] || !match[2]) {
-					this.databaseMemoryUriValidationLogger.error({
-						method: 'verifyIsMultiHostUri',
-						dbName,
-						hostType: typeof match[1],
-						host: match[1],
-						portType: typeof match[2],
-						port: match[2]
-					}, "Para um nó é necessário um host e uma porta como parâmetros definidos")
+					this.databaseMemoryUriValidationLogger.error(
+						{
+							method: 'verifyIsMultiHostUri',
+							dbName,
+							hostType: typeof match[1],
+							host: match[1],
+							portType: typeof match[2],
+							port: match[2],
+						},
+						'Para um nó é necessário um host e uma porta como parâmetros definidos',
+					);
 					return false;
-				};
+				}
 
 				const host = match[1];
 				// Classifica o host via HostValidator: 'IPv4' | 'IPv6' | 'DNS' | 'invalid'
@@ -405,12 +411,15 @@ export class DatabaseMemoryUriValidation {
 				const port = parseInt(match[2], 10);
 
 				if (hostType === 'invalid') {
-					this.databaseMemoryUriValidationLogger.error({
-						method: 'verifyMultiHostUri',
-						hostType,
-						host,
-						node,
-					}, 'Host do node é inválido');
+					this.databaseMemoryUriValidationLogger.error(
+						{
+							method: 'verifyMultiHostUri',
+							hostType,
+							host,
+							node,
+						},
+						'Host do node é inválido',
+					);
 					return false;
 				}
 
@@ -420,26 +429,22 @@ export class DatabaseMemoryUriValidation {
 						erroLevel: 'fatal',
 						method: 'verifyIsMultiHostUri',
 						error: { dbName, node, port },
-						message: 'Porta de conexão de rede fora do range válido do sistema operacional (1-65535)'
+						message:
+							'Porta de conexão de rede fora do range válido do sistema operacional (1-65535)',
 					});
 				}
 			}
 
 			// Todas as 5 camadas de validação passaram — URI Multi-Host é estruturalmente segura
 			return true;
-
 		} catch (e) {
 			this.databaseMemoryUriValidationLogger.error(
 				{ method: 'verifyIsMultiHostUri', uri, errors: e },
-				'Falha catastrófica durante o parsing e validação da URI Multi-Host'
+				'Falha catastrófica durante o parsing e validação da URI Multi-Host',
 			);
 			return false;
 		}
 	}
-
-
-
-
 
 	/**
 	 * Validador público unificado para validação de URIs em memória.
@@ -463,7 +468,7 @@ export class DatabaseMemoryUriValidation {
 		if (typeof url !== 'string' || url === '') return false;
 
 		if (this.isMultiHostUri(url)) {
-			return this.verifyIsMultiHostUri(url, dbName)
+			return this.verifyIsMultiHostUri(url, dbName);
 		}
 
 		if (!URL.canParse(url)) {

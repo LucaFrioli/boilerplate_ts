@@ -49,8 +49,8 @@ export const enableMemDatabaseConnections = ['redis', 'valkey'] as const;
 export const acceptedMemDatabaseMultiHostProtocols: readonly string[] = [
 	'valkey+sentinel',
 	'redis+sentinel',
-	'redis-sentinel'
-]
+	'redis-sentinel',
+];
 
 export const acceptedMemDatabaseProtocols: readonly string[] = [
 	'redis',
@@ -59,7 +59,7 @@ export const acceptedMemDatabaseProtocols: readonly string[] = [
 	// exijam alias nominal explícito, mas operam no mesmo protocolo RESP.
 	'valkey',
 	'valkeys',
-	...acceptedMemDatabaseMultiHostProtocols
+	...acceptedMemDatabaseMultiHostProtocols,
 ];
 
 export const dbslist = [...enableMemDatabaseConnections, ...enabledDatabaseConections] as const;
