@@ -1,6 +1,11 @@
-import { describe, it, expect } from 'vitest';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { DatabasePasswordValidation } from '@Validations/DatabasePassword.validation.js';
 import { validDbPassword, weakDbPassword } from '@tests/helpers/mocks/test.fixtures.js';
+import validator from 'validator';
 
 describe('DatabasePasswordValidation (Black-Box)', () => {
 
@@ -47,4 +52,46 @@ describe('DatabasePasswordValidation (Black-Box)', () => {
 			}).toThrow('Env maculada ou mal configurada!');
 		});
 	});
+
+	describe('Validação em Produção (NODE_ENV=production → nível strong)', () => {
+		afterEach(() => {
+			process.env.NODE_ENV = 'test';
+		});
+
+		it('deve rejeitar senha com menos de 15 caracteres', () => {
+			process.env.NODE_ENV = 'production';
+			expect(DatabasePasswordValidation.isValid('P@ss123!')).toBe(false);
+		});
+
+		it('deve aceitar senha forte com tamanho >= 15', () => {
+			process.env.NODE_ENV = 'production';
+			expect(DatabasePasswordValidation.isValid('UmaSenhaSuperForte$$2026!')).toBe(true);
+		});
+
+		it('deve rejeitar senha com tamanho >= 15 mas sem os requisitos de complexidade strong', () => {
+			process.env.NODE_ENV = 'production';
+			expect(DatabasePasswordValidation.isValid('123456789012345')).toBe(false);
+		});
+	});
+
+	describe('Casos de Borda e Erros Estruturais Internos', () => {
+		it('deve usar o logger customizado se fornecido em caso de erro de tipo', () => {
+			const mockLogger = {
+				fatal: vi.fn(),
+			} as any;
+			expect(() => {
+				DatabasePasswordValidation.isValid(123, mockLogger);
+			}).toThrow('Env maculada ou mal configurada!');
+			expect(mockLogger.fatal).toHaveBeenCalled();
+		});
+
+		it('deve lançar erro se o validador retornar um tipo não booleano (determineResult)', () => {
+			const spy = vi.spyOn(validator, 'isStrongPassword').mockReturnValue(123 as any);
+			expect(() => {
+				DatabasePasswordValidation.isValid('qualquer_coisa');
+			}).toThrow('Erro interno resultado deve ser booleano');
+			spy.mockRestore();
+		});
+	});
 });
+
