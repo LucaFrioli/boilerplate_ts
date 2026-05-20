@@ -110,7 +110,7 @@ function resetEnv(overrides: Record<string, unknown> = {}): void {
 	Object.assign(mockEnv, createCleanEnv(overrides));
 }
 
-import { ValkeyConnectionString } from '@/databases/uri/valkey.uri.js';
+import { ValkeyConnectionString } from '@DbUri/cache/valkey.uri.js';
 
 describe('ValkeyConnectionString + BaseMemUri (Black-Box)', () => {
 

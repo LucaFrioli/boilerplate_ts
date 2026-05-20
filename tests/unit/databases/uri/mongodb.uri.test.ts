@@ -15,7 +15,7 @@ vi.mock('@Configs/env.js', () => ({
 }));
 
 import { env } from '@Configs/env.js';
-import { MongoConnectionString } from '@Database/uri/mongodb.uri.js';
+import { MongoConnectionString } from '@DbUri/persistence/mongodb.uri.js';
 import { isDatabaseUri } from '@Types';
 
 // O MongoConnectionString não é instanciável diretamente com argumentos se baseia na env global `env`.
