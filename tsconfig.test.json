@@ -73,6 +73,9 @@
 			"@Hash/*": ["./src/auth/hash/*"],
 			"@Id/*": ["./src/core/identity/*"],
 			"@Resources/*": ["./src/resources/*"],
+			"@DbUri/*": ["./src/databases/uri/*"],
+	  		"@DbUri/cache/*": ["./src/databases/uri/cache/*"],
+	  		"@DbUri/persistence/*": ["./src/databases/uri/persistence/*"],
 			// Exclusivo do ambiente de teste:
 			"@tests/*": ["./tests/*"],
 			"@Mocks/*": ["./tests/helpers/mocks/*"]
