@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { mongoURI } from '../uri/mongodb.uri.js';
+import { mongoURI } from '@DbUri/persistence/mongodb.uri.js';
 import { env } from '@Configs/env.js';
 import { BaseConnectDb } from './contracts/BaseConnect.contract.js';
 import type { DatabaseURI } from '@Types';
