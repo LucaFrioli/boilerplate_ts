@@ -311,7 +311,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 						richInfo:
 							'Caso queira utilizar uma conexão valkey com socket obrigatoriamente a conexão deve ser **( valkey )**',
 					},
-					message: 'Tentativa de cconexão via socket com protocolo inválido',
+					message: 'Tentativa de conexão via socket com protocolo inválido',
 				});
 			}
 
@@ -330,7 +330,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 						recivedIndex: validatedEnvValues.MEM_DB_INDEX_OR_PATH,
 					},
 					message:
-						'Tentativa de construção de string de conexão valkey TSL em prod com index invalido',
+						'Tentativa de construção de string de conexão valkey TLS em prod com index invalido',
 				});
 			}
 
@@ -375,7 +375,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 						recivedIndex: validatedEnvValues.MEM_DB_INDEX_OR_PATH,
 					},
 					message:
-						'Tentativa de construção de string de conexão valkey TSL em prod com index invalido',
+						'Tentativa de construção de string de conexão valkey TLS em prod com index invalido',
 				});
 			}
 			this.candidateUri = `${validatedEnvValues.MEM_DB_PROTOCOL}://${this._auth}${validatedEnvValues.MEM_DB_HOST}:${String(validatedEnvValues.MEM_DB_PORT)}/${String(validatedEnvValues.MEM_DB_INDEX_OR_PATH)}${ValkeyConnectionString.secParamsTls}`;
@@ -394,7 +394,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 			}
 			assertsMemDatabaseURI(this.candidateUri, this.dbName);
 
-			this.logInfo('String de conexão valkey formada com sucesso', 'generateUriDev', {
+			this.logInfo('String de conexão valkey formada com sucesso', 'generateUriProd', {
 				maskedUri: this.maskUriToLog(this.candidateUri),
 				connectionMode: isSocketConnection ? 'socket' : 'tcp',
 				modality: modality ? modality : 'Error',

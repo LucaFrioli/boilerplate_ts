@@ -427,21 +427,21 @@ describe('ValkeyConnectionString + BaseMemUri (Black-Box)', () => {
 			Object.assign(instance, { _internalLogger: mockLogger, _auth: 'user:pass@' });
 			// simulando que passou pelos primeiros checks de prod
 			expect(() => instance.generateUriProd({ MEM_DB_PROTOCOL: 'valkeys', MEM_DB_INDEX_OR_PATH: '/tmp/sock' }))
-				.toThrow(/cconexão via socket com protocolo inválido/);
+				.toThrow(/conexão via socket com protocolo inválido/);
 		});
 
 		it('deve disparar fatal em generateUriProd se Sentinel tiver path de socket (string)', () => {
 			const instance = Object.create(ValkeyConnectionString.prototype);
 			Object.assign(instance, { _internalLogger: mockLogger, _auth: 'user:pass@' });
 			expect(() => instance.generateUriProd({ MEM_DB_PROTOCOL: 'valkey+sentinel', MEM_DB_INDEX_OR_PATH: [] }))
-				.toThrow(/TSL em prod com index invalido/);
+				.toThrow(/TLS em prod com index invalido/);
 		});
 
 		it('deve disparar fatal em generateUriProd se valkeys tiver path de socket (string)', () => {
 			const instance = Object.create(ValkeyConnectionString.prototype);
 			Object.assign(instance, { _internalLogger: mockLogger, _auth: 'user:pass@' });
 			expect(() => instance.generateUriProd({ MEM_DB_PROTOCOL: 'valkeys', MEM_DB_INDEX_OR_PATH: [], MEM_DB_HOST: 'lh', MEM_DB_PORT: 6379 }))
-				.toThrow(/TSL em prod com index invalido/);
+				.toThrow(/TLS em prod com index invalido/);
 		});
 
 		it('deve capturar falha no catch de generateUriDev se string for inválida e falhar assert', () => {

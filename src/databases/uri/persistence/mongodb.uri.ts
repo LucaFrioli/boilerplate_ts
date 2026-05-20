@@ -90,7 +90,7 @@ export class MongoConnectionString extends BaseUri {
 
 		this.logInfo(
 			'String de conexão ccom o banco de dados mongodb formada',
-			'GeneraateUriToDev',
+			'GenerateUriToDev',
 			{
 				connectionString: this.maskUriToLog(formatedUrl),
 			},
