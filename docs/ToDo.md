@@ -142,10 +142,10 @@ partir da arquitetura, mas não a define.
 
 ### URI Builder
 - [x] Implementar `BaseMemUri.init()` com lógica de validação (hoje está vazio)
-- [ ] Criar `valkey.uri.ts` implementando `BaseMemUri` (construção de URI Valkey/Redis)
-- [ ] Adicionar validações específicas de parâmetros (protocolo, porta, senha em prod)
+- [x] Criar `valkey.uri.ts` implementando `BaseMemUri` (construção de URI Valkey/Redis)
+- [x] Adicionar validações específicas de parâmetros (protocolo, porta, senha em prod)
 - [x] Guard de `MEM_DB_INDEX_OR_PATH` — validar se é inteiro (index) ou caminho Unix (.sock)
-- [ ] Testes unitários + integração para formação de URI Valkey
+- [x] Testes unitários + integração para formação de URI Valkey
 
 ### Conexão
 - [ ] Criar `valkey.database.ts` implementando `BaseConnectDb` (ou contrato dedicado para mem-DB)
