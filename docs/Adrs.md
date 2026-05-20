@@ -176,3 +176,18 @@ Level 5 — Bootstrap
 ```
 
 - **Por que esse invariante é crítico**: No ESM nativo do Node, imports circulares não causam crash — são resolvidos com **bindings parciais**. Se `security.types.ts` importa `DatabaseMemoryUriValidation` e este importa `isValidUri` de `security.types.ts`, durante a resolução do módulo o ESM entrega `isValidUri` como `undefined` (o módulo ainda não terminou de avaliar). O resultado: Type Guards retornam `undefined` em vez de `boolean`, fronteiras de segurança são **bypassadas silenciosamente**, e URIs não-validadas escapam para a infraestrutura. Nenhum erro é lançado — o sistema continua operando em estado corrompido. Isso é fundamentalmente incompatível com a filosofia Fail-Fast da aplicação.
+
+---
+
+## ADR 013: Segregação Físico-Semântica de URIs (Persistence vs Cache) e Lazy Initialization para Evitar Acoplamento de Boot
+**Data: 2026-05-20** *Contexto*: A infraestrutura de conexões de banco de dados (`databases/`) misturava todas as estratégias de URI na mesma raiz (`src/databases/uri/`). Além disso, a importação estática de `mongoURI` em tempo de avaliação de módulo carregava imediatamente o construtor `new MongoConnectionString()`, gerando um crash fatal de boot se o `DATABASE_TYPE` ativo no ambiente não fosse `mongodb` ou se as credenciais estivessem ausentes - um sério gap de acoplamento de boot ocultado por mocks agressivos em testes unitários.
+
+**Decisão**:
+1. **Segregação Física e Semântica**: Dividir a raiz de URIs em dois subdiretórios distintos: `persistence/` (para armazenamento persistente estruturado/não-estruturado como MongoDB) e `cache/` (para armazenamento temporário em memória de alta performance como Valkey/Redis).
+2. **Criação de Aliases no TSConfig**: Mapear os caminhos `@DbUri/persistence/*` e `@DbUri/cache/*` para isolar a arquitetura e manter um autocomplete polido no DX.
+3. **Migração para Lazy Initialization**: Adotar a estratégia de inicialização sob demanda (Lazy Getters ou Dynamic Factories) para que as conexões resolvam suas strings de conexão apenas em tempo de execução (`runtime`) quando `.connect()` for invocado, e nunca na inicialização do arquivo (`import-time`).
+
+**Justificativa**:
+- **Zero Efeitos Colaterais no Boot**: Importar um módulo de conexão deixa de disparar validações prematuras de variáveis de ambiente de bancos inativos, garantindo boots resilientes do monolito modular e permitindo a inicialização dinâmica de conexões.
+- **Coesão e Organização Visual**: A distinção semântica limpa reflete as fronteiras conceituais clássicas da engenharia de software (Banco de Dados Primário vs Camada de Cache Volátil).
+- **Facilidade de Mocking e Testes**: Testes de adapters específicos não precisam mais mockar arquivos de URI alheios, pois seus imports dinâmicos ou construtores tardios não são avaliados se não forem explicitamente executados.

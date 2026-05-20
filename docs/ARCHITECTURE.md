@@ -124,6 +124,7 @@ src/
 ├── validations/                     ← Level 1: classes validadoras
 │   ├── Cpf.validations.ts
 │   ├── Password.validations.ts
+│   ├── Host.validations.ts
 │   ├── DatabaseUsername.validation.ts
 │   ├── DatabasePassword.validation.ts
 │   └── DatabaseInMemoryUri.validation.ts
@@ -148,8 +149,10 @@ src/
 │   │   ├── contracts/
 │   │   │   ├── BaseUri.contract.ts      ← Contrato abstrato para DB persistente
 │   │   │   └── BaseMemUri.contract.ts   ← Contrato abstrato para DB em memória
-│   │   ├── mongodb.uri.ts               ← Implementação MongoDB
-│   │   └── valkey.uri.ts                ← Implementação Valkey/Redis
+│   │   ├── cache/
+│   │   │   └── valkey.uri.ts            ← Implementação Valkey/Redis
+│   │   └── persistence/
+│   │       └── mongodb.uri.ts           ← Implementação MongoDB
 │   └── connections/
 │       ├── contracts/BaseConnect.contract.ts
 │       └── mongodb.database.ts
@@ -166,7 +169,8 @@ src/
 │   └── dateManager.util.ts
 │
 ├── app.ts                           ← Level 5: Express setup
-└── server.ts                        ← Level 5: bootstrap
+│   └── server.ts                        ← Level 5: bootstrap
+│
 ```
 
 ---
@@ -184,7 +188,7 @@ O projeto usa **Abstract Classes** como contratos. Para adicionar um novo provid
 6. Crie teste em `tests/unit/auth/hash/Scrypt.provider.test.ts`
 
 ### Novo Banco de Dados (ex: PostgreSQL URI)
-1. Crie `src/databases/uri/postgres.uri.ts`
+1. Crie `src/databases/uri/persistence/postgres.uri.ts`
 2. Estenda `BaseUri` - implemente `guardBroken()`, `generateUriDev()`, `generateUriProd()`, `maskUriToLog()`
 3. O contrato já valida env, loga erros e protege o getter
 4. Crie teste baseado em `tests/unit/databases/uri/mongodb.uri.test.ts`
