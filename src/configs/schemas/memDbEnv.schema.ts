@@ -26,7 +26,7 @@ export const memEnvValidationSchema = z.object({
 		.optional()
 		.refine(
 			(val) => {
-				if (typeof val !== 'string') return false;
+				if (!val) return true;
 				if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test')
 					return true;
 				return DatabaseUsernameValidator.verifyUsername(val, 'envBoot');
@@ -55,7 +55,7 @@ export const memEnvValidationSchema = z.object({
 	MEM_DB_SENTINEL_USERNAME: z.coerce.string({ error: 'O SentinelUsername deve ser uma string' }).optional()
 		.refine(
 			(val) => {
-				if (typeof val !== 'string') return false;
+				if (!val) return true;
 				if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test')
 					return true;
 				return DatabaseUsernameValidator.verifyUsername(val, 'envBoot');
@@ -78,4 +78,41 @@ export const memEnvValidationSchema = z.object({
 			},
 		)
 		.optional()
+}).superRefine((data, ctx) => {
+	const isRigorousEnv = process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test';
+
+	if (isRigorousEnv) {
+		if (!data.MEM_DB_USERNAME) {
+			ctx.addIssue({
+				code: 'custom',
+				message: 'O MEM_DB_USERNAME é obrigatório em ambiente de Produção ou Stage!',
+				path: ['MEM_DB_USERNAME'],
+			});
+		}
+		if (!data.MEM_DB_PASSWORD) {
+			ctx.addIssue({
+				code: 'custom',
+				message: 'O MEM_DB_PASSWORD é obrigatório em ambiente de Produção ou Stage!',
+				path: ['MEM_DB_PASSWORD'],
+			});
+		}
+
+		if (data.MEM_DB_SENTINEL_MASTER_ID) {
+			if (!data.MEM_DB_SENTINEL_USERNAME) {
+				ctx.addIssue({
+					code: 'custom',
+					message: 'O MEM_DB_SENTINEL_USERNAME é obrigatório se o Sentinel estiver ativo em Produção ou Stage!',
+					path: ['MEM_DB_SENTINEL_USERNAME'],
+				});
+			}
+			if (!data.MEM_DB_SENTINEL_PASSWORD) {
+				ctx.addIssue({
+					code: 'custom',
+					message: 'O MEM_DB_SENTINEL_PASSWORD é obrigatório se o Sentinel estiver ativo em Produção ou Stage!',
+					path: ['MEM_DB_SENTINEL_PASSWORD'],
+				});
+			}
+		}
+	}
 });
+
