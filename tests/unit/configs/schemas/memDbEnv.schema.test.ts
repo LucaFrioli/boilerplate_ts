@@ -50,7 +50,10 @@ describe('memDbEnv.schema (Black-Box)', () => {
 	it('deve barrar a senha em produção se for menor que 15 caracteres (Mesmo sendo Forte!)', () => {
 		process.env.NODE_ENV = 'production';
 		// Senha forte por padrão porém com apenas 12 chars:
-		const shortStrongPassword = { MEM_DB_PASSWORD: 'Str@ng123pwd' };
+		const shortStrongPassword = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_PASSWORD: 'Str@ng123pwd',
+		};
 		const result = memEnvValidationSchema.safeParse(shortStrongPassword);
 		expect(result.success).toBe(false);
 		if(!result.success) {
@@ -60,7 +63,10 @@ describe('memDbEnv.schema (Black-Box)', () => {
 
 	it('deve passar em produção com senha FORTE + TAMANHO >= 15', () => {
 		process.env.NODE_ENV = 'production';
-		const goodProdPayload = { MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!' };
+		const goodProdPayload = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+		};
 		const result = memEnvValidationSchema.safeParse(goodProdPayload);
 		expect(result.success).toBe(true);
 	});
@@ -85,7 +91,10 @@ describe('memDbEnv.schema (Black-Box)', () => {
 
 	it('deve validar MEM_DB_USERNAME rigorosamente em produção (inválido)', () => {
 		process.env.NODE_ENV = 'production';
-		const payload = { MEM_DB_USERNAME: 'inválido!@#' }; // Caracteres não permitidos em envBoot
+		const payload = {
+			MEM_DB_USERNAME: 'inválido!@#',
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+		}; // Caracteres não permitidos em envBoot
 		const result = memEnvValidationSchema.safeParse(payload);
 		expect(result.success).toBe(false);
 		if(!result.success) {
@@ -95,7 +104,10 @@ describe('memDbEnv.schema (Black-Box)', () => {
 
 	it('deve aceitar MEM_DB_USERNAME correto em produção', () => {
 		process.env.NODE_ENV = 'production';
-		const payload = { MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz' }; // Morphologia válida para envBoot
+		const payload = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+		}; // Morphologia válida para envBoot
 		const result = memEnvValidationSchema.safeParse(payload);
 		expect(result.success).toBe(true);
 	});
@@ -103,6 +115,7 @@ describe('memDbEnv.schema (Black-Box)', () => {
 	it('deve aplicar defaults e validações corretas para variáveis de Sentinel', () => {
 		const payload = { 
 			MEM_DB_SENTINEL_MASTER_ID: 'mymaster',
+			MEM_DB_SENTINEL_USERNAME: '',
 		};
 		const result = memEnvValidationSchema.safeParse(payload);
 		expect(result.success).toBe(true);
@@ -114,18 +127,30 @@ describe('memDbEnv.schema (Black-Box)', () => {
 
 	it('deve validar MEM_DB_SENTINEL_USERNAME rigorosamente em produção', () => {
 		process.env.NODE_ENV = 'production';
-		const payload = { MEM_DB_SENTINEL_USERNAME: 'wrong_format_#$' };
+		const payload = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+			MEM_DB_SENTINEL_USERNAME: 'wrong_format_#$',
+		};
 		const result = memEnvValidationSchema.safeParse(payload);
 		expect(result.success).toBe(false);
 	});
 
 	it('deve validar MEM_DB_SENTINEL_PASSWORD em produção garantindo os requisitos de segurança', () => {
 		process.env.NODE_ENV = 'production';
-		const payload = { MEM_DB_SENTINEL_PASSWORD: 'UmaSenhaSuperForte$$2026!' };
+		const payload = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+			MEM_DB_SENTINEL_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+		};
 		const result = memEnvValidationSchema.safeParse(payload);
 		expect(result.success).toBe(true);
 		
-		const badPayload = { MEM_DB_SENTINEL_PASSWORD: 'curta' };
+		const badPayload = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+			MEM_DB_SENTINEL_PASSWORD: 'curta',
+		};
 		const badResult = memEnvValidationSchema.safeParse(badPayload);
 		expect(badResult.success).toBe(false);
 	});
@@ -136,4 +161,59 @@ describe('memDbEnv.schema (Black-Box)', () => {
 		const result = memEnvValidationSchema.safeParse(payload);
 		expect(result.success).toBe(true);
 	});
+
+	it('deve rejeitar em produção/stage se MEM_DB_USERNAME ou MEM_DB_PASSWORD estiverem ausentes (superRefine)', () => {
+		process.env.NODE_ENV = 'production';
+		const payloadSemUser = {
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+		};
+		const resultSemUser = memEnvValidationSchema.safeParse(payloadSemUser);
+		expect(resultSemUser.success).toBe(false);
+		if (!resultSemUser.success) {
+			expect(resultSemUser.error.issues.some(issue => issue.message.includes('MEM_DB_USERNAME é obrigatório'))).toBe(true);
+		}
+
+		const payloadSemPass = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+		};
+		const resultSemPass = memEnvValidationSchema.safeParse(payloadSemPass);
+		expect(resultSemPass.success).toBe(false);
+		if (!resultSemPass.success) {
+			expect(resultSemPass.error.issues.some(issue => issue.message.includes('MEM_DB_PASSWORD é obrigatório'))).toBe(true);
+		}
+
+		// O mesmo deve valer para o stage
+		process.env.NODE_ENV = 'stage';
+		const resultStageSemUser = memEnvValidationSchema.safeParse(payloadSemPass); // sem pass
+		expect(resultStageSemUser.success).toBe(false);
+	});
+
+	it('deve rejeitar se sentinel estiver ativo em produção/stage mas credenciais do sentinel estiverem ausentes', () => {
+		process.env.NODE_ENV = 'production';
+		const payloadSemSentinelCreds = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+			MEM_DB_SENTINEL_MASTER_ID: 'mymaster',
+		};
+		const result = memEnvValidationSchema.safeParse(payloadSemSentinelCreds);
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error.issues.some(issue => issue.message.includes('MEM_DB_SENTINEL_USERNAME é obrigatório'))).toBe(true);
+			expect(result.error.issues.some(issue => issue.message.includes('MEM_DB_SENTINEL_PASSWORD é obrigatório'))).toBe(true);
+		}
+	});
+
+	it('deve aceitar payload completo em produção/stage com credenciais válidas e seguras', () => {
+		process.env.NODE_ENV = 'production';
+		const payloadCompleto = {
+			MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+			MEM_DB_SENTINEL_MASTER_ID: 'mymaster',
+			MEM_DB_SENTINEL_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+			MEM_DB_SENTINEL_PASSWORD: 'UmaSenhaSuperForte$$2026!',
+		};
+		const result = memEnvValidationSchema.safeParse(payloadCompleto);
+		expect(result.success).toBe(true);
+	});
 });
+
