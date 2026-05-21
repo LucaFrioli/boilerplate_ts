@@ -13,17 +13,20 @@ export const dbEnvValidationSchema = z.object({
 		.int({ error: 'A porta de um banco de dados deve ser um número inteiro' }),
 	DATABASE_NAME: z.string().trim(),
 	DATABASE_USERNAME: z.string().trim().optional(),
-	DATABASE_PASSWORD: z
-		.string()
-		.min(10)
-		.max(100)
-		.refine(
-			(value) => {
-				return passwordStrength(value);
-			},
-			{ error: 'A senha do banco não atende os requisitos de segurança' },
-		)
-		.optional(),
+	DATABASE_PASSWORD: z.preprocess(
+		(val) => (val === '' ? undefined : val),
+		z
+			.string()
+			.min(10)
+			.max(100)
+			.refine(
+				(value) => {
+					return passwordStrength(value);
+				},
+				{ error: 'A senha do banco não atende os requisitos de segurança' },
+			)
+			.optional(),
+	),
 	DATABASE_ID_DEFAULT: z
 		.enum(identityTypeSupported, {
 			error: `Defina um padrão de id para os registros do banco contindos nesta lista ${identityTypeSupported.join(',')}`,
