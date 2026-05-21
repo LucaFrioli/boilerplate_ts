@@ -57,6 +57,15 @@ describe('dbEnv.schema (Black-Box)', () => {
 		}
 	});
 
+	it('deve aceitar DATABASE_PASSWORD como string vazia e convertê-la para undefined (Comportamento de Pre-processamento)', () => {
+		const payload = { ...validPayload, DATABASE_PASSWORD: '' };
+		const result = dbEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.DATABASE_PASSWORD).toBeUndefined();
+		}
+	});
+
 	it('deve rejeitar um database type não suportado', () => {
 		const payload = { ...validPayload, DATABASE_TYPE: 'oracle' };
 		const result = dbEnvValidationSchema.safeParse(payload);

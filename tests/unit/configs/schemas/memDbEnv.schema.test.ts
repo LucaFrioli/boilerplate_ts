@@ -215,5 +215,26 @@ describe('memDbEnv.schema (Black-Box)', () => {
 		const result = memEnvValidationSchema.safeParse(payloadCompleto);
 		expect(result.success).toBe(true);
 	});
+
+	it('deve aceitar MEM_DB_PASSWORD como string vazia e convertê-la para undefined (Comportamento de Pre-processamento)', () => {
+		const payload = { ...validPayload, MEM_DB_PASSWORD: '' };
+		const result = memEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.MEM_DB_PASSWORD).toBeUndefined();
+		}
+	});
+
+	it('deve aceitar MEM_DB_SENTINEL_PASSWORD como string vazia e convertê-la para undefined (Comportamento de Pre-processamento)', () => {
+		const payload = {
+			MEM_DB_SENTINEL_MASTER_ID: 'mymaster',
+			MEM_DB_SENTINEL_PASSWORD: '',
+		};
+		const result = memEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.MEM_DB_SENTINEL_PASSWORD).toBeUndefined();
+		}
+	});
 });
 
