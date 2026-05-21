@@ -65,5 +65,12 @@ describe('DatabaseUsernameValidator (Black-Box)', () => {
 			// @ts-expect-error - Forçando dbName inválido
 			expect(DatabaseUsernameValidator.verifyUsername(validDbUsername, 'oracledb')).toBe(true);
 		});
+
+		it('deve lançar throw de erro crasso se o valor não for string e o dbName não for suportado', () => {
+			expect(() => {
+				// @ts-expect-error - Forçando tipo e dbName incorretos para testar fallback profundo
+				DatabaseUsernameValidator.verifyUsername(12345, 'oracledb');
+			}).toThrow('Erro crasso contate um dos canais legais');
+		});
 	});
 });
