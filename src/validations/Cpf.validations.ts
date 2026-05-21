@@ -7,19 +7,19 @@ export class CpfValidator {
 		service: 'util',
 	});
 
-	public static cleanigCpf(rawValue: string): string {
+	public static cleaningCpf(rawValue: string): string {
 		return rawValue.replace(/\D/g, '');
 	}
 
 	/**
-	 * validateAndSaniteze
+	 * validateAndSanitize
 	 * @param rawCpf string
 	 * @returns string
 	 **/
 	public static validateAndSanitize(rawCpf: string, verifyInApi: boolean): string {
 		if (typeof rawCpf !== 'string') throw new Error('O cpf passado deve ser uma string');
 
-		const clearCpf = this.cleanigCpf(rawCpf);
+		const clearCpf = this.cleaningCpf(rawCpf);
 
 		if (clearCpf.length !== 11)
 			throw new Error(
@@ -28,7 +28,7 @@ export class CpfValidator {
 
 		if (/^(\d)\1+$/.test(clearCpf)) {
 			this.cpfValidatorLogger.warn(
-				'Houve uma tentativa de validaçãodo CPF com números repetidos!',
+				'Houve uma tentativa de validação do CPF com números repetidos!',
 			);
 			throw new Error('O cpf não pode ter números repetidos');
 		}
@@ -42,7 +42,7 @@ export class CpfValidator {
 			this.cpfValidatorLogger.warn(
 				'Tentativa de validação de CPF com digitos verificadores inválidos',
 			);
-			throw new Error('Ops! Digite um cpf válido para poder continuaar com a operação');
+			throw new Error('Ops! Digite um cpf válido para poder continuar com a operação');
 		}
 
 		if (verifyInApi) {

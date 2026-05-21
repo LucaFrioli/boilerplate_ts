@@ -53,7 +53,7 @@ export const cpfValidationSchema = z.custom<ValidCPF>((val) => {
 		return false;
 	}
 
-	val = CpfValidator.cleanigCpf(val);
+	val = CpfValidator.cleaningCpf(val);
 	return isValidCPF(val);
 });
 
