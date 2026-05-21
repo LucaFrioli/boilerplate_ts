@@ -331,4 +331,50 @@ describe('hasherEnvValidationSchema', () => {
 			expect(result.success).toBe(true);
 		});
 	});
+
+	// -------------------------------------------------------------------------
+	// HASHER_BCRYPT_ROUNDS — Validação de Rounds para Bcrypt
+	// -------------------------------------------------------------------------
+	describe('HASHER_BCRYPT_ROUNDS', () => {
+		it('deve aceitar rounds válidos entre 12 e 13', () => {
+			const result12 = hasherEnvValidationSchema.safeParse(
+				buildPayload({ HASHER_BCRYPT_ROUNDS: '12' }),
+			);
+			const result13 = hasherEnvValidationSchema.safeParse(
+				buildPayload({ HASHER_BCRYPT_ROUNDS: '13' }),
+			);
+
+			expect(result12.success).toBe(true);
+			expect(result13.success).toBe(true);
+			if (result12.success) {
+				expect(result12.data.HASHER_BCRYPT_ROUNDS).toBe(12);
+			}
+		});
+
+		it('deve rejeitar rounds abaixo de 12 (inseguro)', () => {
+			const result = hasherEnvValidationSchema.safeParse(
+				buildPayload({ HASHER_BCRYPT_ROUNDS: '11' }),
+			);
+
+			expect(result.success).toBe(false);
+		});
+
+		it('deve rejeitar rounds acima de 13 (perigo de performance)', () => {
+			const result = hasherEnvValidationSchema.safeParse(
+				buildPayload({ HASHER_BCRYPT_ROUNDS: '14' }),
+			);
+
+			expect(result.success).toBe(false);
+		});
+
+		it('deve assumir o valor padrão de 12 se for omitido', () => {
+			const payload = { ...validHasherPayload };
+			const result = hasherEnvValidationSchema.safeParse(payload);
+
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.HASHER_BCRYPT_ROUNDS).toBe(12);
+			}
+		});
+	});
 });
