@@ -11,7 +11,7 @@ export default class BcryptService extends BaseHasher {
 
 	protected async executeHash(payload: string): Promise<string> {
 		const passwordWithPepper = payload + this.pepper;
-		const rounds: number = env.HASHER_SALT_LENGTH;
+		const rounds: number = env.HASHER_BCRYPT_ROUNDS;
 
 		if (rounds < 10) {
 			this.handleFatalErrors(
@@ -35,7 +35,7 @@ export default class BcryptService extends BaseHasher {
 			);
 		}
 
-		return await hash(passwordWithPepper, env.HASHER_SALT_LENGTH);
+		return await hash(passwordWithPepper, rounds);
 	}
 	protected async executeCompare(payload: string, hashedString: string): Promise<boolean> {
 		if (!this.validateHash(hashedString)) {

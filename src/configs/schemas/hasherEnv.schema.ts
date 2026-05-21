@@ -50,6 +50,15 @@ export const hasherEnvValidationSchema = z.object({
 			error: 'O salt_length do hasher deve ter no mínimo 16 bytes de acordo com o padrão RFC 9106',
 		})
 		.default(16),
+	HASHER_BCRYPT_ROUNDS: z.coerce
+		.number()
+		.int()
+		.min(12, { error: 'O bcrypt deve ter no mínimo 12 rounds para ser realmente seguro' })
+		.max(13, {
+			error: 'A cima de 13 rounds não há ganho apresentavel de segurança, e pode ocasionar porblemas na aplicação',
+		})
+		.optional()
+		.default(12),
 	//defina sempre o dobro de cores disponíveis no servidor
 	HASHER_PARALLELISM: z.coerce
 		.number()

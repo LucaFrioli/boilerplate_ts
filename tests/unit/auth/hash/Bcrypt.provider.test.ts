@@ -16,8 +16,9 @@ const { mockWarn, mockEnv } = vi.hoisted(() => ({
 	mockEnv: {
 		HASHER_PROVIDER: 'bcrypt',
 		HASHER_SECURITY_PEPPER: 'test-pepper-bcrypt-suffix',
-		HASHER_SALT_LENGTH: 10, // Default seguro
+		HASHER_SALT_LENGTH: 16, // Default seguro para testes
 		EMAIL_TO_CONTACT: 'admin@test.com',
+		HASHER_BCRYPT_ROUNDS: 12
 	},
 }));
 
@@ -35,15 +36,17 @@ vi.mock('@Configs/env.js', () => ({
 }));
 
 import BcryptService from '@Hash/providers/Bcrypt.service.auth.js';
+import { hasherEnvValidationSchema } from '@Configs/schemas/hasherEnv.schema.js';
 
 describe('BcryptService', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockEnv.HASHER_SALT_LENGTH = 10; // Reset para cada teste
+		mockEnv.HASHER_BCRYPT_ROUNDS = 12; // Reset para cada teste
 	});
 
 	describe('generate()', () => {
-		it('deve gerar um hash Bcrypt válido', async () => {
+		it('deve gerar um hash Bcrypt válido ($2$10) quando rounds são 10', async () => {
+			mockEnv.HASHER_BCRYPT_ROUNDS = 10
 			const provider = new BcryptService();
 			const hash = await provider.generate('senha123');
 
@@ -51,8 +54,16 @@ describe('BcryptService', () => {
 			expect(hash).toMatch(/^\$2b\$10\$/);
 		});
 
+		it('deve gerar um hash Bcrypt válido ($2$12) quando rounds são 12', async () => {
+			const provider = new BcryptService();
+			const hash = await provider.generate('senha123');
+
+			// Formato Bcrypt: $2b$10$...
+			expect(hash).toMatch(/^\$2b\$12\$/);
+		});
+
 		it('deve falhar se rounds < 10 (Fail-Fast)', async () => {
-			mockEnv.HASHER_SALT_LENGTH = 8;
+			mockEnv.HASHER_BCRYPT_ROUNDS = 8;
 			const provider = new BcryptService();
 
 			await expect(provider.generate('senha123')).rejects.toThrow(
@@ -61,7 +72,7 @@ describe('BcryptService', () => {
 		});
 
 		it('deve emitir aviso se rounds > 13 (Performance)', async () => {
-			mockEnv.HASHER_SALT_LENGTH = 14;
+			mockEnv.HASHER_BCRYPT_ROUNDS = 14;
 			const provider = new BcryptService();
 
 			await provider.generate('senha123');
@@ -90,6 +101,12 @@ describe('BcryptService', () => {
 			const isMatch = await provider.compare('wrong_one', hash);
 			expect(isMatch).toBe(false);
 		});
+
+		it('deve retornar false se o hash fornecido estiver em formato inválido', async () => {
+			const provider = new BcryptService();
+			const isMatch = await provider.compare('qualquer_senha', 'formato_totalmente_invalido');
+			expect(isMatch).toBe(false);
+		});
 	});
 
 	describe('validateHash()', () => {
@@ -103,6 +120,28 @@ describe('BcryptService', () => {
 			const provider = new BcryptService();
 			const argonHash = '$argon2id$v=19$m=65536,t=3,p=4$c2FsdHNhbHRzYWx0c2E$hash';
 			expect(provider.validateHash(argonHash)).toBe(false);
+		});
+	});
+
+	describe('Sobrecarga Semântica (Documentação de Segurança e Não-Regressão)', () => {
+		it('HASHER_SALT_LENGTH (do Argon2) é inseguro se usado como rounds do Bcrypt (invariante >= 16 rounds)', () => {
+			const parsedEnv = hasherEnvValidationSchema.parse({
+				HASHER_SECURITY_PEPPER: 'development-secretPepper_SHA256-F@llback',
+			});
+
+			// Mostra explicitamente que HASHER_SALT_LENGTH é >= 16 bytes (padrão Argon2),
+			// o que congelaria a CPU se fosse interpretado como rounds pelo Bcrypt (DoS).
+			expect(parsedEnv.HASHER_SALT_LENGTH).toBeGreaterThanOrEqual(16);
+		});
+
+		it('deve documentar que HASHER_BCRYPT_ROUNDS é a configuração correta e segura para Bcrypt (rounds <= 13)', () => {
+			const parsedEnv = hasherEnvValidationSchema.parse({
+				HASHER_SECURITY_PEPPER: 'development-secretPepper_SHA256-F@llback',
+			});
+
+			// Mostra explicitamente que a nova variável dedicada está limitada a uma faixa segura (12 a 13)
+			expect(parsedEnv.HASHER_BCRYPT_ROUNDS).toBeLessThanOrEqual(13);
+			expect(parsedEnv.HASHER_BCRYPT_ROUNDS).toBeGreaterThanOrEqual(12);
 		});
 	});
 });
