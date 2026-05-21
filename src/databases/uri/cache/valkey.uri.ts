@@ -163,6 +163,8 @@ export class ValkeyConnectionString extends BaseMemUri {
 	 * @returns String formatada e segura para log.
 	 */
 	protected maskUriToLog(unmaskUri: string): string {
+		if (typeof unmaskUri !== 'string') return '';
+
 		if (this._password && this._uname) {
 			unmaskUri = unmaskUri
 				.replace(/:([^:@]+)@/, ':*********@')
@@ -177,7 +179,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 			unmaskUri = unmaskUri.replace(/sentinelPassword=[^&]+/, 'sentinelPassword=*********');
 		}
 
-		const sentinelUser = this._baseEnvMemDb?.MEM_DB_SENTINEL_USERNAME
+		const sentinelUser: string = this._baseEnvMemDb?.MEM_DB_SENTINEL_USERNAME
 			? this._baseEnvMemDb.MEM_DB_SENTINEL_USERNAME
 			: '';
 		if (sentinelUser && sentinelUser !== '') {
@@ -397,7 +399,7 @@ export class ValkeyConnectionString extends BaseMemUri {
 			this.logInfo('String de conexão valkey formada com sucesso', 'generateUriProd', {
 				maskedUri: this.maskUriToLog(this.candidateUri),
 				connectionMode: isSocketConnection ? 'socket' : 'tcp',
-				modality: modality ? modality : 'Error',
+				modality,
 			});
 
 			return this.candidateUri;

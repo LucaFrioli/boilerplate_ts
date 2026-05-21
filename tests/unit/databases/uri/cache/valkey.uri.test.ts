@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -94,6 +95,19 @@ const mockEnv = vi.hoisted(() => {
 vi.mock('@Configs/env.js', () => ({
 	env: mockEnv,
 }));
+
+vi.mock('@Types/security.types.js', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@Types/security.types.js')>();
+	return {
+		...actual,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		assertsMemDatabaseURI: (uri: unknown, dbName: string) => {
+			if (typeof uri === 'string' && (uri.startsWith('baddb://') || uri.includes('[invalid_ipv6'))) {
+				throw new Error('Tentativa de validação de uri de banco de memória inválida');
+			}
+		},
+	};
+});
 
 /**
  * Reseta o objeto mock limpando todas as chaves e aplicando valores padrão.
@@ -243,20 +257,16 @@ describe('ValkeyConnectionString + BaseMemUri (Black-Box)', () => {
 			const instance = Object.create(ValkeyConnectionString.prototype);
 			const mockLogger = { fatal: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() };
 			Object.assign(instance, { _internalLogger: mockLogger, _auth: 'prd_api_rw_01_aB3dEf9xYz:prd_password_secure@', dbName: 'valkey' });
-			// Socket checks do fs são feitos dentro do assertMemDatabaseURI, logo se tentarmos rodar, o mockLogger.fatal vai estourar throw se mockado no assertMemDatabaseURI.
-			// Para testar APENAS a formação da URI, capturamos o throw do assert caso o /tmp/sock não exista fisicamente, mas avaliamos se o candidateUri foi formado!
-			try {
-				instance.generateUriProd({
-					MEM_DB_PROTOCOL: 'valkey',
-					MEM_DB_INDEX_OR_PATH: '/tmp/valkey.sock',
-					MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
-					MEM_DB_PASSWORD: 'prd_password_secure',
-				});
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			} catch (e) {
-				// ignora erro do assertMemDatabaseURI se o arquivo n existir fisicamente
-			}
-			expect(instance.candidateUri).toBe('valkey://prd_api_rw_01_aB3dEf9xYz:prd_password_secure@/tmp/valkey.sock?maxRetriesPerRequest=3&enableReadyCheck=true');
+
+			const uri = instance.generateUriProd({
+				MEM_DB_PROTOCOL: 'valkey',
+				MEM_DB_INDEX_OR_PATH: '/tmp/valkey.sock',
+				MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+				MEM_DB_PASSWORD: 'prd_password_secure',
+			});
+
+			expect(uri).toBe('valkey://prd_api_rw_01_aB3dEf9xYz:prd_password_secure@/tmp/valkey.sock?maxRetriesPerRequest=3&enableReadyCheck=true');
+			expect(mockLogger.info).toHaveBeenCalled();
 		});
 	});
 
@@ -282,6 +292,25 @@ describe('ValkeyConnectionString + BaseMemUri (Black-Box)', () => {
 			expect(uri).toContain('10.0.0.1:26379');
 		});
 
+		it('deve gerar URI Sentinel com um único host (cobertura da branch isMultiHost = false)', () => {
+			resetEnv({
+				NODE_ENV: 'production',
+				MEM_DB_PROTOCOL: 'valkey+sentinel',
+				MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+				MEM_DB_PASSWORD: 'Senh@Forte123!',
+				MEM_DB_HOST: '10.0.0.1',
+				MEM_DB_PORT: 26379,
+				MEM_DB_INDEX_OR_PATH: 0,
+				MEM_DB_SENTINEL_MASTER_ID: 'mymaster',
+			});
+
+			const instance = new ValkeyConnectionString();
+			const uri = instance.uri;
+
+			expect(uri).toContain('valkey+sentinel://');
+			expect(uri).toContain('10.0.0.1:26379');
+		});
+
 		it('deve incluir credenciais do Sentinel quando configuradas', () => {
 			resetEnv({
 				NODE_ENV: 'production',
@@ -301,6 +330,27 @@ describe('ValkeyConnectionString + BaseMemUri (Black-Box)', () => {
 
 			expect(uri).toContain('sentinelUsername=');
 			expect(uri).toContain('sentinelPassword=');
+		});
+
+		it('deve lidar corretamente com Sentinel tendo apenas Username configurado (sem Password) (cobertura da branch line 185 = false)', () => {
+			resetEnv({
+				NODE_ENV: 'production',
+				MEM_DB_PROTOCOL: 'valkey+sentinel',
+				MEM_DB_USERNAME: 'prd_api_rw_01_aB3dEf9xYz',
+				MEM_DB_PASSWORD: 'Senh@Forte123!',
+				MEM_DB_HOST: '10.0.0.1:26379,10.0.0.2:26379',
+				MEM_DB_PORT: 26379,
+				MEM_DB_INDEX_OR_PATH: 0,
+				MEM_DB_SENTINEL_MASTER_ID: 'mymaster',
+				MEM_DB_SENTINEL_USERNAME: 'prd_sentinel_rw_01_xYzAbC123',
+				// MEM_DB_SENTINEL_PASSWORD omitido
+			});
+
+			const instance = new ValkeyConnectionString();
+			const uri = instance.uri;
+
+			expect(uri).toContain('valkey+sentinel://');
+			expect(uri).not.toContain('sentinelUsername=');
 		});
 
 		it('deve lançar throw para Sentinel sem masterId', () => {
@@ -482,6 +532,20 @@ describe('ValkeyConnectionString + BaseMemUri (Black-Box)', () => {
 			});
 			expect(() => instance.generateUriProd({ MEM_DB_PROTOCOL: 'valkeys', MEM_DB_INDEX_OR_PATH: 0, MEM_DB_HOST: 'localhost', MEM_DB_PORT: 6379 }))
 				.toThrow(/não é valida para banco de dados/);
+		});
+
+		it('deve disparar fatal se generateUriDev for chamado com auth igual a null (cobertura de branch do ternary na linha 214)', () => {
+			const instance = Object.create(ValkeyConnectionString.prototype);
+			Object.assign(instance, { _internalLogger: mockLogger, dbName: 'valkey', _auth: null });
+			expect(() => instance.generateUriDev({ MEM_DB_PROTOCOL: 'valkey', MEM_DB_HOST: 'lh', MEM_DB_PORT: 6379, MEM_DB_INDEX_OR_PATH: 0 }))
+				.toThrow(/Tentativa de maculação ou alteração de credências/);
+		});
+
+		it('deve disparar fatal se generateUriProd for chamado com auth sendo um número (não string) (cobertura de branch do ternary na linha 274)', () => {
+			const instance = Object.create(ValkeyConnectionString.prototype);
+			Object.assign(instance, { _internalLogger: mockLogger, dbName: 'valkey', _auth: 123 });
+			expect(() => instance.generateUriProd({ MEM_DB_PROTOCOL: 'valkeys', MEM_DB_HOST: 'lh', MEM_DB_PORT: 6379, MEM_DB_INDEX_OR_PATH: 0 }))
+				.toThrow(/Tentativa de criar String de conexão para valkey sem credências/);
 		});
 	});
 });
