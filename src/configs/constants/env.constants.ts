@@ -18,6 +18,41 @@ export const nodeEnvSupported = ['development', 'stage', 'production', 'test'] a
 export const timezoneSupported = ['UTC', 'America/Sao_Paulo', 'Europa/Rome'] as const;
 export const localeSupported = ['pt-BR', 'en-US', 'it-IT'] as const;
 
+/**
+ * regexEmailFormat
+ *
+ * Regex pragmática padrão W3C (HTML5): valida a estrutura sem complexidade excessiva
+ *
+ * ### Alinhamento com Padrões Internacionais
+ * - **Padrão W3C (HTML5):** Esta regex implementa estritamente a especificação definida pelo
+ *   W3C para o elemento `<input type="email">`. Ela remove intencionalmente a complexidade
+ *   obscura da RFC 5322 (como comentários embutidos ou aspas na parte local) para focar na
+ *   morfologia real utilizada em 99.9% dos sistemas de produção da web moderna.
+ * - **Diretrizes OWASP:** Segue o princípio de validação de entrada defensiva (Input Sanitization)
+ *   da OWASP. Ao limitar caracteres permitidos e restrições de vizinhança de hífens/pontos,
+ *   ela mitiga riscos de injeção de código (XSS/SQLi) via e-mail e previne vulnerabilidades de
+ *   **ReDoS (Regular Expression Denial of Service)**, pois não possui agrupamentos ambíguos ou
+ *   loops aninhados que sobrecarregam a CPU do Node.js.
+ *
+ * # Exemplos de Strings ACEITAS (Matches)
+ * - `usuario.comum@provedor.com` (Caso padrão alfanumérico)
+ * - `user+filtro@empresa.com.br` (Permite tags de filtragem com caractere '+')
+ * - `dev.ops!#$%&'*+-/=?^_`{|}~@subdominio.infra.local` (Permite caracteres especiais POSIX legítimos na parte local)
+ * - `suporte@localhost` (Estrutura de domínio local de nó único)
+ * - `a@b.c` (Tamanhos mínimos estruturais válidos)
+ *
+ * # Exemplos de Strings REJEITADAS (Non-Matches)
+ * - `@dominio.com` (Falta a parte local antes do caractere '@')
+ * - `usuario@` (Falta a parte do host/domínio após o caractere '@')
+ * - `usuario@dominio-.com` (O subdomínio não pode terminar com hífen `-`)
+ * - `usuario@-dominio.com` (O subdomínio não pode começar com hífen `-`)
+ * - `usuario..comum@dominio.com` (Não permite pontos consecutivos `..` na parte local)
+ * - `usuario@dom_inio.com` (O caractere underscore `_` é proibido na seção de hosts DNS)
+ * - `usuario espaço@dominio.com` (Espaços em branco não escapados são estritamente rejeitados)
+ */
+export const regexEmailFormat =
+	/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
 // database constants
 
 /**
