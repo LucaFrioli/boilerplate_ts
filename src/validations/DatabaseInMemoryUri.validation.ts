@@ -139,23 +139,15 @@ export class DatabaseMemoryUriValidation {
 		// Se o array tiver 2 elementos, significa que o '@' foi encontrado e há credenciais declaradas.
 		if (splitedStringVerifyHasAuth.length === 2) {
 			// Prevenção de anomalias na engine V8 durante splits ou memória corrompida.
-			if (!splitedStringVerifyHasAuth[0] && splitedStringVerifyHasAuth[0] !== '') {
-				this.handlerErrors({
-					erroLevel: 'fatal',
-					method: 'verifyIsSocketUri',
-					error: { internalFLux: 'splitedStringVerifyHasAuth' },
-					message:
-						'Erro de tentativa de alteração de memória durante fluxo de validação de URL',
-				});
-			}
+			const [authPart = '', socketPathPart = ''] = splitedStringVerifyHasAuth;
 
 			// Extrai Username e Password
 			// Exemplo: 'user:pass' -> ['user', 'pass']
-			const authVerification = this.hasValidAuth(splitedStringVerifyHasAuth[0], dbName);
+			const authVerification = this.hasValidAuth(authPart, dbName);
 			if (!authVerification) return false;
 
 			// Se a autenticação estiver nos conformes, repassa a segunda parte da string (o file path) para validação de I/O
-			return this.socketVerification(splitedStringVerifyHasAuth[1]);
+			return this.socketVerification(socketPathPart);
 		}
 
 		// Se o array possui apenas 1 elemento, não houve '@'. Isso indica uma URI sem credenciais.
@@ -188,6 +180,7 @@ export class DatabaseMemoryUriValidation {
 			});
 		}
 
+		let fileStats;
 		try {
 			const normalizedPath: string = resolve(socketPath);
 
@@ -214,21 +207,7 @@ export class DatabaseMemoryUriValidation {
 				return false;
 			}
 
-			const fileStats = statSync(normalizedPath);
-
-			if (!fileStats.isSocket()) {
-				this.handlerErrors({
-					erroLevel: 'fatal',
-					method: 'socketVerification',
-					error: {
-						normalizedPath,
-					},
-					message:
-						'O caminho aponta para um arquivo existente, mas ele NÃO é um Socket Unix (UDS)',
-				});
-			}
-
-			return true;
+			fileStats = statSync(normalizedPath);
 		} catch (e) {
 			this.databaseMemoryUriValidationLogger.error(
 				{
@@ -240,6 +219,21 @@ export class DatabaseMemoryUriValidation {
 			);
 			return false;
 		}
+
+		// Este erro deve ser tratado aqui fora do bloco try/catch para garantir a integriddade e rastreabilidade do sistema
+		if (!fileStats.isSocket()) {
+			this.handlerErrors({
+				erroLevel: 'fatal',
+				method: 'socketVerification',
+				error: {
+					normalizedPath: resolve(socketPath),
+				},
+				message:
+					'O caminho aponta para um arquivo existente, mas ele NÃO é um Socket Unix (UDS)',
+			});
+		}
+
+		return true;
 	}
 
 	/**
@@ -372,7 +366,7 @@ export class DatabaseMemoryUriValidation {
 			const nodes = Object.freeze(cleanHostSection.split(','));
 
 			// Uma malha de alta disponibilidade precisa de pelo menos 1 nó (recomenda-se 3 em produção)
-			if (nodes.length === 0 || nodes[0] === '') return false;
+			if (nodes[0] === '') return false;
 
 			// Regex para validar se cada nó segue estritamente o padrão "host:porta"
 			// Aceita IPs (v4), localhost ou domínios DNS padrão (ex: sentinel-01.infra.local:26379)
@@ -389,33 +383,20 @@ export class DatabaseMemoryUriValidation {
 					return false;
 				}
 
-				if (!match[1] || !match[2]) {
-					this.databaseMemoryUriValidationLogger.error(
-						{
-							method: 'verifyIsMultiHostUri',
-							dbName,
-							hostType: typeof match[1],
-							host: match[1],
-							portType: typeof match[2],
-							port: match[2],
-						},
-						'Para um nó é necessário um host e uma porta como parâmetros definidos',
-					);
-					return false;
-				}
+				// mantenha isso e o if por nowring, apesar de ter certeza da chegada por conta da regex, ainda assim é importante para o procedimento de aditabilidade e não regressão futuramente caso o regex seja alterada, memso que outro caso venha aexistir e seja criada uma branch própria para ele, fica como um guarda a mais
+				const [, rawHost = '', rawPort = ''] = match;
 
-				const host = match[1];
 				// Classifica o host via HostValidator: 'IPv4' | 'IPv6' | 'DNS' | 'invalid'
-				const hostType = HostValidator.validateHostType(host);
+				const hostType = HostValidator.validateHostType(rawHost);
 				// Converte a porta para inteiro para validação numérica de range
-				const port = parseInt(match[2], 10);
+				const port = parseInt(rawPort, 10);
 
-				if (hostType === 'invalid') {
+				if (hostType === 'invalid' || rawHost === '') {
 					this.databaseMemoryUriValidationLogger.error(
 						{
 							method: 'verifyMultiHostUri',
 							hostType,
-							host,
+							rawHost,
 							node,
 						},
 						'Host do node é inválido',
@@ -424,7 +405,7 @@ export class DatabaseMemoryUriValidation {
 				}
 
 				// Validação de segurança de rede: Garante que a porta está no range POSIX válido (1 a 65535)
-				if (port < 1 || port > 65535) {
+				if (port < 1 || port > 65535 || rawPort === '') {
 					this.handlerErrors({
 						erroLevel: 'fatal',
 						method: 'verifyIsMultiHostUri',
@@ -465,21 +446,35 @@ export class DatabaseMemoryUriValidation {
 		dbName: dbsAcepteds,
 		fn: (args: unknown) => boolean = this.isAcceptedProtocol.bind(this),
 	): boolean {
+		// Rejeita imediatamente valores que não sejam strings válidas e preenchidas
 		if (typeof url !== 'string' || url === '') return false;
 
-		if (this.isMultiHostUri(url)) {
+		const protocol = url.split('://')[0];
+
+		// VALIDAÇÃO MULTI-HOST (SENTINEL / CLUSTERS DE ALTA DISPONIBILIDADE)
+		// Verifica se a URI possui características de Multi-Host (presença de vírgula no segmento de hosts)
+		// ou se o protocolo pertence à lista de conexões distribuídas (ex: valkey+sentinel, redis+sentinel).
+		if (
+			this.isMultiHostUri(url) ||
+			(protocol && acceptedMemDatabaseMultiHostProtocols.includes(protocol))
+		) {
 			return this.verifyIsMultiHostUri(url, dbName);
 		}
 
+		//  VALIDAÇÃO DE UNIX DOMAIN SOCKETS (UDS / CONEXÃO LOCAL IPC)
+		// A API nativa URL.canParse() falha com caminhos locais sem porta (ex: valkey://@/var/run/valkey.sock).
+		// Se falhar no parsing nativo, roteamos o fluxo para a validação física de Sockets no sistema de arquivos.
 		if (!URL.canParse(url)) {
 			return this.verifyIsSocketUri(url, dbName);
 		}
 
-		// Chamada intencional, permitindo maior flexibilização da classe manter assim!
+		//  VALIDAÇÃO TCP/IP SINGLE-HOST PADRÃO
+		// Executa um predicado injetável opcional para checagens customizadas (mantendo flexibilidade)
 		if (!fn(url)) {
 			return false;
 		}
 
+		// Executa a validação final definitiva do protocolo TCP contra a whitelist aceita
 		return this.isAcceptedProtocol(url);
 	}
 }
