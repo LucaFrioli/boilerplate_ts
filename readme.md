@@ -148,12 +148,17 @@ src/
 │       ├── idEnv.schema.ts       # Identificadores
 │       └── memDbEnv.schema.ts    # Banco em memória
 │
-├── shared/types/                 # 🏷️ Sistema de Tipos (Branded + Guards)
-│   ├── brand.type.ts             # Brand<T, B> — fundação
-│   ├── identity.type.ts          # AppID, DatabaseID + guards
-│   ├── security.types.ts         # HashedString, DatabaseURI + guards
-│   ├── primitives.type.ts        # StringWithLength<N>
-│   └── static.types.ts           # DeepReadonly<T>
+├── shared/                       # 🏷️ Componentes Compartilhados (Level 1)
+│   ├── types/                    # Sistema de Tipos (Branded + Guards - @Types)
+│   │   ├── brand.type.ts         # Brand<T, B> — fundação
+│   │   ├── identity.type.ts      # AppID, DatabaseID + guards
+│   │   ├── security.types.ts     # HashedString, DatabaseURI + guards
+│   │   ├── pii.types.ts          # CPF/Email Branded Types e Type Guards
+│   │   └── primitives.type.ts    # StringWithLength<N>, NonEmptyString
+│   │
+│   └── masks/                    # 🛡️ Máscaras de Anonimização (@Masks)
+│       ├── index.ts              # Entry point
+│       └── anonimization.masks.ts # maskPII + maskLogDatabaseUsername
 │
 ├── core/identity/                # 🔑 Geração de Identificadores
 │   ├── contracts/                # BaseIdentityGenerator (abstrata)
@@ -197,39 +202,39 @@ src/
 O nível de um módulo é definido pelo **nível mais alto que ele importa + 1** ([ADR 012](./docs/Adrs.md#adr-012-hierarquia-de-dependências-baseada-em-imports-reais-pirâmide-de-níveis-v2)):
 
 ```
-                    ┌─────────────┐
-                    │  server.ts  │  Level 5 — Bootstrap
-                    └──────┬──────┘
-                           │
-                    ┌──────┴──────┐
-                    │ resources/  │  Level 4 — Domínio
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              │            │            │
-        ┌─────┴──────┐ ┌───┴───┐ ┌──────┴──────┐
-        │ identity/  │ │ auth/ │ │  databases/ │  Level 3 — Infraestrutura
-        └─────┬──────┘ └───┬───┘ └──────┬──────┘
-              │            │            │
-              └────────────┼────────────┘
-                           │
-                    ┌──────┴──────┐
-                    │  configs/   │
-                    │   env.ts    │  Level 2 — Agregador de Configuração
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              │            │            │
-        ┌─────┴──────┐ ┌───┴────┐ ┌─────┴──────┐
-        │  schemas/  │ │ types/ │ │validations/│  Level 1 — Peers
-        └─────┬──────┘ └───┬────┘ └─────┬──────┘
-              │            │            │
-              └────────────┼────────────┘
-                           │
-                   ┌───────┴───────┐
-                   │  constants/   │  Level 0 — Folhas Puras
-                   │  logger.ts    │  (zero imports internos)
-                   └───────────────┘
+                           ┌─────────────┐
+                           │  server.ts  │  Level 5 — Bootstrap
+                           └──────┬──────┘
+                                  │
+                           ┌──────┴──────┐
+                           │ resources/  │  Level 4 — Domínio
+                           └──────┬──────┘
+                                  │
+                     ┌────────────┼────────────┐
+                     │            │            │
+               ┌─────┴──────┐ ┌───┴───┐ ┌──────┴──────┐
+               │ identity/  │ │ auth/ │ │  databases/ │  Level 3 — Infraestrutura
+               └─────┬──────┘ └───┬───┘ └──────┬──────┘
+                     │            │            │
+                     └────────────┼────────────┘
+                                  │
+                           ┌──────┴──────┐
+                           │  configs/   │
+                           │   env.ts    │  Level 2 — Agregador de Configuração
+                           └──────┬──────┘
+                                  │
+              ┌────────────┬────────────┬────────────┐
+              │            │            │            │
+        ┌─────┴──────┐ ┌───┴────┐ ┌─────┴────┐ ┌─────┴──────┐
+        │  schemas/  │ │ types/ │ │  masks/  │ │validations/│  Level 1 — Peers
+        └─────┬──────┘ └───┬────┘ └─────┬────┘ └─────┬──────┘
+              │            │            │            │
+              └────────────┴────────────┴────────────┘
+                                  │
+                          ┌───────┴───────┐
+                          │  constants/   │  Level 0 — Folhas Puras
+                          │  logger.ts    │  (zero imports internos)
+                          └───────────────┘
 ```
 
 > **Invariante (ADR 012):** `types/` pode importar de `validations/`, mas `validations/` **nunca** importa de `types/`. Essa regra é enforced por ESLint (`no-restricted-imports`) para prevenir ciclos ESM.

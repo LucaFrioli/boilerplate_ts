@@ -191,3 +191,19 @@ Level 5 — Bootstrap
 - **Zero Efeitos Colaterais no Boot**: Importar um módulo de conexão deixa de disparar validações prematuras de variáveis de ambiente de bancos inativos, garantindo boots resilientes do monolito modular e permitindo a inicialização dinâmica de conexões.
 - **Coesão e Organização Visual**: A distinção semântica limpa reflete as fronteiras conceituais clássicas da engenharia de software (Banco de Dados Primário vs Camada de Cache Volátil).
 - **Facilidade de Mocking e Testes**: Testes de adapters específicos não precisam mais mockar arquivos de URI alheios, pois seus imports dinâmicos ou construtores tardios não são avaliados se não forem explicitamente executados.
+
+---
+
+## ADR 014: Centralização de Sanitização de PII e Isolamento de Dependências de Configuração via Módulo de Máscaras (`@Masks`)
+**Data: 2026-05-23** *Contexto*: A função `maskPII` de Nível 1 residia anteriormente no arquivo `pii.types.ts` e importava a variável global `env` (Nível 2) exclusivamente para exibir o e-mail de suporte (`env.EMAIL_TO_CONTACT`) em tratamentos de erro de strings. Isso violava a Pirâmide de Dependências (ADR 012) pois causava um acoplamento ascendente de Level 1 para Level 2, induzindo dependências circulares ocultas e inicializações prematuras em testes unitários. Além disso, o mascaramento ingênuo de e-mails para caixas de correio de tamanho ultra-curto (ex: `"x@gmail.com"`) causava vazamento do comprimento original do dado ou levava a crashes fatais de `RangeError` no método `.repeat()`.
+
+**Decisão**:
+1. **Isolamento de Máscaras e Validações**: Extrair todas as funções de higienização, mascaramento e anonimização de PII do arquivo de tipos e centralizá-las em um novo módulo de Level 1 dedicado em `src/shared/masks/` com o alias `@Masks` e entrypoint `index.ts`.
+2. **Decoupling de Tipos Folha**: Limpar o `pii.types.ts` removendo o import de `env.ts`. O módulo `@Masks` passa a receber instâncias de logger por parâmetro (`maskPII(rawValue, logger)`) e gerencia a injeção pontual de variáveis de ambiente.
+3. **Blindagem do Algoritmo de Mascaramento**: Adotar salvaguardas de `Math.max(0, length)` para imunizar a aplicação contra crashes de `RangeError` causados por strings curtas. Impor um limite de preenchimento mínimo de 3 asteriscos para e-mails (`repeatCountVerification <= 3 ? 3 : ...`) para impossibilitar ataques de canal lateral baseados no comprimento do dado pessoal.
+
+**Justificativa**:
+- **Segurança Pró-Ativa (Privacy by Design)**: O mascaramento de pii com limite mínimo atende perfeitamente os requisitos mais estritos da GDPR e LGPD sobre pseudonimização, ocultando o metadado de comprimento do dado do usuário.
+- **Aderência Estrita à Pirâmide (ADR 012)**: Preserva a integridade e o isolamento de folhas de tipos no Level 1, prevenindo dependências circulares e permitindo imports de tipos rápidos e sem efeitos colaterais.
+- **Zero Crashes em Runtime**: Garante resiliência absoluta em produção sob inputs malformados ou corrompidos.
+

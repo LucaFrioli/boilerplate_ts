@@ -48,7 +48,8 @@ Level 0 - Folhas Puras (zero imports internos)
 └── configs/logger.ts                        Pino + process.env direto
 
 Level 1 - Consumidores de Level 0 (peers entre si)
-├── shared/types/*                           Brand types, Type Guards
+├── shared/types/*                           Brand types, Type Guards (@Types)
+├── shared/masks/*                           Máscaras de anonimização (@Masks)
 ├── configs/schemas/*.schema.ts              Zod schemas de validação
 └── validations/*                            Classes validadoras
 
@@ -112,14 +113,19 @@ src/
 │   │   └── memDbEnv.schema.ts
 │   └── env.ts                       ← Level 2: agregador + validação
 │
-├── shared/types/                    ← Level 1: sistema de tipos
-│   ├── index.ts                     ← Barrel export (@Types)
-│   ├── brand.type.ts                ← Brand<T, B> genérico
-│   ├── identity.type.ts             ← AppID, NanoIDString
-│   ├── security.types.ts            ← HashedString, DatabaseURI, Type Guards
-│   ├── pii.types.ts                 ← CPF branded type
-│   ├── primitives.type.ts           ← NonEmptyString, PositiveInteger
-│   └── static.types.ts              ← DeepReadonly<T>, utility types
+├── shared/                          ← Level 1: Módulos Compartilhados
+│   ├── types/                       ← Sistema de tipos (Branded + Guards - @Types)
+│   │   ├── index.ts                 ← Barrel export (@Types)
+│   │   ├── brand.type.ts            ← Brand<T, B> genérico
+│   │   ├── identity.type.ts         ← AppID, NanoIDString
+│   │   ├── security.types.ts        ← HashedString, DatabaseURI, Type Guards
+│   │   ├── pii.types.ts             ← CPF branded type
+│   │   ├── primitives.type.ts       ← NonEmptyString, PositiveInteger
+│   │   └── static.types.ts          ← DeepReadonly<T>, utility types
+│   │
+│   └── masks/                       ← Utilitários de anonimização (@Masks)
+│       ├── index.ts                 ← Barrel export (@Masks)
+│       └── anonimization.masks.ts   ← maskPII + maskLogDatabaseUsername
 │
 ├── validations/                     ← Level 1: classes validadoras
 │   ├── Cpf.validations.ts
@@ -164,8 +170,7 @@ src/
 │       ├── User.ts
 │       └── User.validation.ts
 │
-├── utils/                           ← Utilitários transversais
-│   ├── masks.util.ts
+├── utils/                           ← Utilitários transversais (Level 0)
 │   └── dateManager.util.ts
 │
 ├── app.ts                           ← Level 5: Express setup
@@ -206,15 +211,17 @@ O projeto usa **Abstract Classes** como contratos. Para adicionar um novo provid
 ```
 tests/
 ├── helpers/
-│   ├── env/loadTestEnv.ts           ← Carrega .env.test com isolamento
-│   └── mocks/test.fixtures.ts       ← Stubs reutilizáveis
+│   ├── env/loadTestEnv.ts           ← Carrega .env.test com isolamento (@tests)
+│   └── mocks/test.fixtures.ts       ← Stubs e Fixtures reutilizáveis (@Mocks)
 └── unit/                            ← Espelho de src/
     ├── auth/hash/                   ← Testa contratos + providers
     ├── configs/                     ← Testa schemas + env + logger
     ├── core/identity/               ← Testa contratos + providers
     ├── databases/                   ← Testa URI contracts + connections
     ├── resources/user/              ← Testa entidade User
-    ├── shared/types/                ← Testa Type Guards
+    ├── shared/                      ← Testa componentes compartilhados
+    │   ├── types/                   ← Testa Type Guards (@Types)
+    │   └── masks/                   ← Testa utilitários de anonimização (@Masks)
     ├── utils/                       ← Testa utilitários
     └── validations/                 ← Testa classes validadoras
 ```
