@@ -12,7 +12,7 @@ vi.mock('@Configs/env.js', () => ({
 	},
 }));
 
-import { maskLogDatabaseUsername } from '@Utils/masks.util.js';
+import { maskLogDatabaseUsername } from '@Masks';
 
 describe('maskLogDatabaseUsername (Black-Box)', () => {
 
