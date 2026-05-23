@@ -76,6 +76,8 @@
 			"@DbUri/*": ["./src/databases/uri/*"],
 	  		"@DbUri/cache/*": ["./src/databases/uri/cache/*"],
 	  		"@DbUri/persistence/*": ["./src/databases/uri/persistence/*"],
+			"@Masks/*": ["./src/shared/masks/*"],
+	  		"@Masks": ["./src/shared/masks/index.ts"],
 			// Exclusivo do ambiente de teste:
 			"@tests/*": ["./tests/*"],
 			"@Mocks/*": ["./tests/helpers/mocks/*"]

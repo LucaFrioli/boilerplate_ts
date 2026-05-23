@@ -55,7 +55,9 @@
       "@Resources/*": ["./src/resources/*"],
 	  "@DbUri/*": ["./src/databases/uri/*"],
 	  "@DbUri/cache/*": ["./src/databases/uri/cache/*"],
-	  "@DbUri/persistence/*": ["./src/databases/uri/persistence/*"]
+	  "@DbUri/persistence/*": ["./src/databases/uri/persistence/*"],
+	  "@Masks/*": ["./src/shared/masks/*"],
+	  "@Masks": ["./src/shared/masks/index.ts"]
     }
   },
   "include": ["src/**/*", "test/**/*"],
