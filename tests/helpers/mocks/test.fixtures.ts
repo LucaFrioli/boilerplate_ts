@@ -22,7 +22,7 @@
  * obviamente falsos (ex: 123.456.789-09 é inválido por design).
  */
 
-import type { ValidCPF } from "@/shared/types/pii.types.js";
+import type { ValidCPF, ValidEmail } from "@Types/pii.types.js";
 
 /**
  * Payload mínimo válido para criar um User via `User.create()`.
@@ -30,7 +30,7 @@ import type { ValidCPF } from "@/shared/types/pii.types.js";
  */
 export const validCreateUserPayload = {
 	username: 'test_user',
-	email: 'test@example.com',
+	email: 'test@example.com' as ValidEmail,
 	rawPassword: 'Senh@Forte123!',
 	cpf: '74448309088' as ValidCPF,
 } as const;
