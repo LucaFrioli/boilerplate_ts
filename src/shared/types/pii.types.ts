@@ -16,42 +16,23 @@
 import { createChildLogger } from '@Configs/logger.js';
 import type { Brand } from './brand.type.js';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
-import { env } from '@Configs/env.js';
 import { cpf_raw_regexp } from '@Configs/constants/env.constants.js';
+import { EmailValidator } from '@Validations/Email.validations.js';
+import { maskPII } from '@Masks';
+import type pino from 'pino';
 
-const piiLogger = createChildLogger({ fileType: 'type', module: 'PII', service: 'typo' });
-
-export function maskPII(rawValue: unknown): string {
-	try {
-		String(rawValue);
-	} catch (e) {
-		piiLogger.error(
-			{
-				call: 'maskPII',
-				typeofRawValue: typeof rawValue,
-				error: e,
-			},
-			'Foi impossível transformar o valor em string',
-		);
-		throw new Error(
-			'Impossível transicionar valor para string, atenção contate um administradorpor meio dos canias legais: ' +
-				env.EMAIL_TO_CONTACT,
-			{ cause: e },
-		);
-	}
-
-	const onString = String(rawValue);
-
-	return (
-		onString.substring(0, 2) +
-		'*'.repeat(onString.length - 4) +
-		onString.substring(onString.length - 2, onString.length)
-	);
-}
+/**
+ * **A constante deste logger só deve ser importada dentro de testes automatizados**
+ */
+export const piiLogger: pino.Logger = createChildLogger({
+	fileType: 'type',
+	module: 'PII',
+	service: 'typo',
+});
 
 /**
  * ValidCPF - cpf validado matemáticamente e sem máscaras.
- * Para validar corretamente utilezaz a função **`isValidCPF`**
+ * Para validar corretamente utilezar a função **`isValidCPF`**
  */
 export type ValidCPF = Brand<string, 'ValidCPF'>;
 export function isValidCPF(rawValue: unknown): rawValue is ValidCPF {
@@ -60,10 +41,10 @@ export function isValidCPF(rawValue: unknown): rawValue is ValidCPF {
 		piiLogger.error(
 			{
 				function: 'isValidCPF',
-				value: maskPII(rawValue),
+				value: maskPII(rawValue, piiLogger),
 				typeOfRawValue: typeof rawValue,
 			},
-			'Tentativa de validaçãode cpf, com valor diferente de uma string',
+			'Tentativa de validação de cpf, com valor diferente de uma string',
 		);
 		return false;
 	}
@@ -73,7 +54,7 @@ export function isValidCPF(rawValue: unknown): rawValue is ValidCPF {
 			piiLogger.error(
 				{
 					function: 'isValidCPF',
-					value: maskPII(rawValue.replace(/\D/g, '')),
+					value: maskPII(rawValue.replace(/\D/g, ''), piiLogger),
 					typeofValue: typeof rawValue,
 				},
 				maskStringErrorMsg,
@@ -89,12 +70,59 @@ export function isValidCPF(rawValue: unknown): rawValue is ValidCPF {
 				error: e,
 				rawValue:
 					e instanceof Error && e.message === maskStringErrorMsg
-						? maskPII(rawValue.replace(/\D/g, ''))
-						: maskPII(rawValue),
+						? maskPII(rawValue.replace(/\D/g, ''), piiLogger)
+						: maskPII(rawValue, piiLogger),
 			},
 			'Número de CPF Inválido',
 		);
 		return false;
 	}
 	return true;
+}
+
+/**
+ * ValidEmail - permite de além de cobri casos de borda com zod,
+ * cobrir de maneira estrutural dentro do nosso próprio sistema,
+ * tornando o código ligeiramente mais agnóstico
+ *
+ *  - Use **isValidEmail** para verificar se o email é um pii válido e permitido
+ * para transitar dentro da aplicação de forma condicional;
+ *
+ * - Use **assertValidEmail** para fluxos críticos onde automaticamente devemos tipar e
+ * garantir a integridade do dado, e acionar um erro caso não for;
+ */
+export type ValidEmail = Brand<string, 'ValidEmail'>;
+export function isValidEmail(rawValue: unknown): rawValue is ValidEmail {
+	const functionName = 'isValidEmail' as const;
+	if (typeof rawValue !== 'string') {
+		piiLogger.error(
+			{
+				functionName,
+				value: maskPII(rawValue, piiLogger),
+				typeofRawvalue: typeof rawValue,
+				expectedType: 'string',
+			},
+			'Tentativa de validação de um email Diferente de uma string',
+		);
+		return false;
+	}
+
+	return EmailValidator.isValid(rawValue);
+}
+
+export function assertValidEmail(rawValue: unknown): asserts rawValue is ValidEmail {
+	const fnucntionName = 'assertValidEmail' as const;
+	const defaultMessage: string = 'Entrada de email inválida';
+
+	if (isValidEmail(rawValue)) return;
+
+	piiLogger.fatal(
+		{
+			fnucntionName,
+			value: maskPII(rawValue, piiLogger),
+			typeofRawValue: typeof rawValue,
+		},
+		defaultMessage,
+	);
+	throw new Error(defaultMessage);
 }
