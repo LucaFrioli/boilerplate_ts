@@ -109,7 +109,7 @@ partir da arquitetura, mas não a define.
 
 ### Refinamento de Tipos (Branded Types faltantes)
 - [x] Criar `ValidatedCPF = Brand<string, 'ValidatedCPF'>` + guard + atualizar `UserI.cpf`
-- [ ] Criar `ValidatedEmail = Brand<string, 'ValidatedEmail'>` + guard + atualizar `UserI.email`
+- [x] Criar `ValidatedEmail = Brand<string, 'ValidatedEmail'>` + guard + atualizar `UserI.email`
 - [ ] Avaliar `ValidatedUsername` (menor prioridade — apenas por consistência)
 
 ### Refinamento de Utilitários de Tipo
@@ -117,16 +117,17 @@ partir da arquitetura, mas não a define.
 - [ ] Criar assert functions: `assertAppID()`, `assertDatabaseID()`, `assertHashedString()`
 
 ### Testes faltantes
-- [ ] Criar teste unitário dedicado para `CpfValidator`
-- [ ] Criar testes para `isMemDatabaseUri()` (protocolos redis, rediss, valkey, valkeys)
+- [x] Criar teste unitário dedicado para `CpfValidator`
+- [x] Criar testes para `isMemDatabaseUri()` (protocolos redis, rediss, valkey, valkeys)
 - [ ] Avaliar criar `isAnyValidHash()` para cenários de migração de hasher provider
 
 ### Dívidas Técnicas já registradas
 - [x] Guard de inicialização para `MEM_DB_INDEX_OR_PATH` em `memDbEnv.schema.ts`
 - [ ] Ponderar e adicionar logs informativos em métodos de `UserMethods` na entidade `User`
 - [/] Refatorar Hasher, Identity e verificar se refatoração quebrou algo
-- [ ] Adicionar lógica no logger para que nada seja logado no console em ambientes diferentes de dev
-- [ ] Revisar mascaras de dados espalhadas por toda a aplicação e centraliza-las em `masks.util.ts`
+- [ ] Adicionar lógica no logger para que nada seja logado no console em ambientes diferentes de dev e test
+- [ ] ~~Revisar mascaras de dados espalhadas por toda a aplicação e centraliza-las em `masks.util.ts`~~ **_depreciado por conta da decisão arquitetural de criar uma pasta compartilhada de máscaras_**
+- [/] Revisar máscaras de dados espalhadas por toda a aplicação e popular a pasta de máscaras + testes automatizados
 
 
 ### Correção de Typos em nomes de arquivo/tipo
@@ -375,7 +376,7 @@ partir da arquitetura, mas não a define.
 | **7** | Polish + entrega V1.0.0 | Todas | 🟢 Baixa |
 
 ```
-                  ┌──→ Fase 3 (Rotas HTTP) ──┐
+                  ┌──→ Fase 3 (Rotas HTTP) ───┐
 Fase 1 ───────────┤                           ├──→ Fase 4 (Auth) ──┐
                   ├──→ Fase 2 (Valkey) ───────┘                     │
                   │                                                 ├──→ Fase 6 (Profile) ──→ Fase 7 (v1.0.0)
