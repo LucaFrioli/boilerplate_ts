@@ -1,4 +1,4 @@
-import type { DatabaseID, AppID, HashedString, ValidCPF } from '@Types';
+import type { DatabaseID, AppID, HashedString, ValidCPF, ValidEmail } from '@Types';
 
 /**
  * DTO de Domínio e Persistência.
@@ -10,7 +10,7 @@ export interface UserI {
 	readonly publicId: AppID;
 	active: boolean;
 	username: string;
-	email: string;
+	email: ValidEmail;
 	passwordHash: HashedString;
 	cpf: ValidCPF;
 
@@ -34,7 +34,7 @@ export interface UserI {
 export interface PublicUserI {
 	readonly id: AppID;
 	username: string;
-	email: string;
+	email: ValidEmail;
 	active: boolean;
 	hasBillingProfile: boolean;
 }
@@ -46,7 +46,7 @@ export interface PublicUserI {
  */
 export interface CreateUserExpectedData {
 	username: string;
-	email: string;
+	email: ValidEmail;
 	cpf: ValidCPF;
 	rawPassword: string;
 }

@@ -11,7 +11,7 @@ import { User } from '@Resources/User/User.js';
 import { validCreateUserPayload } from '@Mocks/test.fixtures.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
 import baseUserSchema from '@Resources/User/User.validation.js';
-import type { AppID, DatabaseID, HashedString, ValidCPF } from '@Types';
+import type { AppID, DatabaseID, HashedString, ValidCPF, ValidEmail } from '@Types';
 import type { UserI } from '@Resources/User/User.interface.js';
 
 // Mocks de infraestrutura para isolar a Entidade Parcialmente
@@ -77,7 +77,8 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 				debug: vi.fn(),
 				warn: vi.fn(),
 				fatal: vi.fn(),
-				error: vi.fn()
+				error: vi.fn(),
+				child: vi.fn().mockReturnValue({ error: vi.fn() })
 			};
 
 			mockReflector.handlingError = vi.fn().mockImplementation((severity: string, data: unknown, msg: string) => {
@@ -101,7 +102,7 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 					username: 'mocked',
 					id: 'id' as DatabaseID,
 					active: false,
-					email: '',
+					email: '' as ValidEmail,
 					passwordHash: '' as HashedString,
 					cpf: '' as ValidCPF,
 					stripeId: null,

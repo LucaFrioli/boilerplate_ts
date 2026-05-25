@@ -11,6 +11,7 @@ import z from 'zod';
 import { passwordStrength } from '@Validations/Password.validations.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
 import { DBid, Id } from '@Id/IdentityFactory.identity.js';
+import { maskPII } from '@Masks';
 
 /**
  * Contrato de todas as ações possíveis que um Usuário pode sofrer
@@ -170,7 +171,10 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 				'warn',
 				{
 					typeofEmail: typeof newEmail,
-					rawValue: newEmail,
+					rawValue: maskPII(newEmail, this.entityLogger.child({
+						specificEntity: this.entityName,
+						classCalledMethodFrom: 'changeEmail'
+					})),
 					errosCatched: z.treeifyError(validateEmail.error),
 				},
 				'Tentativa de trocar email com valor inválido',
