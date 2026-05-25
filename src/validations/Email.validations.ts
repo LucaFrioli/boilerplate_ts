@@ -3,16 +3,26 @@ import { HostValidator } from './Host.validations.js';
 import { regexEmailFormat } from '@Configs/constants/env.constants.js';
 import z from 'zod';
 
+type EmailValidationPolicy = 'PUBLIC_INTERNET' | 'INTERNAL_VPC'
+
 export class EmailValidator {
 	private static emailValidationLogger = createChildLogger({
 		fileType: 'validation',
 		service: 'valuation',
 		module: 'Email.validations',
 	});
+
 	// Regex pragmática padrão W3C (HTML5): valida a estrutura sem complexidade excessiva
 	private static emailFormatRegex = regexEmailFormat;
 
-	public static isValid(value: unknown, usePackageValidation: boolean = true): value is string {
+	/**
+	 * **isValid**
+	 *
+	 * @param value - unknow entry, pois não sabemos a entrada externa para a validação
+	 * @param usePackageValidation [='PUBLIC_INTERNET' default] - deve ser uma das strings literais seguintes **'PUBLIC_INTERNET'** ou **'INTERNAL_VPC'**
+	 * @returns `boolean` - define value is a `string`
+	*/
+	public static isValid(value: unknown, usePackageValidation: EmailValidationPolicy = 'PUBLIC_INTERNET'): value is string {
 		const method = 'isValid' as const;
 		const stringLengthExpected = 254 as const;
 
@@ -60,17 +70,17 @@ export class EmailValidator {
 			return false;
 		}
 
-		// Isolação do domínio do e-mail e garantia de que ele seja um host DNS válido
-		const [user = '', domain = ''] = value.split('@');
-
-		if (!domain || !user) return false;
+		// O prefixo '_' avisa ao compilador que a variável é intencionalmente ignorada.
+		// Isolação do domínio do e-mail e garantia de que ele seja um host DNS válido, primeiro elemento é ignorado pois sempre será um username
+		const [_ignoredUserPart, domain = ''] = value.split('@');
 
 		// Reaproveito do HostValidator
 		const domainType = HostValidator.validateHostType(domain);
 
 		// Em produção, e-mails corporativos/públicos legítimos devem possuir domínio DNS válido
 		if (domainType !== 'DNS') return false;
-		if (usePackageValidation) {
+
+		if (usePackageValidation === 'PUBLIC_INTERNET') {
 			if (!this.externalValidation(value)) return false;
 		}
 
