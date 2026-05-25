@@ -3,7 +3,7 @@ import { HostValidator } from './Host.validations.js';
 import { regexEmailFormat } from '@Configs/constants/env.constants.js';
 import z from 'zod';
 
-type EmailValidationPolicy = 'PUBLIC_INTERNET' | 'INTERNAL_VPC'
+type EmailValidationPolicy = 'PUBLIC_INTERNET' | 'INTERNAL_VPC';
 
 export class EmailValidator {
 	private static emailValidationLogger = createChildLogger({
@@ -21,8 +21,11 @@ export class EmailValidator {
 	 * @param value - unknow entry, pois não sabemos a entrada externa para a validação
 	 * @param usePackageValidation [='PUBLIC_INTERNET' default] - deve ser uma das strings literais seguintes **'PUBLIC_INTERNET'** ou **'INTERNAL_VPC'**
 	 * @returns `boolean` - define value is a `string`
-	*/
-	public static isValid(value: unknown, usePackageValidation: EmailValidationPolicy = 'PUBLIC_INTERNET'): value is string {
+	 */
+	public static isValid(
+		value: unknown,
+		usePackageValidation: EmailValidationPolicy = 'PUBLIC_INTERNET',
+	): value is string {
 		const method = 'isValid' as const;
 		const stringLengthExpected = 254 as const;
 

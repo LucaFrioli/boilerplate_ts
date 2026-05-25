@@ -1,1 +1,1 @@
-export * from './anonimization.masks.js'
+export * from './anonimization.masks.js';

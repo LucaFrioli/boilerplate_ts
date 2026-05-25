@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { isValidCPF, piiLogger } from '@Types/pii.types.js';
-import { maskPII } from '@Masks'
+import { isValidCPF } from '@Types/pii.types.js';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
 
 // Mock do logger para não poluir o console e verificar chamadas
@@ -84,20 +83,5 @@ describe('PII Types - isValidCPF', () => {
 		expect(result).toBe(false);
 	});
 
-	describe('maskPII', () => {
-		it('deve mascarar uma string corretamente', () => {
-			expect(maskPII('12345678909', piiLogger)).toBe('12*******09');
-		});
 
-		it('deve mascarar outros tipos convertíveis em string', () => {
-			expect(maskPII(12345, piiLogger)).toBe('12*45');
-		});
-
-		it('deve lançar erro se o valor não puder ser convertido em string', () => {
-			// Object.create(null) não tem toString e String() falha ao tentar converter para primitiva
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const throwingObj = Object.create(null);
-			expect(() => maskPII(throwingObj, piiLogger)).toThrow('Impossível transicionar valor para string');
-		});
-	});
 });

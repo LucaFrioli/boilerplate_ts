@@ -8,7 +8,6 @@ import { env } from '@Configs/env.js';
 import { HostValidator } from '@/validations/Host.validations.js';
 import type pino from 'pino';
 
-
 /**
  * **maskLogDatabaseUsername**
  *
@@ -28,7 +27,6 @@ export function maskLogDatabaseUsername(unmaskedDatabaseUsername: DatabaseUserna
 	return `${context}_************`;
 }
 
-
 /**
  * **masPII**
  *
@@ -37,7 +35,7 @@ export function maskLogDatabaseUsername(unmaskedDatabaseUsername: DatabaseUserna
  * informações pessoais dentro dos loggers, esta mascara permite seguir os conformes de
  * anonimização declarados pela GDPR e LGPD, bem como uma gama grande de leis nacionais
  * ou de blocos economicos sobre dados e informações pessoais de clientes.
-*/
+ */
 export function maskPII(rawValue: unknown, logger: pino.Logger): string {
 	try {
 		String(rawValue);
