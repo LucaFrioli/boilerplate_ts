@@ -7,6 +7,7 @@ import { passwordStrength } from '@Validations/Password.validations.js';
 import baseUserSchema, {
 	usernameValidationSchema,
 	cpfValidationSchema,
+	emailValidationSchema,
 } from '@Resources/User/User.validation.js';
 import { validUuidV7 } from '@Mocks/test.fixtures.js';
 import z from 'zod';
@@ -90,6 +91,21 @@ describe('User Validations', () => {
 
 		it('deve rejeitar CPF com formato de string inválido (não 11 dígitos após limpeza)', () => {
 			expect(cpfValidationSchema.safeParse('123.456.78').success).toBe(false);
+		});
+	});
+
+	describe('emailValidationSchema', () => {
+		it('deve aceitar um e-mail válido', () => {
+			expect(emailValidationSchema.safeParse('teste@provedor.com').success).toBe(true);
+		});
+
+		it('deve rejeitar e-mail que não seja string', () => {
+			expect(emailValidationSchema.safeParse(123456).success).toBe(false);
+			expect(emailValidationSchema.safeParse(null).success).toBe(false);
+		});
+
+		it('deve rejeitar e-mail com formato inválido', () => {
+			expect(emailValidationSchema.safeParse('email-sem-arroba').success).toBe(false);
 		});
 	});
 

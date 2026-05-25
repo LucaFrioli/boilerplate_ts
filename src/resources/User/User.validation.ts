@@ -6,10 +6,12 @@ import {
 	type AppID,
 	type HashedString,
 	type ValidCPF,
+	type ValidEmail,
 	isDatabaseID,
 	isAppID,
 	isHashedString,
 	isValidCPF,
+	isValidEmail
 } from '@Types';
 
 /**
@@ -39,10 +41,30 @@ const dbIdSchema = z.custom<DatabaseID>((val) => {
 });
 
 /**
- * Validador Estrutural de Email.
- * Usa validação RFC oficial do Zod.
+ * Validador de Identificadores publicos ao banco de dados
+ * Usa os safeTypesGuards já inferidos diretamente nos tipos
  */
-export const emailValidationSchema = z.email().nonempty();
+const dbPublicIdSchema = z.custom<AppID>((val) => {
+	if (typeof val !== 'string') return false;
+	val = val.trim();
+	return isAppID(val);
+})
+
+const passwordHashSchema = z.custom<HashedString>((val) => {
+	if (typeof val !== 'string') return false;
+	val = val.trim();
+	return isHashedString(val);
+})
+
+/**
+ * Validador Estrutural de Email.
+ * Usa validação RFC oficial do Zod + validação sistêmica.
+ */
+export const emailValidationSchema = z.custom<ValidEmail>((val) => {
+	if (typeof val !== 'string') return false;
+	val = val.trim();
+	return isValidEmail(val);
+});
 
 /**
  * Validador de Cadastro de Pessoas Físicas (Brasil).
@@ -64,19 +86,11 @@ export const cpfValidationSchema = z.custom<ValidCPF>((val) => {
  */
 const baseUserSchema: z.ZodType<UserI> = z.object({
 	id: dbIdSchema,
-	publicId: z.custom<AppID>((val) => {
-		if (typeof val !== 'string') return false;
-		val = val.trim();
-		return isAppID(val);
-	}),
+	publicId: dbPublicIdSchema,
 	active: z.boolean(),
 	username: usernameValidationSchema,
 	email: emailValidationSchema,
-	passwordHash: z.custom<HashedString>((val) => {
-		if (typeof val !== 'string') return false;
-		val = val.trim();
-		return isHashedString(val);
-	}),
+	passwordHash: passwordHashSchema,
 	cpf: cpfValidationSchema,
 
 	profileId: dbIdSchema,
