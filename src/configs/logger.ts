@@ -22,7 +22,14 @@ export type FileType =
 	| 'core'
 	| 'type';
 
-export type ServiceType = 'database' | 'hasher' | 'util' | 'valuation' | 'generation' | 'typo';
+export type ServiceType =
+	| 'database'
+	| 'hasher'
+	| 'util'
+	| 'valuation'
+	| 'generation'
+	| 'typo'
+	| 'pii';
 
 export type LoggerParams = {
 	module: string;
