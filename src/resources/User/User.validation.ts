@@ -11,7 +11,7 @@ import {
 	isAppID,
 	isHashedString,
 	isValidCPF,
-	isValidEmail
+	isValidEmail,
 } from '@Types';
 
 /**
@@ -48,13 +48,13 @@ const dbPublicIdSchema = z.custom<AppID>((val) => {
 	if (typeof val !== 'string') return false;
 	val = val.trim();
 	return isAppID(val);
-})
+});
 
 const passwordHashSchema = z.custom<HashedString>((val) => {
 	if (typeof val !== 'string') return false;
 	val = val.trim();
 	return isHashedString(val);
-})
+});
 
 /**
  * Validador Estrutural de Email.

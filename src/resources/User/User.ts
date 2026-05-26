@@ -171,10 +171,13 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 				'warn',
 				{
 					typeofEmail: typeof newEmail,
-					rawValue: maskPII(newEmail, this.entityLogger.child({
-						specificEntity: this.entityName,
-						classCalledMethodFrom: 'changeEmail'
-					})),
+					rawValue: maskPII(
+						newEmail,
+						this.entityLogger.child({
+							specificEntity: this.entityName,
+							classCalledMethodFrom: 'changeEmail',
+						}),
+					),
 					errosCatched: z.treeifyError(validateEmail.error),
 				},
 				'Tentativa de trocar email com valor inválido',
