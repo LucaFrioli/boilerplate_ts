@@ -233,7 +233,10 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 				'warn',
 				{
 					typeofNewUseername: typeof newUsername,
-					rawValue: newUsername,
+					rawValue: maskPII(newUsername, this.entityLogger.child({
+						specificEntity: this.entityName,
+						classCalledMethodFrom: 'changeUsername',
+					})),
 					errorsCatched: z.treeifyError(validatedUsername.error),
 				},
 				'tentativa de trocar username por um username inválido',
