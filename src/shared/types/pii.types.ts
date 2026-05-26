@@ -13,11 +13,12 @@
  * - Web3 Identifiers (Wallet Addresses, ENS Names, DIDs)
  */
 
-import { createChildLogger } from '@Configs/logger.js';
 import type { Brand } from './brand.type.js';
-import { CpfValidator } from '@Validations/Cpf.validations.js';
+import { createChildLogger } from '@Configs/logger.js';
 import { cpf_raw_regexp } from '@Configs/constants/env.constants.js';
+import { CpfValidator } from '@Validations/Cpf.validations.js';
 import { EmailValidator } from '@Validations/Email.validations.js';
+import { UsernameValidator } from '@Validations/UsernamePII.validations.js';
 import { maskPII } from '@Masks';
 import type pino from 'pino';
 
@@ -124,5 +125,44 @@ export function assertValidEmail(rawValue: unknown): asserts rawValue is ValidEm
 		},
 		defaultMessage,
 	);
+	throw new Error(defaultMessage);
+}
+
+
+export type ValidUsernamePii = Brand<string, 'ValidUsernamePii'>;
+export function isValidUsernamePii(rawValue: unknown): rawValue is ValidUsernamePii {
+	const functionName = 'isValidUsernamePii';
+	const defaultMessage = 'Entrada de Username Inválida';
+
+	if (typeof rawValue !== 'string') return false;
+
+	if (!UsernameValidator.isValid(rawValue)) {
+		piiLogger.warn({
+			functionName,
+			errors: UsernameValidator.getFormalRules(),
+			valueEntry: maskPII(rawValue, piiLogger),
+		}, defaultMessage);
+		return false;
+	}
+
+	return true;
+}
+
+export function assertValidUsernamePii(rawValue: unknown): asserts rawValue is ValidUsernamePii {
+	const functioName = 'assertValidUsernamePii';
+	const defaultMessage = 'Username inválido por gentileza confira sua morfologia';
+	if (isValidUsernamePii(rawValue)) return;
+
+	piiLogger.fatal(
+		{
+			functioName,
+			typeofRawVAlue: typeof rawValue,
+			typeofExpected: 'string',
+			validationRules: UsernameValidator.getFormalRules(),
+			value: maskPII(rawValue, piiLogger)
+		},
+		defaultMessage
+	);
+
 	throw new Error(defaultMessage);
 }
