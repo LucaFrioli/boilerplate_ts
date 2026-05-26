@@ -1,4 +1,4 @@
-import type { DatabaseID, AppID, HashedString, ValidCPF, ValidEmail } from '@Types';
+import type { DatabaseID, AppID, HashedString, ValidCPF, ValidEmail, ValidUsernamePii } from '@Types';
 
 /**
  * DTO de Domínio e Persistência.
@@ -9,7 +9,7 @@ export interface UserI {
 	readonly id: DatabaseID;
 	readonly publicId: AppID;
 	active: boolean;
-	username: string;
+	username: ValidUsernamePii;
 	email: ValidEmail;
 	passwordHash: HashedString;
 	cpf: ValidCPF;
@@ -33,7 +33,7 @@ export interface UserI {
  */
 export interface PublicUserI {
 	readonly id: AppID;
-	username: string;
+	username: ValidUsernamePii;
 	email: ValidEmail;
 	active: boolean;
 	hasBillingProfile: boolean;
@@ -45,7 +45,7 @@ export interface PublicUserI {
  * Exige Senha em texto puro, pois a Fábrica fará a criptografia de forma isolada.
  */
 export interface CreateUserExpectedData {
-	username: string;
+	username: ValidUsernamePii;
 	email: ValidEmail;
 	cpf: ValidCPF;
 	rawPassword: string;

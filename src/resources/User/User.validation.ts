@@ -7,26 +7,23 @@ import {
 	type HashedString,
 	type ValidCPF,
 	type ValidEmail,
+	type ValidUsernamePii,
 	isDatabaseID,
 	isAppID,
 	isHashedString,
 	isValidCPF,
 	isValidEmail,
+	isValidUsernamePii,
 } from '@Types';
 
 /**
  * Validador de Nomes de Usuários Públicos.
  * Exige caixa baixa e caracteres seguros em URL/Regex (Regras de Segurança Básicas).
  */
-export const usernameValidationSchema = z
-	.string()
-	.trim()
-	.lowercase({ error: 'Utilize apenas letras minúsculas' })
-	.min(3, { error: `Usuário deve ter no mínimo 3 caracteres` })
-	.max(30, { error: 'Usuário não pode execeder 30 caracteres' })
-	.refine((val) => /^[a-z0-9_.-]+$/.test(val), {
-		error: ' Nomes de usuários podem conter apenas letras, números, e _ - .',
-	});
+export const usernameValidationSchema = z.custom<ValidUsernamePii>((val) => {
+	if (typeof val !== 'string') return false;
+	return isValidUsernamePii(val.trim());
+});
 
 /**
  * Validador de Identificadores internos ao banco de dados
