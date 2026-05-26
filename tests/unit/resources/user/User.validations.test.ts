@@ -68,10 +68,24 @@ describe('User Validations', () => {
 			expect(result.success).toBe(true);
 		});
 
+		it('deve rejeitar usernames que não seja string', ()=>{
+			expect(usernameValidationSchema.safeParse(123456789).success).toBe(false);
+			expect(usernameValidationSchema.safeParse(undefined).success).toBe(false);
+			expect(usernameValidationSchema.safeParse(null).success).toBe(false);
+		});
+
 		it('deve rejeitar usernames com caracteres especiais @', () => {
 			const result = usernameValidationSchema.safeParse('luca@frioli');
 			expect(result.success).toBe(false);
 		});
+
+		it('deve rejeitar usernames iniciando ou terminando com caracteres especiais válidos ou em sequência', ()=>{
+			expect(usernameValidationSchema.safeParse('_luca.frioli').success).toBe(false);
+			expect(usernameValidationSchema.safeParse('luca_frioli_').success).toBe(false);
+			expect(usernameValidationSchema.safeParse('_luca_frioli_').success).toBe(false);
+			expect(usernameValidationSchema.safeParse('luca._frioli').success).toBe(false);
+			expect(usernameValidationSchema.safeParse('luca..frioli').success).toBe(false);
+		})
 	});
 
 	describe('cpfValidationSchema', () => {
