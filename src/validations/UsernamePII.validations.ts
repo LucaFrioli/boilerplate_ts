@@ -74,8 +74,8 @@ export class UsernameValidator {
 			allowedSpecialCharacters: this.rules.enabledSpecialChars,
 			limits: {
 				min: this.rules.minLength,
-				max: this.rules.maxLength
-			}
+				max: this.rules.maxLength,
+			},
 		};
 	}
 }

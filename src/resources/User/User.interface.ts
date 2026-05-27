@@ -1,4 +1,11 @@
-import type { DatabaseID, AppID, HashedString, ValidCPF, ValidEmail, ValidUsernamePii } from '@Types';
+import type {
+	DatabaseID,
+	AppID,
+	HashedString,
+	ValidCPF,
+	ValidEmail,
+	ValidUsernamePii,
+} from '@Types';
 
 /**
  * DTO de Domínio e Persistência.

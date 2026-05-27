@@ -262,11 +262,14 @@ export function isValidUsernamePii(rawValue: unknown): rawValue is ValidUsername
 	if (typeof rawValue !== 'string') return false;
 
 	if (!UsernameValidator.isValid(rawValue)) {
-		piiLogger.warn({
-			functionName,
-			errors: UsernameValidator.getFormalRules(),
-			valueEntry: maskPII(rawValue, piiLogger),
-		}, defaultMessage);
+		piiLogger.warn(
+			{
+				functionName,
+				errors: UsernameValidator.getFormalRules(),
+				valueEntry: maskPII(rawValue, piiLogger),
+			},
+			defaultMessage,
+		);
 		return false;
 	}
 
@@ -303,9 +306,9 @@ export function assertValidUsernamePii(rawValue: unknown): asserts rawValue is V
 			typeofRawVAlue: typeof rawValue,
 			typeofExpected: 'string',
 			validationRules: UsernameValidator.getFormalRules(),
-			value: maskPII(rawValue, piiLogger)
+			value: maskPII(rawValue, piiLogger),
 		},
-		defaultMessage
+		defaultMessage,
 	);
 
 	throw new Error(defaultMessage);
