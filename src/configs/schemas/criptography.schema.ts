@@ -1,9 +1,9 @@
 import z from 'zod';
 import {
-	supportedCriptograpyEngineModes,
-	supportedCriptographySimetricAlgs,
-	supportedCriptographyAsimetricAlgs,
-	supportedDigestCriptographyAlgs,
+	supportedCryptographyEngineModes,
+	supportedCryptographySimetricAlgs,
+	supportedCryptographyAsimetricAlgs,
+	supportedDigestCryptographyAlgs,
 	supportedCipherAlgs,
 	regexValidationToHexadecimalKeyMinimalRequire,
 	regexValidationToBase64KeyMinimalRequire,
@@ -27,25 +27,25 @@ const secureCryptographicKeySchema = z.union([hexKeySchema, base64KeySchema], {
 });
 
 export const criptographyEnvValidationSchema = z.object({
-	CRIPTOGRAPHY_ENGINE_MODE: z.enum(supportedCriptograpyEngineModes, {
-		error: `Defina uma engine de criptografia válida contida dentro desta lista: ${supportedCriptograpyEngineModes.join(', ')}`,
+	CRIPTOGRAPHY_ENGINE_MODE: z.enum(supportedCryptographyEngineModes, {
+		error: `Defina uma engine de criptografia válida contida dentro desta lista: ${supportedCryptographyEngineModes.join(', ')}`,
 	}),
 
-	CRIPTOGRAPHY_PASSWORDS_ALGORITHM: z.enum(supportedCriptographySimetricAlgs, {
-		error: `O algoritmo de senhas deve estar dentro da lista de um dos seguintes suportados: ${supportedCriptographySimetricAlgs.join(', ')}`,
+	CRIPTOGRAPHY_PASSWORDS_ALGORITHM: z.enum(supportedCryptographySimetricAlgs, {
+		error: `O algoritmo de senhas deve estar dentro da lista de um dos seguintes suportados: ${supportedCryptographySimetricAlgs.join(', ')}`,
 	}),
 
-	CRIPTOGRAPHY_PASSWORDS_DIGESTOR: z.enum(supportedDigestCriptographyAlgs, {
-		error: `O algoritmo digestor de senhas deve estar dentro da lista de um dos seguintes suportados: ${supportedDigestCriptographyAlgs.join(', ')}`,
+	CRIPTOGRAPHY_PASSWORDS_DIGESTOR: z.enum(supportedDigestCryptographyAlgs, {
+		error: `O algoritmo digestor de senhas deve estar dentro da lista de um dos seguintes suportados: ${supportedDigestCryptographyAlgs.join(', ')}`,
 	}),
 
-	CRIPTOGRAPHY_SIGNATURE_ALGORITHM: z.enum(supportedCriptographyAsimetricAlgs, {
-		error: `O algoritmo de assinatura deve estar dentro da lista de um dos seguintes suportados: ${supportedCriptographyAsimetricAlgs.join(', ')}`,
+	CRIPTOGRAPHY_SIGNATURE_ALGORITHM: z.enum(supportedCryptographyAsimetricAlgs, {
+		error: `O algoritmo de assinatura deve estar dentro da lista de um dos seguintes suportados: ${supportedCryptographyAsimetricAlgs.join(', ')}`,
 	}),
 
 	CRIPTOGRAPHY_SINGATURE_DIGESTOR: z
-		.enum(supportedDigestCriptographyAlgs, {
-			error: `O algoritmo digestor de assinaturas deve estar dentro da lista de um dos seguintes suportados: ${supportedDigestCriptographyAlgs.join(', ')}`,
+		.enum(supportedDigestCryptographyAlgs, {
+			error: `O algoritmo digestor de assinaturas deve estar dentro da lista de um dos seguintes suportados: ${supportedDigestCryptographyAlgs.join(', ')}`,
 		})
 		.optional(),
 
