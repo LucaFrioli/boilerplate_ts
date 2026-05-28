@@ -159,7 +159,7 @@ export default defineConfig({
 			 * Quais arquivos entram no cálculo de cobertura.
 			 * Inclui todo o código-fonte em `src/`.
 			 */
-			include: ['src/**/*.ts'],
+			include: ['src/**/*.ts', 'scripts/**/*.ts'],
 
 			/**
 			 * Arquivos excluídos da cobertura.
