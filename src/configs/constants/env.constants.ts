@@ -65,6 +65,30 @@ export const acceptedMemDatabaseProtocols: readonly string[] = [
 export const dbslist = [...enableMemDatabaseConnections, ...enabledDatabaseConections] as const;
 export type dbsAcepteds = (typeof dbslist)[number] | 'envBoot';
 
+// Cripto constants
+
+export const supportedCriptographySimetricAlgs = ['hmac', 'hkdf'] as const;
+export const supportedCriptographyAsimetricAlgs = ['ed25519', 'ed448'] as const;
+export const supportedCriptograpyEngineModes = ['sync_node', 'async_web_api'] as const
+export const supportedCipherAlgs = ['aes-256-gcm', 'chacha20-poly1305'] as const;
+export const supportedDigestCriptographyAlgs = ['sha256', 'sha384', 'sha512'] as const;
+
+/** **regexValidationToHexKeyMinimalRequire**
+ * Fica recomendado o uso do comando `head -c 36 /dev/urandom | od -An -vtx1 | tr -d ' \n'` ou `openssl rand -hex 36`
+ * dentro de um temrinal linux para que possa passar uma string entrópica segura para o peppper
+ * do sistema em hexadecimal, ou comando simmilar caos utilize outra plataforma
+*/
+export const regexValidationToHexadecimalKeyMinimalRequire = /^(?=.{64,}$)([0-9a-fA-F]{64,})$/;
+
+/** **regexValidationToBase64KeyMinimalRequire**
+ *
+ * Fica recomendado gerar uma chave de no mínimo 43 caracteres base 64, ou maior
+ * pode-se utilizar o seguinte sccript para gerar
+ * de forma automática `head -c 36 /dev/urandom | base64` ou `openssl rand -base64 36`
+ *
+*/
+export const regexValidationToBase64KeyMinimalRequire = /^(?=.{43,}$)([a-zA-Z0-9+/]{43,})=*$/;
+
 // hasher constants
 export const supportedHashProviders = ['argon2', 'bcrypt'] as const;
 
