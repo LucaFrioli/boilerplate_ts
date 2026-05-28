@@ -73,6 +73,8 @@ export const supportedCryptographyEngineModes = ['sync_node', 'async_web_api'] a
 export const supportedCipherAlgs = ['aes-256-gcm', 'chacha20-poly1305'] as const;
 export const supportedDigestCryptographyAlgs = ['sha256', 'sha384', 'sha512'] as const;
 
+export type AcceptedKeysCryptoAlphabets = 'hex' | 'base32' | 'base58' | 'base64';
+
 /** **regexValidationToHexKeyMinimalRequire**
  * Fica recomendado o uso do comando `head -c 36 /dev/urandom | od -An -vtx1 | tr -d ' \n'` ou `openssl rand -hex 36`
  * dentro de um temrinal linux para que possa passar uma string entrópica segura para o peppper
@@ -95,11 +97,11 @@ export const regexValidationToBase64KeyMinimalRequire = /^(?=.{43,}$)([a-zA-Z0-9
  * Fica recomendado gerar uma chave com no mínimo 52 caracteres ou maior com base 32.
  *
  * O Base32 utiliza apenas letras em uppercase e ranges numéricos de 2 até 7, caracteres como `1`, `8`, `9` e `0`são descartados.
- * 
+ *
  * Rcomenda-se o uso dos seguintes sccripts para gerar uma string no padrão base32:
  * - `head -c 36 /dev/urandom | base32 | tr -d '\n'`
  * - `openssl rand 36 | base32 | tr -d '\n'`
-*/
+ */
 export const regexValidationToBase32KeyMinimalRequire = /^(?=.{52,}$)([A-Z2-7]{52,})=*$/;
 
 /** **regexValidationToBase58KeyMinimalRequire**
