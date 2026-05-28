@@ -1,0 +1,15 @@
+// tsconfig.scripts.json
+{
+  /**
+   * tsconfig.scripts.json - Configuração exclusiva para scripts de apoio CLI.
+   * Estende as configurações e os path aliases da aplicação para reuso total.
+   */
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true, // Os scripts rodam em memória via tsx, não geramos arquivos compilados
+    "rootDir": ".",  // Alarga para permitir imports da src/
+    "types": ["node"]
+  },
+  "include": ["scripts/**/*"]
+}
