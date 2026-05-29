@@ -5,26 +5,13 @@ import {
 	supportedCryptographyAsimetricAlgs,
 	supportedDigestCryptographyAlgs,
 	supportedCipherAlgs,
-	regexValidationToHexadecimalKeyMinimalRequire,
-	regexValidationToBase64KeyMinimalRequire,
 } from '../constants/env.constants.js';
-
-// 1. Schemas de chaves seguras utilizando 'error' compatível com o seu workspace
-const hexKeySchema = z.string().regex(regexValidationToHexadecimalKeyMinimalRequire, {
-	error: 'A chave deve ser uma string de pelo menos 64 caracteres hexadecimais (32 bytes).',
-});
-
-const base64KeySchema = z.string().regex(regexValidationToBase64KeyMinimalRequire, {
-	error: 'A chave deve ser uma string Base64 válida de no mínimo 43 caracteres (32 bytes).',
-});
+import { CryptographyKeysValidation } from '@Validations/CriptographyKeys.validations.js';
 
 // Reutilizável: União segura Hex/Base64 de alta entropia
-const secureCryptographicKeySchema = z.union([hexKeySchema, base64KeySchema], {
-	error: () => ({
-		message:
-			'A chave deve ser codificada em Hexadecimal ou Base64 válido contendo pelo menos 256 bits (32 bytes) de entropia para evitar força bruta.',
-	}),
-});
+const secureCryptographicKeySchema = z.string().refine((val) => {
+	return CryptographyKeysValidation.isValid(val);
+}, 'Verifique se o pepper criptográfico confere aos padrões de segurança requeridos para aplicação, a chave no mínimo deve conter 256 bits');
 
 export const criptographyEnvValidationSchema = z.object({
 	CRIPTOGRAPHY_ENGINE_MODE: z.enum(supportedCryptographyEngineModes, {
