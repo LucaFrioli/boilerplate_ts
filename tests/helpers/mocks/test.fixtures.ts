@@ -149,3 +149,27 @@ export const validTlsUri = 'valkeys://localhost:6379/0?tls=true';
 
 /** URI com protocolo não aceito */
 export const invalidProtocolUri = 'http://localhost:6379/0';
+
+// ─── Fixtures de Chaves Criptográficas (para CryptographyKeysValidation) ───
+
+/** Chaves criptográficas válidas de alta entropia para cada alfabeto (mínimo 256 bits de entropia) */
+export const validCryptographyKeys = {
+	hex: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // 64 caracteres
+	base64: 'c2VjdXJlX2Jvb3Rfc2VjdXJlX2Jvb3Rfc2VjdXJlX2Jvb3Rfc2Vj', // 52 caracteres (mínimo de 43, sem padding desnecessário para mod 4 !== 1)
+	base32: 'MZXW6YTBOIWX2345MZXW6YTBOIWX2345MZXW6YTBOIWX2345MZXW6YTB', // 56 caracteres (mínimo de 52)
+	base58: '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxy', // 57 caracteres (mínimo de 44)
+} as const;
+
+/** Chaves criptográficas inválidas por tamanho insuficiente ou caracteres inválidos */
+export const invalidCryptographyKeys = {
+	hexTooShort: '0123456789abcdef', // < 64
+	hexBadChars: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde!', // '!' inválido em todos os alfabetos
+	base64TooShort: 'YQ==', // < 43
+	base64BadChars: 'c2VjdXJlX2Jvb3Rfc2VjdXJlX2Jvb3Rfc2VjdXJlX2Jvb3Rfc2Vj!!!', // caracteres inválidos
+	base32TooShort: 'MZXW6YTBOI', // < 52
+	base32BadChars: 'MZXW6YTBOIWX2345MZXW6YTBOIWX2345MZXW6YTBOIWX2345MZXW6YT!', // '!' inválido em todos os alfabetos
+	base58TooShort: '123456789', // < 44
+	base58BadChars: '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwx0', // '0' inválido na base58 ( bitcoin descarta )
+} as const;
+
+

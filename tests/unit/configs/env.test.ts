@@ -42,6 +42,16 @@ describe('configs/env.ts', () => {
 		process.env.IDENTIFIER_NANOID_SIZE = '21';
 		process.env.DATABASE_ID_DEFAULT = 'uuidv7';
 
+		// Cryptography
+		process.env.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
+		process.env.CRIPTOGRAPHY_PASSWORDS_ALGORITHM = 'hmac';
+		process.env.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha256';
+		process.env.CRIPTOGRAPHY_SIGNATURE_ALGORITHM = 'ed25519';
+		process.env.CIPHER_ALGORITHM = 'aes-256-gcm';
+		process.env.CRIPTOGRAPHY_SECURITY_PEPPER = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+		process.env.CIPHER_MASTER_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
+
 
 		process.env.MEM_DB_TYPE= 'valkey';
 		process.env.MEM_DB_PROTOCOL = 'valkey';
