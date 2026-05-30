@@ -39,7 +39,7 @@ const envSchema = z.object({
 	// Definição de configuração do banco em memória
 	...memEnvValidationSchema.shape,
 
-	...criptographyEnvValidationSchema.shape
+	...criptographyEnvValidationSchema.shape,
 });
 
 const _env = envSchema.safeParse(process.env);
