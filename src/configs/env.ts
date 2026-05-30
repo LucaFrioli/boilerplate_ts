@@ -4,6 +4,7 @@ import { dbEnvValidationSchema } from './schemas/dbEnv.schema.js';
 import { idEnvValidationsSchema } from './schemas/idEnv.schema.js';
 import { hasherEnvValidationSchema } from './schemas/hasherEnv.schema.js';
 import { memEnvValidationSchema } from './schemas/memDbEnv.schema.js';
+import { criptographyEnvValidationSchema } from './schemas/criptography.schema.js';
 import {
 	nodeEnvSupported,
 	timezoneSupported,
@@ -37,6 +38,8 @@ const envSchema = z.object({
 
 	// Definição de configuração do banco em memória
 	...memEnvValidationSchema.shape,
+
+	...criptographyEnvValidationSchema.shape
 });
 
 const _env = envSchema.safeParse(process.env);
