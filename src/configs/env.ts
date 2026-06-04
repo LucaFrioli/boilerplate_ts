@@ -10,7 +10,7 @@ import {
 	timezoneSupported,
 	localeSupported,
 	envLogger,
-} from './constants/env.constants.js';
+} from '@Configs/Constants';
 
 // conforme o boilerplate for crescendo adicionarei mais bancos
 
