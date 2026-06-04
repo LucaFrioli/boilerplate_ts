@@ -64,6 +64,10 @@
 			"@/*": ["./src/*"],
 			"@Validations/*": ["./src/validations/*"],
 			"@Configs/*": ["./src/configs/*"],
+			"@Configs/Schemas/*": ["./src/configs/schemas/*"],
+	  		"@Configs/Schemas": ["./src/configs/schemas/index.ts"],
+	  	    "@Configs/Constants/*": ["./src/configs/constants/*"],
+	  		"@Configs/Constants": ["./src/configs/constants/index.ts"],
 			"@Auth/*": ["./src/auth/*"],
 			"@Utils/*": ["./src/utils/*"],
 			"@Database/*": ["./src/databases/*"],
@@ -78,6 +82,9 @@
 	  		"@DbUri/persistence/*": ["./src/databases/uri/persistence/*"],
 			"@Masks/*": ["./src/shared/masks/*"],
 	  		"@Masks": ["./src/shared/masks/index.ts"],
+		    "@Crypto/*":["./src/core/cryptography/*"],
+		    "@Crypto/deterministicHash/*":["./src/core/cryptography/deterministicHash/*"],
+		    "@Crypto/deterministicHash":["./src/core/cryptography/deterministicHash/DeterministicHash.factory.ts"],
 			// Exclusivo do ambiente de teste:
 			"@tests/*": ["./tests/*"],
 			"@Mocks/*": ["./tests/helpers/mocks/*"]
