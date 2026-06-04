@@ -65,7 +65,6 @@
 			"@Validations/*": ["./src/validations/*"],
 			"@Configs/*": ["./src/configs/*"],
 			"@Configs/Schemas/*": ["./src/configs/schemas/*"],
-	  		"@Configs/Schemas": ["./src/configs/schemas/index.ts"],
 	  	    "@Configs/Constants/*": ["./src/configs/constants/*"],
 	  		"@Configs/Constants": ["./src/configs/constants/index.ts"],
 			"@Auth/*": ["./src/auth/*"],
