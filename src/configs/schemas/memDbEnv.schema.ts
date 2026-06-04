@@ -3,9 +3,9 @@ import {
 	acceptedMemDatabaseProtocols,
 	enableMemDatabaseConnections,
 	envLogger,
-} from '@Configs/constants/env.constants.js';
+} from '@Configs/Constants';
 import { DatabaseUsernameValidator } from '@Validations/DatabaseUsername.validation.js';
-import { DatabasePasswordValidation } from '@/validations/DatabasePassword.validation.js';
+import { DatabasePasswordValidation } from '@Validations/DatabasePassword.validation.js';
 
 export const memEnvValidationSchema = z
 	.object({

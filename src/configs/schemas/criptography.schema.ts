@@ -5,7 +5,7 @@ import {
 	supportedCryptographyAsimetricAlgs,
 	supportedDigestCryptographyAlgs,
 	supportedCipherAlgs,
-} from '../constants/env.constants.js';
+} from '@Configs/Constants/crypto.constants.js';
 import { CryptographyKeysValidation } from '@Validations/CriptographyKeys.validations.js';
 
 // Reutilizável: União segura Hex/Base64 de alta entropia

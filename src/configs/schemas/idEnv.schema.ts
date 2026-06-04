@@ -1,5 +1,5 @@
 import z from 'zod';
-import { identityTypeSupported } from '../constants/env.constants.js';
+import { identityTypeSupported } from '@Configs/Constants';
 
 export const idEnvValidationsSchema = z.object({
 	IDENTIFIER_PATTERN: z

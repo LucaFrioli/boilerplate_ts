@@ -1,5 +1,5 @@
 import z from 'zod';
-import { supportedHashProviders, envLogger } from '../constants/env.constants.js';
+import { supportedHashProviders, envLogger } from '@Configs/Constants';
 import { passwordStrength } from '@Validations/Password.validations.js';
 
 export const hasherEnvValidationSchema = z.object({

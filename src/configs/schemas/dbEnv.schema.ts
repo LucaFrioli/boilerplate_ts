@@ -1,6 +1,6 @@
 import { passwordStrength } from '@Validations/Password.validations.js';
 import z from 'zod';
-import { enabledDatabaseConections, identityTypeSupported } from '../constants/env.constants.js';
+import { enabledDatabaseConections, identityTypeSupported } from '@Configs/Constants';
 
 export const dbEnvValidationSchema = z.object({
 	// database info
