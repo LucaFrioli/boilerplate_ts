@@ -1,6 +1,6 @@
-import { createChildLogger } from '@/configs/logger.js';
+import { createChildLogger } from '@Configs/logger.js';
 import { HostValidator } from './Host.validations.js';
-import { regexEmailFormat } from '@Configs/constants/env.constants.js';
+import { regexEmailFormat } from '@Configs/Constants';
 import z from 'zod';
 
 type EmailValidationPolicy = 'PUBLIC_INTERNET' | 'INTERNAL_VPC';

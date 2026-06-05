@@ -1,5 +1,5 @@
 import { createChildLogger, type handlerContractsErrorsParams } from '@Configs/logger.js';
-import { dbUsernamePattern, dbslist, type dbsAcepteds } from '@Configs/constants/env.constants.js';
+import { dbUsernamePattern, dbslist, type dbsAcepteds } from '@Configs/Constants';
 
 export class DatabaseUsernameValidator {
 	private static DBUnameValidatorLogger = createChildLogger({

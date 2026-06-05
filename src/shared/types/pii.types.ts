@@ -24,7 +24,7 @@
 
 import type { Brand } from './brand.type.js';
 import { createChildLogger } from '@Configs/logger.js';
-import { cpf_raw_regexp } from '@Configs/constants/env.constants.js';
+import { cpf_raw_regexp } from '@Configs/Constants';
 import { CpfValidator } from '@Validations/Cpf.validations.js';
 import { EmailValidator } from '@Validations/Email.validations.js';
 import { UsernameValidator } from '@Validations/UsernamePII.validations.js';

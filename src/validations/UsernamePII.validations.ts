@@ -1,5 +1,5 @@
 import { maskPII } from '@Masks';
-import { regexUsernameFormat } from '@Configs/constants/env.constants.js';
+import { regexUsernameFormat } from '@Configs/Constants';
 import { createChildLogger } from '@Configs/logger.js';
 import type pino from 'pino';
 

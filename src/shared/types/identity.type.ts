@@ -1,5 +1,5 @@
-import { regexValidationToIdentitySupported } from '@/configs/constants/env.constants.js';
-import { env } from '@/configs/env.js';
+import { regexValidationToIdentitySupported } from '@Configs/Constants';
+import { env } from '@Configs/env.js';
 import { createChildLogger } from '@Configs/logger.js';
 import { type Brand } from '@Types/brand.type.js';
 

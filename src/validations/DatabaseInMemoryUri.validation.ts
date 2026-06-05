@@ -3,7 +3,7 @@ import {
 	acceptedMemDatabaseMultiHostProtocols,
 	acceptedMemDatabaseProtocols,
 	type dbsAcepteds,
-} from '@Configs/constants/env.constants.js';
+} from '@Configs/Constants';
 import { DatabaseUsernameValidator } from './DatabaseUsername.validation.js';
 import { DatabasePasswordValidation } from './DatabasePassword.validation.js';
 import { resolve } from 'node:path';

@@ -4,7 +4,7 @@ import {
 	type DatabaseUsername,
 	type MemDatabaseURI,
 } from '@Types/security.types.js';
-import { acceptedMemDatabaseProtocols } from '@Configs/constants/env.constants.js';
+import { acceptedMemDatabaseProtocols } from '@Configs/Constants';
 import { maskLogDatabaseUsername } from '@Masks';
 import { BaseMemUri, type EnvDataForMemDbUri } from '@DbUri/contracts/BaseMemUri.contract.js';
 

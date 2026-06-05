@@ -2,7 +2,7 @@ import { BaseHasher } from '@Auth/hash/contracts/IHasher.contract.js';
 import { argon2id, hash, verify, type Options as ArgonOptions } from 'argon2';
 import { env } from '@Configs/env.js';
 import { randomBytes } from 'node:crypto';
-import { regexValidationToHasherProvidersSupported } from '@/configs/constants/env.constants.js';
+import { regexValidationToHasherProvidersSupported } from '@Configs/Constants';
 
 export default class Argon2Provider extends BaseHasher {
 	protected get ServiceName(): string {

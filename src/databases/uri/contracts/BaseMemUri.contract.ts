@@ -1,5 +1,5 @@
-import { memEnvValidationSchema } from '@Configs/schemas/memDbEnv.schema.js';
-import { nodeEnvSupported, type dbsAcepteds } from '@Configs/constants/env.constants.js';
+import { memEnvValidationSchema } from '@Configs/Schemas/memDbEnv.schema.js';
+import { nodeEnvSupported, type dbsAcepteds } from '@Configs/Constants';
 import { env } from '@Configs/env.js';
 import { createChildLogger, type handlerContractsErrorsParams } from '@Configs/logger.js';
 import { isMemDatabaseUri, type MemDatabaseURI } from '@Types';

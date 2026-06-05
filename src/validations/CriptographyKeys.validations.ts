@@ -3,7 +3,7 @@ import {
 	regexValidationToHexadecimalKeyMinimalRequire,
 	regexValidationToBase32KeyMinimalRequire,
 	regexValidationToBase58KeyMinimalRequire,
-} from '@Configs/constants/env.constants.js';
+} from '@Configs/Constants';
 import { createChildLogger } from '@Configs/logger.js';
 import {
 	type CryptographyEncodingList,

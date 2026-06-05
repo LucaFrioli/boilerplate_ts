@@ -2,12 +2,12 @@ import {
 	dbProtocols,
 	regexValidationToHasherProvidersSupported,
 	type dbsAcepteds,
-} from '@Configs/constants/env.constants.js';
+} from '@Configs/Constants';
 import { createChildLogger } from '@Configs/logger.js';
 import type { Brand } from './brand.type.js';
 import { env } from '@Configs/env.js';
 import { DatabaseUsernameValidator } from '@Validations/DatabaseUsername.validation.js';
-import { DatabaseMemoryUriValidation } from '@/validations/DatabaseInMemoryUri.validation.js';
+import { DatabaseMemoryUriValidation } from '@Validations/DatabaseInMemoryUri.validation.js';
 
 const securityTypesLogger = createChildLogger({
 	fileType: 'type',

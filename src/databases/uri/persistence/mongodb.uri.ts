@@ -1,6 +1,6 @@
 import { type DatabaseURI, isDatabaseUri } from '@Types/security.types.js';
 import { BaseUri, type EnvDataForUri } from '@DbUri/contracts/BaseUri.contract.js';
-import { acceptedMongoSrvDomains } from '@Configs/constants/env.constants.js';
+import { acceptedMongoSrvDomains } from '@Configs/Constants';
 
 export class MongoConnectionString extends BaseUri {
 	protected get uriGeneratorName(): string {

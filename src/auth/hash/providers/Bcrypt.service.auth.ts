@@ -1,7 +1,7 @@
 import { BaseHasher } from '@Auth/hash/contracts/IHasher.contract.js';
 import { hash, compare } from 'bcrypt';
 import { env } from '@Configs/env.js';
-import { regexValidationToHasherProvidersSupported } from '@/configs/constants/env.constants.js';
+import { regexValidationToHasherProvidersSupported } from '@Configs/Constants';
 
 export default class BcryptService extends BaseHasher {
 	protected get ServiceName(): string {

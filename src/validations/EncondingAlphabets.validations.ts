@@ -1,4 +1,4 @@
-import { type AcceptedKeysCryptoAlphabets } from '@Configs/constants/env.constants.js';
+import { type AcceptedKeysCryptoAlphabets } from '@Configs/Constants';
 import { createChildLogger } from '@Configs/logger.js';
 import type pino from 'pino';
 

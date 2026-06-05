@@ -1,5 +1,5 @@
 import { env } from '@Configs/env.js';
-import { type supportedHashProviders } from '@Configs/constants/env.constants.js';
+import { type supportedHashProviders } from '@Configs/Constants';
 import Argon2Provider from '@Hash/providers/Argon2.service.auth.js';
 import BcryptService from '@Hash/providers/Bcrypt.service.auth.js';
 import type { IHasherProvider } from '@Hash/contracts/IHasher.contract.js';
