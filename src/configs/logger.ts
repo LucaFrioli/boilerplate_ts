@@ -20,7 +20,8 @@ export type FileType =
 	| 'connection'
 	| 'uri'
 	| 'core'
-	| 'type';
+	| 'type'
+	| 'provider';
 
 export type ServiceType =
 	| 'database'
@@ -29,7 +30,8 @@ export type ServiceType =
 	| 'valuation'
 	| 'generation'
 	| 'typo'
-	| 'pii';
+	| 'pii'
+	| 'cryptography';
 
 export type LoggerParams = {
 	module: string;
