@@ -60,7 +60,7 @@ export abstract class BaseHasher implements IHasherProvider {
 
 		try {
 			const hash = await this.executeHash(payload);
-			if (!isHashedString(hash)) throw new Error('Erro ao tentar gerar a string');
+			if (!isHashedString(hash, env.HASHER_PROVIDER)) throw new Error('Erro ao tentar gerar a string');
 			return hash;
 		} catch (e) {
 			this.handleFatalErrors(e, 'generate');

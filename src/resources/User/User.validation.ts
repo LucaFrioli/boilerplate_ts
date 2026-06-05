@@ -15,6 +15,7 @@ import {
 	isValidEmail,
 	isValidUsernamePii,
 } from '@Types';
+import { env } from '@Configs/env.js';
 
 /**
  * Validador de Nomes de Usuários Públicos.
@@ -50,7 +51,7 @@ const dbPublicIdSchema = z.custom<AppID>((val) => {
 const passwordHashSchema = z.custom<HashedString>((val) => {
 	if (typeof val !== 'string') return false;
 	val = val.trim();
-	return isHashedString(val);
+	return isHashedString(val, env.HASHER_PROVIDER);
 });
 
 /**
