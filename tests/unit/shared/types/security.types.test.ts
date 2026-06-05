@@ -59,8 +59,15 @@ import {
 	isDatabaseUsername,
 	assertsDatabaseUsername,
 	assertsMemDatabaseURI,
+	isValidCryptoKey,
+	assertsValidCryptoKey,
 } from '@Types/security.types.js';
-import { validDbUsername, validTcpUri } from '@tests/helpers/mocks/test.fixtures.js';
+import {
+	validDbUsername,
+	validTcpUri,
+	validCryptographyKeys,
+	invalidCryptographyKeys,
+} from '@tests/helpers/mocks/test.fixtures.js';
 
 describe('security.types', () => {
 	// =========================================================================
@@ -83,7 +90,7 @@ describe('security.types', () => {
 				const validArgon2Hash =
 					'$argon2id$v=19$m=65536,t=3,p=4$c2FsdHNhbHRzYWx0c2FsdA$hashhashhashhashhashhash';
 
-				expect(isHashedString(validArgon2Hash)).toBe(true);
+				expect(isHashedString(validArgon2Hash, env.HASHER_PROVIDER)).toBe(true);
 			});
 
 			/**
@@ -94,7 +101,7 @@ describe('security.types', () => {
 				const argon2iHash =
 					'$argon2i$v=19$m=65536,t=3,p=4$c2FsdHNhbHRzYWx0c2FsdA$hashhashhashhashhashhash';
 
-				expect(isHashedString(argon2iHash)).toBe(true);
+				expect(isHashedString(argon2iHash, env.HASHER_PROVIDER)).toBe(true);
 			});
 
 			/**
@@ -102,7 +109,7 @@ describe('security.types', () => {
 			 * Esta é a garantia central do tipo — impede que senhas circulem sem hash.
 			 */
 			it('deve rejeitar senha em texto puro', () => {
-				expect(isHashedString('minha_senha_123')).toBe(false);
+				expect(isHashedString('minha_senha_123', env.HASHER_PROVIDER)).toBe(false);
 			});
 
 			/**
@@ -112,14 +119,14 @@ describe('security.types', () => {
 			it('deve rejeitar hash Bcrypt quando provider é argon2', () => {
 				const bcryptHash = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewKyBAzMCLGu8OBu';
 
-				expect(isHashedString(bcryptHash)).toBe(false);
+				expect(isHashedString(bcryptHash, env.HASHER_PROVIDER)).toBe(false);
 			});
 
 			/**
 			 * String vazia não é hash válido.
 			 */
 			it('deve rejeitar string vazia', () => {
-				expect(isHashedString('')).toBe(false);
+				expect(isHashedString('', env.HASHER_PROVIDER)).toBe(false);
 			});
 		});
 
@@ -137,12 +144,12 @@ describe('security.types', () => {
 
 			it('deve aceitar hash bcrypt válido', () => {
 				const bcryptHash = '$2b$12$NqL7n20QnK2Qz1K1H4d5kO7T3tN0/v4PZzQ1pC3W5H6Q8G9X2U0L.';
-				expect(isHashedString(bcryptHash)).toBe(true);
+				expect(isHashedString(bcryptHash, env.HASHER_PROVIDER)).toBe(true);
 			});
 
 			it('deve rejeitar hash argon2 (incompatível com a env configurada)', () => {
 				const argon2Hash = '$argon2id$v=19$m=65536,t=3,p=4$R1hS2A7b9C3d4E5f$W8x9Y0z1A2b3C4d5E6f7G8h9I0j1K2l3M4n5O6p7Q8r9';
-				expect(isHashedString(argon2Hash)).toBe(false);
+				expect(isHashedString(argon2Hash, env.HASHER_PROVIDER)).toBe(false);
 			});
 		});
 
@@ -160,7 +167,7 @@ describe('security.types', () => {
 
 			it('deve retornar false para qualquer string, já que não é suportado', () => {
 				const anyString = '$argon2id$v=19$m=65536,t=3,p=4$R1hS2A7b9C3d4E5f$W8x9Y0z1A2b3C4d5E6f7G8h9I0j1K2l3M4n5O6p7Q8r9';
-				expect(isHashedString(anyString)).toBe(false);
+				expect(isHashedString(anyString, env.HASHER_PROVIDER)).toBe(false);
 			});
 		});
 
@@ -174,19 +181,19 @@ describe('security.types', () => {
 			 * qualquer `unknown` de API pode chegar aqui.
 			 */
 			it('deve retornar false para número', () => {
-				expect(isHashedString(42 as unknown)).toBe(false);
+				expect(isHashedString(42 as unknown, env.HASHER_PROVIDER)).toBe(false);
 			});
 
 			it('deve retornar false para undefined', () => {
-				expect(isHashedString(undefined)).toBe(false);
+				expect(isHashedString(undefined, env.HASHER_PROVIDER)).toBe(false);
 			});
 
 			it('deve retornar false para null', () => {
-				expect(isHashedString(null)).toBe(false);
+				expect(isHashedString(null, env.HASHER_PROVIDER)).toBe(false);
 			});
 
 			it('deve retornar false para objeto', () => {
-				expect(isHashedString({ hash: 'valor' })).toBe(false);
+				expect(isHashedString({ hash: 'valor' }, env.HASHER_PROVIDER)).toBe(false);
 			});
 		});
 	});
@@ -406,6 +413,65 @@ describe('security.types', () => {
 		it('deve lançar throw para valor null', () => {
 			expect(() => {
 				assertsMemDatabaseURI(null, 'valkey');
+			}).toThrow();
+		});
+	});
+
+	// =========================================================================
+	// isValidCryptoKey & assertsValidCryptoKey — Fronteira de Entropia de Chaves
+	// =========================================================================
+	describe('isValidCryptoKey', () => {
+		it('deve aceitar chave hexadecimal de alta entropia válida', () => {
+			expect(isValidCryptoKey(validCryptographyKeys.hex)).toBe(true);
+		});
+
+		it('deve aceitar chave base64 de alta entropia válida', () => {
+			expect(isValidCryptoKey(validCryptographyKeys.base64)).toBe(true);
+		});
+
+		it('deve aceitar chave base32 de alta entropia válida', () => {
+			expect(isValidCryptoKey(validCryptographyKeys.base32)).toBe(true);
+		});
+
+		it('deve aceitar chave base58 de alta entropia válida', () => {
+			expect(isValidCryptoKey(validCryptographyKeys.base58)).toBe(true);
+		});
+
+		it('deve rejeitar chave hexadecimal curta', () => {
+			expect(isValidCryptoKey(invalidCryptographyKeys.hexTooShort)).toBe(false);
+		});
+
+		it('deve rejeitar chave base64 curta', () => {
+			expect(isValidCryptoKey(invalidCryptographyKeys.base64TooShort)).toBe(false);
+		});
+
+		it('deve rejeitar chave base58 com caracteres inválidos', () => {
+			expect(isValidCryptoKey(invalidCryptographyKeys.base58BadChars)).toBe(false);
+		});
+
+		it('deve retornar false para tipos não-string', () => {
+			expect(isValidCryptoKey(42)).toBe(false);
+			expect(isValidCryptoKey(null)).toBe(false);
+			expect(isValidCryptoKey(undefined)).toBe(false);
+		});
+	});
+
+	describe('assertsValidCryptoKey', () => {
+		it('não deve lançar throw para chave válida', () => {
+			expect(() => {
+				assertsValidCryptoKey(validCryptographyKeys.hex);
+			}).not.toThrow();
+		});
+
+		it('deve lançar throw para chave inválida', () => {
+			expect(() => {
+				assertsValidCryptoKey(invalidCryptographyKeys.hexTooShort);
+			}).toThrow('A chave de seguraÇa é inválida processo abortado, entre em contato com a equipe;');
+		});
+
+		it('deve lançar throw para valor não-string', () => {
+			expect(() => {
+				assertsValidCryptoKey(null);
 			}).toThrow();
 		});
 	});
