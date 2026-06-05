@@ -48,6 +48,7 @@ export const regexValidationToBase58KeyMinimalRequire = /^(?=.{44,}$)([1-9A-HJ-N
 
 // hasher constants
 export const supportedHashProviders = ['argon2', 'bcrypt'] as const;
+export type HashProvidersSupported = (typeof supportedHashProviders)[number];
 
 export const regexValidationToHasherProvidersSupported = {
 	/**

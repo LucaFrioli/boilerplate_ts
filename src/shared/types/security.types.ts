@@ -1,13 +1,14 @@
 import {
 	dbProtocols,
 	regexValidationToHasherProvidersSupported,
+	type HashProvidersSupported,
 	type dbsAcepteds,
 } from '@Configs/Constants';
 import { createChildLogger } from '@Configs/logger.js';
 import type { Brand } from './brand.type.js';
-import { env } from '@Configs/env.js';
 import { DatabaseUsernameValidator } from '@Validations/DatabaseUsername.validation.js';
 import { DatabaseMemoryUriValidation } from '@Validations/DatabaseInMemoryUri.validation.js';
+import { CryptographyKeysValidation } from '@Validations/CriptographyKeys.validations.js';
 
 const securityTypesLogger = createChildLogger({
 	fileType: 'type',
@@ -15,12 +16,59 @@ const securityTypesLogger = createChildLogger({
 	service: 'typo',
 });
 
+export type ValidCryptoKey = Brand<string, 'ValidCryptoKey'>;
+export function isValidCryptoKey(rawValue: unknown): rawValue is ValidCryptoKey {
+	const functionName = 'isValidCryptoKey';
+	if (typeof rawValue !== 'string') {
+		securityTypesLogger.warn(
+			{
+				functionName,
+				typeofRawValue: typeof rawValue,
+				rawValueExpected: 'string',
+			},
+			'Por gentileza a chave de entropia deve ser uma string',
+		);
+		return false;
+	}
+
+	const result = CryptographyKeysValidation.isValid(rawValue);
+
+	if (!result)
+		securityTypesLogger.warn(
+			{
+				functionName,
+			},
+			'A chave de segurança é inválida, por gentileza crie ou passe uma chave válida;',
+		);
+
+	return result;
+}
+
+export function assertsValidCryptoKey(rawValue: unknown): asserts rawValue is ValidCryptoKey {
+	const functionName = 'assertsValidCryptoKey';
+	if (isValidCryptoKey(rawValue)) return;
+
+	securityTypesLogger.error(
+		{
+			functionName,
+		},
+		'Erro na validação da chave secreta de criptografia!',
+	);
+
+	throw new Error(
+		'A chave de seguraÇa é inválida processo abortado, entre em contato com a equipe;',
+	);
+}
+
 /**
  * String que já passou pelo processo de Hashing.
  * Garante que dados sensíveis não circulem em texto puro.
  */
 export type HashedString = Brand<string, 'HashedString'>;
-export function isHashedString(rawValue: unknown): rawValue is HashedString {
+export function isHashedString(
+	rawValue: unknown,
+	hasherProvider: HashProvidersSupported,
+): rawValue is HashedString {
 	if (typeof rawValue !== 'string') {
 		securityTypesLogger.warn(
 			{
@@ -32,7 +80,7 @@ export function isHashedString(rawValue: unknown): rawValue is HashedString {
 		return false;
 	}
 
-	switch (env.HASHER_PROVIDER) {
+	switch (hasherProvider) {
 		case 'argon2':
 			return regexValidationToHasherProvidersSupported.argon2.test(rawValue);
 		case 'bcrypt':
