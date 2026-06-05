@@ -53,7 +53,7 @@ vi.mock('@Configs/env.js', () => ({
 }));
 
 import { isAppID, isDatabaseID, NanoIDRegex } from '@Types/identity.type.js';
-import { regexValidationToIdentitySupported } from '@Configs/constants/env.constants.js';
+import { regexValidationToIdentitySupported } from '@Configs/Constants';
 import { env } from '@Configs/env.js';
 
 // ---------------------------------------------------------------------------
