@@ -10,6 +10,7 @@ describe('criptography.schema (Black-Box)', () => {
 
 	const validPayload = {
 		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
+		CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
 		CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac',
 		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
 		CRIPTOGRAPHY_SIGNATURE_ALGORITHM: 'ed25519',
@@ -49,6 +50,15 @@ describe('criptography.schema (Black-Box)', () => {
 		expect(result.success).toBe(false);
 		if (!result.success) {
 			expect(result.error.issues[0]?.message).toContain('Defina uma engine de criptografia válida contida dentro desta lista');
+		}
+	});
+
+	it('deve rejeitar um algoritmo de derivação de chaves não suportado', () => {
+		const payload = { ...validPayload, CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'pbkdf2' };
+		const result = criptographyEnvValidationSchema.safeParse(payload);
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error.issues[0]?.message).toContain('Defina um algoritimo de derivação de chave válido presente nesta lista');
 		}
 	});
 

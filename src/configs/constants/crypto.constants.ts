@@ -1,6 +1,7 @@
 // Cripto constants
 
-export const supportedCryptographySimetricAlgs = ['hmac', 'hkdf'] as const;
+export const supportedCryptographySimetricAlgs = ['hmac'] as const;
+export const supportedCryptographyDerivationKeyAlgs = ['hkdf'] as const;
 export const supportedCryptographyAsimetricAlgs = ['ed25519', 'ed448'] as const;
 export const supportedCryptographyEngineModes = ['sync_node', 'async_web_api'] as const;
 export const supportedCipherAlgs = ['aes-256-gcm', 'chacha20-poly1305'] as const;

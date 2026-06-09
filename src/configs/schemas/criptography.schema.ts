@@ -5,6 +5,7 @@ import {
 	supportedCryptographyAsimetricAlgs,
 	supportedDigestCryptographyAlgs,
 	supportedCipherAlgs,
+	supportedCryptographyDerivationKeyAlgs
 } from '@Configs/Constants/crypto.constants.js';
 import { CryptographyKeysValidation } from '@Validations/CriptographyKeys.validations.js';
 
@@ -16,6 +17,10 @@ const secureCryptographicKeySchema = z.string().refine((val) => {
 export const criptographyEnvValidationSchema = z.object({
 	CRIPTOGRAPHY_ENGINE_MODE: z.enum(supportedCryptographyEngineModes, {
 		error: `Defina uma engine de criptografia válida contida dentro desta lista: ${supportedCryptographyEngineModes.join(', ')}`,
+	}),
+
+	CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: z.enum(supportedCryptographyDerivationKeyAlgs, {
+		error: `Defina um algoritimo de derivação de chave válido presente nesta lista: \n${supportedCryptographyDerivationKeyAlgs.join(', ')}`,
 	}),
 
 	CRIPTOGRAPHY_PASSWORDS_ALGORITHM: z.enum(supportedCryptographySimetricAlgs, {

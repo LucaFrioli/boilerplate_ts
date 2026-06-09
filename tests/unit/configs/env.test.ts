@@ -44,6 +44,7 @@ describe('configs/env.ts', () => {
 
 		// Cryptography
 		process.env.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
+		process.env.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'hkdf';
 		process.env.CRIPTOGRAPHY_PASSWORDS_ALGORITHM = 'hmac';
 		process.env.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha256';
 		process.env.CRIPTOGRAPHY_SIGNATURE_ALGORITHM = 'ed25519';
