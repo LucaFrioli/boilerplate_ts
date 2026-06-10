@@ -24,7 +24,7 @@ export class HMAC extends DeterministicHahserBase {
 	}
 
 	protected async hashInEdge(plaintext: string, secretPepper: string): Promise<string> {
-		const method = 'hashInEdge'
+		const method = 'hashInEdge';
 		try {
 			this.validatePepper(secretPepper);
 		} catch (e) {
@@ -32,14 +32,13 @@ export class HMAC extends DeterministicHahserBase {
 				erroLevel: 'fatal',
 				method,
 				error: e,
-				message:'Erro crítico, pepper inválido verifique as configurações do sistema'
-			})
+				message: 'Erro crítico, pepper inválido verifique as configurações do sistema',
+			});
 		}
 		const encoder = new TextEncoder();
 		const keyBuffer = encoder.encode(secretPepper);
 		const messageBuffer = encoder.encode(plaintext);
 		this.validatedEnvValues();
-
 
 		const cryptoKey = await crypto.subtle.importKey(
 			'raw',

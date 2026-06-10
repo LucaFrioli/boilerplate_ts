@@ -5,7 +5,7 @@ import {
 	supportedCryptographyAsimetricAlgs,
 	supportedDigestCryptographyAlgs,
 	supportedCipherAlgs,
-	supportedCryptographyDerivationKeyAlgs
+	supportedCryptographyDerivationKeyAlgs,
 } from '@Configs/Constants/crypto.constants.js';
 import { CryptographyKeysValidation } from '@Validations/CriptographyKeys.validations.js';
 
