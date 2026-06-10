@@ -71,6 +71,8 @@
 			"@Utils/*": ["./src/utils/*"],
 			"@Database/*": ["./src/databases/*"],
 			"@Contracts/*": ["./src/resources/contracts/*"],
+			"@Shared/*": ["./src/shared/*"],
+	  		"@Shared/Helpers/*": ["./src/shared/helpers/*"],
 			"@Types/*": ["./src/shared/types/*"],
 			"@Types": ["./src/shared/types/index.ts"],
 			"@Hash/*": ["./src/auth/hash/*"],
