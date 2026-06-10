@@ -9,6 +9,7 @@ import type { Brand } from './brand.type.js';
 import { DatabaseUsernameValidator } from '@Validations/DatabaseUsername.validation.js';
 import { DatabaseMemoryUriValidation } from '@Validations/DatabaseInMemoryUri.validation.js';
 import { CryptographyKeysValidation } from '@Validations/CriptographyKeys.validations.js';
+import { EncodingAlphabetsValidations } from '@Validations/EncondingAlphabets.validations.js';
 
 const securityTypesLogger = createChildLogger({
 	fileType: 'type',
@@ -221,4 +222,65 @@ export function assertsMemDatabaseURI(
 		'Tentativa de validação de uri de banco de memória inválida',
 	);
 	throw new Error('Tentativa de validação de uri de banco de memória inválida');
+}
+
+/**
+ * **DerivedKey**
+ *
+ * - Tipo nominal que representa uma chave criptográfica derivada Hexadecimal.
+ * - Garante em tempo de compilação que chaves de tamanhos diferentes (ex: 16 bytes vs 32 bytes)
+ *   não sejam misturadas, e que strings comuns não sejam passadas por engano.
+ * - Parametrizado por `N` que define o comprimento físico da chave original em bytes.
+ */
+export type DerivedKey<N extends number> = Brand<string, { bytes: N; isDerived: true }>;
+
+/**
+ * **isDerivedKey**
+ *
+ * Type Guard em runtime para atestar a validade de uma chave derivada.
+ * Verifica o tipo, o alfabeto hexadecimal e se a string possui o tamanho exato esperado de $2N$ caracteres.
+ *
+ * @param value O valor arbitrário a ser testado.
+ * @param bytes O comprimento físico esperado da chave em bytes.
+ */
+export function isDerivedKey<N extends number>(value: unknown, bytes: N): value is DerivedKey<N> {
+	if (typeof value !== 'string') return false;
+	if (EncodingAlphabetsValidations.classifyCryptographyEncodingAlphabet(value) !== 'hex')
+		return false;
+
+	const expectedHexLength = bytes * 2;
+	if (value.length !== expectedHexLength) return false;
+
+	return /^[0-9a-fA-F]+$/.test(value);
+}
+
+/**
+ * **assertsDerivedKey**
+ *
+ * Assertion Function de segurança (Fail-Fast).
+ * Lança uma exceção fatal e loga o incidente se o valor testado violar a estrutura DerivedKey.
+ *
+ * @param value O valor a ser atestado.
+ * @param bytes O comprimento físico esperado da chave em bytes.
+ */
+export function assertsDerivedKey<N extends number>(
+	value: unknown,
+	bytes: N,
+): asserts value is DerivedKey<N> {
+	if (isDerivedKey(value, bytes)) return;
+
+	securityTypesLogger.fatal(
+		{
+			assertion: 'assertsDerivedKey',
+			typeofValue: typeof value,
+			expectedBytes: bytes,
+			expectedHexLength: bytes * 2,
+			receivedLength: typeof value === 'string' ? value.length : undefined,
+		},
+		'A chave criptográfica fornecida não atende aos critérios estritos de estrutura DerivedKey',
+	);
+
+	throw new TypeError(
+		'A chave criptográfica fornecida não atende aos critérios estritos de estrutura DerivedKey',
+	);
 }
