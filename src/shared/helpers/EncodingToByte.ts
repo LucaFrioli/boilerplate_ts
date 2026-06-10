@@ -31,7 +31,7 @@ const encodingLogger = createChildLogger({
  * @returns Um array tipado contendo os bytes decodificados correspondentes.
  * @throws {Error} Se a string hexadecimal tiver tamanho ímpar ou caracteres inválidos (tratado pelo parser superior).
  */
-export function hexToBytes(hex: string): Uint8Array {
+export function hexToBytes(hex: string): Uint8Array<ArrayBuffer> {
 	const len = hex.length;
 	const bytes = new Uint8Array(len / 2);
 	for (let i = 0; i < len; i += 2) {
@@ -48,7 +48,7 @@ export function hexToBytes(hex: string): Uint8Array {
  * @param base64 - A string Base64 a ser convertida.
  * @returns Um array tipado contendo os bytes decodificados correspondentes.
  */
-export function base64ToBytes(base64: string): Uint8Array {
+export function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
 	const binString = atob(base64.replace(/=+$/, ''));
 	const bytes = new Uint8Array(binString.length);
 	for (let i = 0; i < binString.length; i++) {
@@ -66,7 +66,7 @@ export function base64ToBytes(base64: string): Uint8Array {
  * @returns Um array tipado contendo os bytes decodificados correspondentes.
  * @throws {Error} Se um caractere fora do alfabeto Base32 (A-Z, 2-7) for detectado.
  */
-export function base32ToBytes(base32: string): Uint8Array {
+export function base32ToBytes(base32: string): Uint8Array<ArrayBuffer> {
 	const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 	const cleaned = base32.toUpperCase().replace(/=+$/, '');
 	const len = cleaned.length;
@@ -105,7 +105,7 @@ export function base32ToBytes(base32: string): Uint8Array {
  * @returns Um array tipado contendo os bytes decodificados correspondentes.
  * @throws {Error} Se um caractere fora do alfabeto Base58 (sem 0, O, I, l) for detectado.
  */
-export function base58ToBytes(base58: string): Uint8Array {
+export function base58ToBytes(base58: string): Uint8Array<ArrayBuffer> {
 	const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 	if (base58.length === 0) return new Uint8Array(0);
 
@@ -164,7 +164,7 @@ export function base58ToBytes(base58: string): Uint8Array {
  * @returns O array tipado contendo os bytes brutos resultantes.
  * @throws {Error} Caso a decodificação matemática detecte dados corrompidos.
  */
-export function toBytes(value: string): Uint8Array {
+export function toBytes(value: string): Uint8Array<ArrayBuffer> {
 	const method = 'toBytes' as const;
 	const format = EncodingAlphabetsValidations.classifyCryptographyEncodingAlphabet(value);
 
