@@ -3,7 +3,7 @@ import { KeyDerivatorBase } from '@Crypto/contracts/KeyDerivator.contract.js';
 import { hkdfSync } from 'node:crypto';
 import { toBytes } from '@Shared/Helpers/EncodingToByte.js';
 
-export class HKDFProvider extends KeyDerivatorBase {
+export default class HKDFProvider extends KeyDerivatorBase {
 	protected get providerName(): string {
 		return 'HKDF';
 	}
