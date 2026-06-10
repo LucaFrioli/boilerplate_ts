@@ -16,7 +16,7 @@ import { createChildLogger, type handlerContractsErrorsParams } from '@Configs/l
 import type pino from 'pino';
 import { criptographyEnvValidationSchema } from '@Configs/schemas/criptography.schema.js';
 import { nodeEnvSupported } from '@Configs/Constants/index.js';
-import { type ValidCryptoKey, assertsValidCryptoKey } from '@Types';
+import { type ValidCryptoKey, assertsValidCryptoKey, type DerivedKey } from '@Types';
 import z from 'zod';
 
 /**
@@ -44,10 +44,14 @@ export interface IKeyDerivator {
 	 * @param masterKey A chave raiz de alta entropia (Hex ou Base64) configurada no ambiente.
 	 * @param contextInfo String única que define o propósito/domínio da sub-chave (ex: 'cipher:user-cpf').
 	 * @param outputLengthBytes O comprimento físico desejado para a chave gerada, medido em bytes.
-	 * @returns Uma Promise contendo o Buffer da chave criptográfica derivada.
+	 * @returns Uma Promise contendo a chave derivada tipada nominalmente com o comprimento exato em bytes.
 	 * @throws {Error} Se a chave mestra for fraca ou ocorrer uma falha matemática no motor de derivação.
 	 */
-	derive(masterKey: string, contextInfo: string, outputLengthBytes: number): Promise<Buffer>;
+	derive<N extends number>(
+		masterKey: string,
+		contextInfo: string,
+		outputLengthBytes: N,
+	): Promise<DerivedKey<N>>;
 }
 
 /**
@@ -113,16 +117,15 @@ export abstract class KeyDerivatorBase implements IKeyDerivator {
 	protected validatedEnvValues(): void {
 		const method = 'validatedEnvValues' as const;
 		if (this._baseEnv === undefined) {
-			const baseEnvKeyDerivatorShield: z.ZodType<EnvDataForKeyDerivator> =
-				z.object({
-					NODE_ENV: z.enum(nodeEnvSupported),
-					CRIPTOGRAPHY_ENGINE_MODE:
-						criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_ENGINE_MODE,
-					CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM:
-						criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM,
-					CRIPTOGRAPHY_PASSWORDS_DIGESTOR:
-						criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_PASSWORDS_DIGESTOR,
-				});
+			const baseEnvKeyDerivatorShield: z.ZodType<EnvDataForKeyDerivator> = z.object({
+				NODE_ENV: z.enum(nodeEnvSupported),
+				CRIPTOGRAPHY_ENGINE_MODE:
+					criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_ENGINE_MODE,
+				CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM:
+					criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM,
+				CRIPTOGRAPHY_PASSWORDS_DIGESTOR:
+					criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_PASSWORDS_DIGESTOR,
+			});
 
 			const shieldResult = baseEnvKeyDerivatorShield.safeParse(env);
 
@@ -131,7 +134,8 @@ export abstract class KeyDerivatorBase implements IKeyDerivator {
 					erroLevel: 'fatal',
 					error: z.treeifyError(shieldResult.error),
 					method,
-					message: 'Erro ao validar env de derivação, tentativa de macular valores em runtime',
+					message:
+						'Erro ao validar env de derivação, tentativa de macular valores em runtime',
 				});
 			}
 
@@ -143,11 +147,11 @@ export abstract class KeyDerivatorBase implements IKeyDerivator {
 	 * Orquestrador principal da derivação de chaves.
 	 * Valida as entradas e escolhe de forma transparente o motor de execução (Sync vs Edge).
 	 */
-	public async derive(
+	public async derive<N extends number>(
 		masterKey: string,
 		contextInfo: string,
-		outputLengthBytes: number
-	): Promise<Buffer> {
+		outputLengthBytes: N,
+	): Promise<DerivedKey<N>> {
 		const method = 'derive';
 		this.validatedEnvValues();
 
@@ -223,20 +227,20 @@ export abstract class KeyDerivatorBase implements IKeyDerivator {
 	 * Hook abstrato para derivação síncrona.
 	 * Deve ser implementado usando o módulo nativo C++ do Node.js (`node:crypto`) para performance máxima.
 	 */
-	protected abstract deriveSync(
+	protected abstract deriveSync<N extends number>(
 		masterKey: string,
 		contextInfo: string,
-		outputLengthBytes: number
-	): Buffer;
+		outputLengthBytes: N,
+	): DerivedKey<N>;
 
 	/**
 	 * **deriveInEdge**
 	 * Hook abstrato para derivação assíncrona.
 	 * Deve ser implementado usando a API assíncrona padrão W3C WebCrypto, compatível com Cloudflare Workers.
 	 */
-	protected abstract deriveInEdge(
+	protected abstract deriveInEdge<N extends number>(
 		masterKey: string,
 		contextInfo: string,
-		outputLengthBytes: number
-	): Promise<Buffer>;
+		outputLengthBytes: N,
+	): Promise<DerivedKey<N>>;
 }

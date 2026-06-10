@@ -9,6 +9,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { KeyDerivatorBase } from '@Crypto/contracts/KeyDerivator.contract.js';
 import { validCryptographyKeys, invalidCryptographyKeys } from '@Mocks/test.fixtures.js';
+import { type DerivedKey } from '@Types'
 
 // Setup environment and logger mocks using vi.hoisted to avoid early evaluation issues
 const { mockFatal, mockError, mockInfo, mockEnv } = vi.hoisted(() => ({
@@ -45,19 +46,19 @@ class StubKeyDerivator extends KeyDerivatorBase {
 	public deriveSyncStub = vi.fn();
 	public deriveInEdgeStub = vi.fn();
 
-	protected deriveSync(
+	protected deriveSync<N extends number>(
 		masterKey: string,
 		contextInfo: string,
-		outputLengthBytes: number
-	): Buffer {
+		outputLengthBytes: N
+	): DerivedKey<N> {
 		return this.deriveSyncStub(masterKey, contextInfo, outputLengthBytes);
 	}
 
-	protected async deriveInEdge(
+	protected async deriveInEdge<N extends number>(
 		masterKey: string,
 		contextInfo: string,
-		outputLengthBytes: number
-	): Promise<Buffer> {
+		outputLengthBytes: N
+	): Promise<DerivedKey<N>> {
 		return this.deriveInEdgeStub(masterKey, contextInfo, outputLengthBytes);
 	}
 
@@ -142,29 +143,29 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 		const masterKey = validCryptographyKeys.hex;
 
 		it('deve chamar deriveSync se CRIPTOGRAPHY_ENGINE_MODE for sync_node', async () => {
-			const expectedBuffer = Buffer.from('derived_bytes');
-			stub.deriveSyncStub.mockReturnValue(expectedBuffer);
+			const expectedKey = validCryptographyKeys.hex;
+			stub.deriveSyncStub.mockReturnValue(expectedKey);
 			const result = await stub.derive(masterKey, 'info', 32);
 
 			expect(stub.deriveSyncStub).toHaveBeenCalledWith(masterKey, 'info', 32);
 			expect(stub.deriveInEdgeStub).not.toHaveBeenCalled();
-			expect(result).toBe(expectedBuffer);
+			expect(result).toBe(expectedKey);
 		});
 
 		it('deve chamar deriveInEdge se CRIPTOGRAPHY_ENGINE_MODE for async_web_api', async () => {
 			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
-			const expectedBuffer = Buffer.from('derived_bytes');
-			stub.deriveInEdgeStub.mockResolvedValue(expectedBuffer);
+			const expectedKey = validCryptographyKeys.hex;
+			stub.deriveInEdgeStub.mockResolvedValue(expectedKey);
 			const result = await stub.derive(masterKey, 'info', 32);
 
 			expect(stub.deriveInEdgeStub).toHaveBeenCalledWith(masterKey, 'info', 32);
 			expect(stub.deriveSyncStub).not.toHaveBeenCalled();
-			expect(result).toBe(expectedBuffer);
+			expect(result).toBe(expectedKey);
 		});
 
 		it('deve lançar erro se o baseEnv for undefined após a chamada de validatedEnvValues (Dead-Code safety)', async () => {
 			const customStub = new StubKeyDerivator();
-			vi.spyOn(customStub as any, 'validatedEnvValues').mockImplementation(() => {});
+			vi.spyOn(customStub as any, 'validatedEnvValues').mockImplementation(() => { });
 			customStub.setBaseEnv(undefined);
 
 			await expect(customStub.derive(masterKey, 'info', 32)).rejects.toThrow(

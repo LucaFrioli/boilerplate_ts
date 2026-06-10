@@ -61,6 +61,8 @@ import {
 	assertsMemDatabaseURI,
 	isValidCryptoKey,
 	assertsValidCryptoKey,
+	isDerivedKey,
+	assertsDerivedKey,
 } from '@Types/security.types.js';
 import {
 	validDbUsername,
@@ -473,6 +475,54 @@ describe('security.types', () => {
 			expect(() => {
 				assertsValidCryptoKey(null);
 			}).toThrow();
+		});
+	});
+
+	// =========================================================================
+	// isDerivedKey & assertsDerivedKey — Validação das Chaves Derivadas
+	// =========================================================================
+	describe('isDerivedKey', () => {
+		it('deve aceitar chave derivada válida em formato hexadecimal com o comprimento exato em bytes', () => {
+			const validKeyHex = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2'; // 32 bytes (64 caracteres)
+			expect(isDerivedKey(validKeyHex, 32)).toBe(true);
+		});
+
+		it('deve rejeitar se o comprimento da chave hexadecimal for diferente de 2N caracteres', () => {
+			const invalidLengthKey = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6'; // 16 bytes (32 caracteres), mas esperamos 32 bytes
+			expect(isDerivedKey(invalidLengthKey, 32)).toBe(false);
+		});
+
+		it('deve rejeitar se a chave derivada contiver caracteres que não pertencem ao alfabeto hexadecimal', () => {
+			const badCharsKey = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b#';
+			expect(isDerivedKey(badCharsKey, 32)).toBe(false);
+		});
+
+		it('deve retornar false para tipos não-string', () => {
+			expect(isDerivedKey(42, 32)).toBe(false);
+			expect(isDerivedKey(null, 32)).toBe(false);
+			expect(isDerivedKey(undefined, 32)).toBe(false);
+		});
+	});
+
+	describe('assertsDerivedKey', () => {
+		it('não deve lançar erro para chave derivada válida com tamanho correspondente', () => {
+			const validKeyHex = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+			expect(() => {
+				assertsDerivedKey(validKeyHex, 32);
+			}).not.toThrow();
+		});
+
+		it('deve lançar erro do tipo TypeError para chaves derivadas que violarem o tamanho ou formato', () => {
+			const invalidKey = 'curto';
+			expect(() => {
+				assertsDerivedKey(invalidKey, 32);
+			}).toThrow(TypeError);
+		});
+
+		it('deve lançar erro do tipo TypeError para chaves derivadas não-string', () => {
+			expect(() => {
+				assertsDerivedKey(null, 32);
+			}).toThrow(TypeError);
 		});
 	});
 });
