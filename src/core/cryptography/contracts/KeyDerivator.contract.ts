@@ -29,6 +29,7 @@ export type EnvDataForKeyDerivator = Pick<
 	typeof env,
 	| 'NODE_ENV'
 	| 'CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM'
+	| 'CRIPTOGRAPHY_DERIVATION_KEY_SALT'
 	| 'CRIPTOGRAPHY_PASSWORDS_DIGESTOR'
 	| 'CRIPTOGRAPHY_ENGINE_MODE'
 >;
@@ -123,6 +124,8 @@ export abstract class KeyDerivatorBase implements IKeyDerivator {
 					criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_ENGINE_MODE,
 				CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM:
 					criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM,
+				CRIPTOGRAPHY_DERIVATION_KEY_SALT:
+					criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_DERIVATION_KEY_SALT,
 				CRIPTOGRAPHY_PASSWORDS_DIGESTOR:
 					criptographyEnvValidationSchema.shape.CRIPTOGRAPHY_PASSWORDS_DIGESTOR,
 			});
