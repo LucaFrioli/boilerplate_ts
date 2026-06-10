@@ -20,6 +20,7 @@ const { mockFatal, mockError, mockInfo, mockEnv } = vi.hoisted(() => ({
 		NODE_ENV: 'test',
 		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
 		CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
+		CRIPTOGRAPHY_DERIVATION_KEY_SALT: 32,
 		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
 	},
 }));
@@ -99,6 +100,7 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 		mockEnv.NODE_ENV = 'test';
 		mockEnv.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha256';
 		mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'hkdf';
+		mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_SALT = 32;
 		mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
 	});
 
@@ -109,6 +111,7 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 				NODE_ENV: 'test',
 				CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
 				CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
+				CRIPTOGRAPHY_DERIVATION_KEY_SALT: 32,
 				CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
 			});
 			expect(mockFatal).not.toHaveBeenCalled();

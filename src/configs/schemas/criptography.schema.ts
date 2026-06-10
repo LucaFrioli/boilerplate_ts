@@ -23,6 +23,8 @@ export const criptographyEnvValidationSchema = z.object({
 		error: `Defina um algoritimo de derivação de chave válido presente nesta lista: \n${supportedCryptographyDerivationKeyAlgs.join(', ')}`,
 	}),
 
+	CRIPTOGRAPHY_DERIVATION_KEY_SALT: z.coerce.number().min(32).max(64),
+
 	CRIPTOGRAPHY_PASSWORDS_ALGORITHM: z.enum(supportedCryptographySimetricAlgs, {
 		error: `O algoritmo de senhas deve estar dentro da lista de um dos seguintes suportados: ${supportedCryptographySimetricAlgs.join(', ')}`,
 	}),

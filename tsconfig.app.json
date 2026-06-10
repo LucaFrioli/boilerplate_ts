@@ -63,7 +63,7 @@
 	  "@Masks": ["./src/shared/masks/index.ts"],
 	  "@Crypto/*":["./src/core/cryptography/*"],
 	  "@Crypto/deterministicHash/*":["./src/core/cryptography/deterministicHash/*"],
-	  "@Crypto/deterministicHash":["./src/core/cryptography/deterministicHash/DeterministicHash.factory.ts"]
+	  "@Crypto/deterministicHash":["./src/core/cryptography/deterministicHash/DeterministicHash.factory.crypto.ts"]
     }
   },
   "include": ["src/**/*", "test/**/*"],

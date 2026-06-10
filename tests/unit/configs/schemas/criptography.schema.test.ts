@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect } from 'vitest';
 import { criptographyEnvValidationSchema } from '@Configs/schemas/criptography.schema.js';
@@ -11,6 +13,7 @@ describe('criptography.schema (Black-Box)', () => {
 	const validPayload = {
 		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
 		CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
+		CRIPTOGRAPHY_DERIVATION_KEY_SALT: 32,
 		CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac',
 		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
 		CRIPTOGRAPHY_SIGNATURE_ALGORITHM: 'ed25519',
@@ -139,6 +142,29 @@ describe('criptography.schema (Black-Box)', () => {
 			const payload = { ...validPayload, CIPHER_MASTER_KEY: invalidCharsKey };
 			const result = criptographyEnvValidationSchema.safeParse(payload);
 			expect(result.success).toBe(false);
+		});
+	});
+
+	describe('Validação do Salt de Derivação (CRIPTOGRAPHY_DERIVATION_KEY_SALT)', () => {
+		it('deve rejeitar se o SALT for menor que 32', () => {
+			const payload = { ...validPayload, CRIPTOGRAPHY_DERIVATION_KEY_SALT: 31 };
+			const result = criptographyEnvValidationSchema.safeParse(payload);
+			expect(result.success).toBe(false);
+		});
+
+		it('deve rejeitar se o SALT for maior que 64', () => {
+			const payload = { ...validPayload, CRIPTOGRAPHY_DERIVATION_KEY_SALT: 65 };
+			const result = criptographyEnvValidationSchema.safeParse(payload);
+			expect(result.success).toBe(false);
+		});
+
+		it('deve coagir com sucesso uma string numérica para number', () => {
+			const payload = { ...validPayload, CRIPTOGRAPHY_DERIVATION_KEY_SALT: '48' as any };
+			const result = criptographyEnvValidationSchema.safeParse(payload);
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.CRIPTOGRAPHY_DERIVATION_KEY_SALT).toBe(48);
+			}
 		});
 	});
 });
