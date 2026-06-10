@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { HKDFProvider } from '@Crypto/keyDerivation/provider/Hkdf.provider.crypto.js';
+import HKDFProvider from '@Crypto/keyDerivation/provider/Hkdf.provider.crypto.js';
 import { validCryptographyKeys } from '@Mocks/test.fixtures.js';
 
 // Setup environment and logger mocks
