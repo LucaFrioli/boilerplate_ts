@@ -1,24 +1,63 @@
+/**
+ * @module PasswordValidation
+ * @description Mecanismo utilitário para medição de entropia e validação de força de senhas (passwords).
+ *
+ * ## Objetivo:
+ * Fornece políticas pré-configuradas e seguras (Low, Medium, Strong) baseadas em comprimentos físicos,
+ * variedade de alfabetos (minúsculas, maiúsculas, numéricos e símbolos) e análise de repetições,
+ * permitindo também customizações específicas de acordo com os requisitos de negócio ou banco de dados.
+ */
+
 import validator from 'validator';
 import { createChildLogger } from '@Configs/logger.js';
 
+/**
+ * Parâmetros de configuração para a validação de força de senha.
+ */
 type passwordStrengthParams = {
+	/** Nível de segurança pré-configurado a ser aplicado ('low', 'medium', 'strong'). */
 	securityLevel: 'low' | 'medium' | 'strong';
+	/** Habilita o uso de um esquema de validação personalizado passado em `strengthSchema`. */
 	personalize: boolean;
+	/** Esquema com as restrições customizadas de validação de senha. Requerido se `personalize` for true. */
 	strengthSchema?: passwordStrengthValues;
 };
 
+/**
+ * Detalhes estruturais de validação de força de senha aplicados pelo validador.
+ */
 type passwordStrengthValues = {
-	minLength: number; // senha deve ter pelo menos x caracteres
-	minLowercase?: number; // pelo menos x letra minúscula
-	minUppercase?: number; // pelo menos x letra maiúscula
-	minNumbers?: number; // pelo menos x número
-	minSymbols?: number; // pelo menos x símbolo/caractere especial
-	returnScore?: boolean; // retorna true/false em vez de pontuação
-	pointsPerRepeat?: number; // penaliza repetições
-	pointsPerUnique?: number; // bônus por variedade
+	/** Comprimento mínimo exigido em número de caracteres. */
+	minLength: number;
+	/** Quantidade mínima exigida de letras minúsculas (a-z). */
+	minLowercase?: number;
+	/** Quantidade mínima exigida de letras maiúsculas (A-Z). */
+	minUppercase?: number;
+	/** Quantidade mínima exigida de algarismos numéricos (0-9). */
+	minNumbers?: number;
+	/** Quantidade mínima exigida de caracteres especiais ou símbolos. */
+	minSymbols?: number;
+	/** Se setado para true, retorna boolean. Caso contrário, retorna um score numérico de pontuação. */
+	returnScore?: boolean;
+	/** Fator de penalidade aplicado a cada caractere repetido consecutivamente. */
+	pointsPerRepeat?: number;
+	/** Multiplicador de bônus por variedade e quantidade de caracteres únicos. */
+	pointsPerUnique?: number;
 };
 
-// Verifica a força de uma senha, com termos pré definidos, porém permitindo poseteriormente personalização caso necessário
+/**
+ * Verifica se a senha atende aos requisitos mínimos de complexidade e entropia com base no nível configurado.
+ *
+ * ## Níveis de Segurança Padrão:
+ * - **low:** Mínimo de 6 caracteres, pelo menos 1 minúscula, 1 maiúscula, 1 número.
+ * - **medium:** Mínimo de 8 caracteres, pelo menos 1 minúscula, 1 maiúscula, 1 número, 1 símbolo.
+ * - **strong:** Mínimo de 15 caracteres, pelo menos 3 minúsculas, 3 maiúsculas, 3 números, 3 símbolos.
+ *
+ * @param value A string contendo a senha a ser avaliada.
+ * @param options Configurações de política de validação (padrão: nível médio sem personalização).
+ * @returns Retorna um boolean indicando aprovação, ou um score numérico se configurado pelo esquema customizado.
+ * @throws {Error} Se `personalize` for true mas nenhum `strengthSchema` for fornecido.
+ */
 function passwordStrength(
 	value: string,
 	options: passwordStrengthParams = { securityLevel: 'medium', personalize: false },

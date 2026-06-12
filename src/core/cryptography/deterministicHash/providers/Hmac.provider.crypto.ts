@@ -1,11 +1,38 @@
+/**
+ * @module HMACProvider
+ * @description Provedor concreto de Hashing Determinístico utilizando o algoritmo HMAC (Keyed-Hashing for Message Authentication).
+ *
+ * ## Filosofia:
+ * Implementa o protocolo HMAC seguindo a RFC 2104. É projetado para ser agnóstico ao runtime,
+ * despachando as operações para módulos rápidos em C++ do Node.js ou para o motor seguro WebCrypto
+ * dependendo de onde o código está sendo executado.
+ */
+
 import { createHmac } from 'node:crypto';
 import { DeterministicHahserBase } from '@Crypto/contracts/DeterministicHasher.contract.js';
 
+/**
+ * @class HMAC
+ * @extends {DeterministicHahserBase}
+ * @description Provedor de hashing determinístico HMAC.
+ * Utiliza chaves de alta entropia (peppers) para garantir autenticidade e unicidade dos hashes gerados.
+ */
 export default class HMAC extends DeterministicHahserBase {
+	/**
+	 * Retorna o identificador textual do provedor.
+	 */
 	protected get proviederName(): string {
 		return 'HMAC';
 	}
 
+	/**
+	 * Computa o hash HMAC de forma síncrona utilizando a biblioteca nativa C++ do Node.js.
+	 *
+	 * @param plaintext O texto plano a ser encriptado.
+	 * @param secretPepper O pepper de criptografia (chave secreta).
+	 * @returns O digest gerado em formato Hexadecimal.
+	 * @throws {Error} Se as variáveis ambientais ou chaves de segurança estiverem corrompidas.
+	 */
 	protected hashSync(plaintext: string, secretPepper: string): string {
 		const method = 'hashSync';
 		this.validatedEnvValues();
@@ -23,6 +50,14 @@ export default class HMAC extends DeterministicHahserBase {
 			.digest('hex');
 	}
 
+	/**
+	 * Computa o hash HMAC de forma assíncrona utilizando a API de segurança WebCrypto (W3C).
+	 * Ideal para ambientes baseados em V8 Isolates/Edge Computing (Cloudflare Workers).
+	 *
+	 * @param plaintext O texto plano a ser encriptado.
+	 * @param secretPepper O pepper de criptografia (chave secreta).
+	 * @returns Uma Promise contendo o digest gerado em formato Hexadecimal.
+	 */
 	protected async hashInEdge(plaintext: string, secretPepper: string): Promise<string> {
 		const method = 'hashInEdge';
 		try {

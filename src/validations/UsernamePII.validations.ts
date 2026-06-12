@@ -1,15 +1,35 @@
+/**
+ * @module UsernameValidator
+ * @description Validador estrutural e estético para Nomes de Usuário (Usernames) considerados PII.
+ *
+ * ## Objetivo:
+ * Enforça em tempo de execução que os usernames de usuários finais possuam tamanhos consistentes,
+ * utilizem caracteres válidos e especiais (como ponto, hífen e sublinhado) de maneira não-consecutiva,
+ * e sem começar ou terminar com caracteres especiais, prevenindo ataques de enumeração ou confusão na UI.
+ */
+
 import { maskPII } from '@Masks';
 import { regexUsernameFormat } from '@Configs/Constants';
 import { createChildLogger } from '@Configs/logger.js';
 import type pino from 'pino';
 
+/**
+ * @class UsernameValidator
+ * @description Classe utilitária estática para validação de usernames da aplicação.
+ */
 export class UsernameValidator {
+	/**
+	 * Logger estruturado do validador de usernames PII.
+	 */
 	private static unameValidationLogger: pino.Logger = createChildLogger({
 		fileType: 'validation',
 		service: 'pii',
 		module: 'UsernameValidator',
 	});
 
+	/**
+	 * Definições formais das regras estéticas e morfológicas para documentação e auditoria.
+	 */
 	private static readonly rules = {
 		minLength: 3 as const,
 		maxLength: 30 as const,
@@ -26,11 +46,17 @@ export class UsernameValidator {
 		] as const,
 	};
 
+	/**
+	 * Expressão regular de morfologia e estrutura do username.
+	 */
 	private static unameRegexFormat = regexUsernameFormat;
 
 	/**
 	 * Valida se um valor de entrada atende estritamente às regras estruturais de segurança
 	 * e estética exigidas para um Nome de Usuário (Username) corporativo.
+	 *
+	 * @param rawValue O valor de entrada a ser atestado.
+	 * @returns Retorna true se for uma string válida sob as regras morfológicas, caso contrário false.
 	 */
 	public static isValid(rawValue: unknown): boolean {
 		const methodName = 'isValid';
@@ -67,6 +93,8 @@ export class UsernameValidator {
 	/**
 	 * Retorna as regras formais e estéticas aplicadas na validação do Username.
 	 * Útil para telemetria externa, enriquecimento de respostas da API e documentação dinâmica.
+	 *
+	 * @returns Um objeto estruturado contendo a descrição das regras ativas.
 	 */
 	public static getFormalRules(): object {
 		return {

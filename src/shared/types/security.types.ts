@@ -17,7 +17,25 @@ const securityTypesLogger = createChildLogger({
 	service: 'typo',
 });
 
+/**
+ * **ValidCryptoKey**
+ *
+ * - Tipo nominal que representa uma chave secreta de alta entropia (mínimo de 256 bits).
+ * - Utilizado para peppers, chaves mestras e sementes criptográficas em todo o boilerplate.
+ * - Impede o uso acidental de strings fracas ou senhas comuns diretamente em fluxos
+ *   de derivação, cifragem simétrica (AES) ou hashing determinístico (HMAC).
+ */
 export type ValidCryptoKey = Brand<string, 'ValidCryptoKey'>;
+
+/**
+ * **isValidCryptoKey**
+ *
+ * Type Guard em runtime para verificar se um determinado valor atende aos critérios
+ * estritos de segurança e entropia exigidos para chaves criptográficas.
+ *
+ * @param rawValue O valor arbitrário (normalmente lido do ambiente) a ser testado.
+ * @returns Retorna true se for uma string com entropia física de pelo menos 256 bits.
+ */
 export function isValidCryptoKey(rawValue: unknown): rawValue is ValidCryptoKey {
 	const functionName = 'isValidCryptoKey';
 	if (typeof rawValue !== 'string') {
@@ -45,6 +63,16 @@ export function isValidCryptoKey(rawValue: unknown): rawValue is ValidCryptoKey 
 	return result;
 }
 
+/**
+ * **assertsValidCryptoKey**
+ *
+ * Assertion Function de segurança (Fail-Fast).
+ * Garante que a chave fornecida é válida antes do início de operações críticas.
+ * Se a validação falhar, um erro fatal é logado e o fluxo do sistema é interrompido imediatamente.
+ *
+ * @param rawValue O valor da chave secreta a ser testado e assinalado.
+ * @throws {Error} Lança um erro se o valor não corresponder a uma chave criptográfica forte.
+ */
 export function assertsValidCryptoKey(rawValue: unknown): asserts rawValue is ValidCryptoKey {
 	const functionName = 'assertsValidCryptoKey';
 	if (isValidCryptoKey(rawValue)) return;
