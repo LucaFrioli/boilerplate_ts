@@ -1,6 +1,6 @@
 # Architectural Decision Records (ADR)
 
-Este documento registra as decisões técnicas fundamentais tomadas durante a construção do HabitosApp API, detalhando o contexto, as opções consideradas e as
+Este documento registra as decisões técnicas fundamentais tomadas durante a construção do WildcardBoiler API, detalhando o contexto, as opções consideradas e as
 
 **justificativa**s. Serve como objeto de estudo para a transição para linguagens de baixo nível (Rust) e infraestrutura.
 

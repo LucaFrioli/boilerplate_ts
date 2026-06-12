@@ -1,6 +1,6 @@
-# Arquitetura do HabitosApp API
+# Arquitetura do WildcardBoiler API
 
-> **Propósito deste documento:** Ser o ponto de entrada único para qualquer pessoa - ou IA - que precise entender o projeto em minutos. Leia isto primeiro, depois aprofunde nos [ADRs](./Adrs.md) e [dívidas técnicas](./dividas_tecnicas.md).
+> **Propósito deste documento:** Ser o ponto de entrada único para qualquer pessoa - ou IA - que precise entender o projeto em minutos. Leia isto primeiro, depois aprofunde nos [ADRs](./Adrs.md), nas [dívidas técnicas](./dividas_tecnicas.md) e no [guia de Branded Types](./BRANDED_TYPES.md).
 
 ---
 
@@ -31,7 +31,7 @@ Estas são as regras invioláveis do projeto. Se uma mudança contradiz qualquer
 
 2. **Defense in Depth** - Validação ocorre em múltiplas camadas: Zod no boot, Type Guards no runtime, Branded Types no compile-time. ([ADR 009](./Adrs.md#adr-009-type-guards-e-type-narrowing-como-fronteiras-de-segurança-cybersecurity))
 
-3. **Branded Types > Type Assertions** - `as Type` é proibido em fluxos críticos. Toda transição de tipo passa por um Type Guard com validação de memória real. ([ADR 002](./Adrs.md#adr-002-branded-types-para-identidade-e-segurança), [ADR 009](./Adrs.md#adr-009-type-guards-e-type-narrowing-como-fronteiras-de-segurança-cybersecurity))
+3. **Branded Types > Type Assertions** - `as Type` é proibido em fluxos críticos. Toda transição de tipo passa por um Type Guard com validação de memória real. (Para uma lista completa e exemplos práticos, consulte o [Guia de Branded Types](./BRANDED_TYPES.md)). ([ADR 002](./Adrs.md#adr-002-branded-types-para-identidade-e-segurança), [ADR 009](./Adrs.md#adr-009-type-guards-e-type-narrowing-como-fronteiras-de-segurança-cybersecurity))
 
 4. **Contracts-First** - Novos providers implementam contratos abstratos (`BaseHasher`, `BaseUri`, `BaseEntity`, `KeyDerivatorBase`, `DeterministicHasherBase`). O contrato é testado primeiro (TDD), o provider depois. ([ADR 010](./Adrs.md#adr-010-adoção-de-metodologia-tdd))
 
@@ -283,6 +283,7 @@ tests/
 | Documento | Propósito |
 |-----------|----------|
 | [Adrs.md](./Adrs.md) | Decisões arquiteturais com contexto e justificativa |
+| [BRANDED_TYPES.md](./BRANDED_TYPES.md) | Catálogo completo de tipos nominais, guards, asserções e anti-patterns |
 | [dividas_tecnicas.md](./dividas_tecnicas.md) | Bugs conhecidos, TODOs, dívidas de segurança |
 | [ToDo.md](./ToDo.md) | Roadmap de implementações futuras |
 | [readme.md](../readme.md) | Instruções de setup e uso |

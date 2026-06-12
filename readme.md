@@ -371,8 +371,8 @@ npm run test:coverage
 
 ```bash
 # Clone o repositório
-git clone https://github.com/LucaFriworker/HabitosApp.git
-cd HabitosApp/api
+git clone https://github.com/LucaFrioli/boilerplate_ts.git
+cd boilerplate_ts
 
 # Instale as dependências
 npm install
@@ -517,7 +517,7 @@ Este projeto está sob a licença ISC. Veja o arquivo [LICENSE](./license) para 
 
 *Feito com rigor arquitetural, segurança de tipo, e a convicção de que<br>um boilerplate enterprise não deveria entregar menos que o estado da arte.*
 
-**[⬆ Voltar ao topo](#️-habitosapp--enterprise-api-boilerplate)**
+**[⬆ Voltar ao topo](#️-WildcardBoiler--enterprise-api-boilerplate)**
 
 </div>
 

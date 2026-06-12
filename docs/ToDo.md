@@ -1,4 +1,4 @@
-# 📋 Roadmap de Desenvolvimento — HabitosApp Enterprise API Boilerplate
+# 📋 Roadmap de Desenvolvimento — WildcardBoiler Enterprise API Boilerplate
 
 > **Objetivo:** Organizar o escopo de forma clara, priorizando o que é **essencial** para uma versão 1.0.0
 > funcional, demonstrável em portfólio, enterprise-ready e pronta para escalar.
@@ -110,7 +110,7 @@ partir da arquitetura, mas não a define.
 ### Refinamento de Tipos (Branded Types faltantes)
 - [x] Criar `ValidatedCPF = Brand<string, 'ValidatedCPF'>` + guard + atualizar `UserI.cpf`
 - [x] Criar `ValidatedEmail = Brand<string, 'ValidatedEmail'>` + guard + atualizar `UserI.email`
-- [ ] Avaliar `ValidatedUsername` (menor prioridade — apenas por consistência)
+- [x] Avaliar `ValidatedUsername` (menor prioridade — apenas por consistência) *construida integração com User.entity e types + type guard e type asserts*
 
 ### Refinamento de Utilitários de Tipo
 - [ ] Ampliar `DeepReadonly<T>` para cobrir `Date`, `Map`, `Set`, `Array` corretamente
