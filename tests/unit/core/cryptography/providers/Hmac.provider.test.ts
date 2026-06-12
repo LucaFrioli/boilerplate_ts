@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { HMAC } from '@Crypto/deterministicHash/providers/Hmac.provider.crypto.js';
+import HMAC  from '@Crypto/deterministicHash/providers/Hmac.provider.crypto.js';
 import { validCryptographyKeys } from '@Mocks/test.fixtures.js';
 
 // Setup environment and logger mocks
