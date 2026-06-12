@@ -231,6 +231,11 @@ export function assertsMemDatabaseURI(
  * - Garante em tempo de compilação que chaves de tamanhos diferentes (ex: 16 bytes vs 32 bytes)
  *   não sejam misturadas, e que strings comuns não sejam passadas por engano.
  * - Parametrizado por `N` que define o comprimento físico da chave original em bytes.
+ *
+ * @note **Decisão de Performance:** Este tipo e suas asserções assumem representação estrita em Hexadecimal.
+ * A validação é baseada em string length (`N * 2`) para máxima performance e evitar alocação de memória.
+ * Caso o sistema passe a aceitar formatos híbridos (ex: Base64/Base58), veja a dívida técnica correspondente
+ * sobre migração para validação baseada em `toBytes`.
  */
 export type DerivedKey<N extends number> = Brand<string, { bytes: N; isDerived: true }>;
 
@@ -239,6 +244,11 @@ export type DerivedKey<N extends number> = Brand<string, { bytes: N; isDerived: 
  *
  * Type Guard em runtime para atestar a validade de uma chave derivada.
  * Verifica o tipo, o alfabeto hexadecimal e se a string possui o tamanho exato esperado de $2N$ caracteres.
+ *
+ * @note **Design Tradeoff:** Mede o tamanho em caracteres (`length === bytes * 2`) com regex rápida.
+ * Isso evita alocar novos buffers e pressionar o Garbage Collector em caminhos de execução quentes.
+ * Se o suporte a outras codificações (Base64/Base58) for introduzido, esta verificação deve migrar
+ * para decodificação e medição de bytes reais através de `toBytes()`.
  *
  * @param value O valor arbitrário a ser testado.
  * @param bytes O comprimento físico esperado da chave em bytes.
@@ -259,6 +269,10 @@ export function isDerivedKey<N extends number>(value: unknown, bytes: N): value 
  *
  * Assertion Function de segurança (Fail-Fast).
  * Lança uma exceção fatal e loga o incidente se o valor testado violar a estrutura DerivedKey.
+ *
+ * @note **Otimização de Memória:** Mantém a asserção no plano de strings e regex para evitar
+ * alocações desnecessárias de buffers no Heap. Caso o comportamento mude para aceitar formatos
+ * de chave agnósticos (Base64, Base32, etc.), o guard interno `isDerivedKey` deve passar a usar `toBytes`.
  *
  * @param value O valor a ser atestado.
  * @param bytes O comprimento físico esperado da chave em bytes.
