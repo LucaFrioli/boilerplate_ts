@@ -1,7 +1,7 @@
 import { createHmac } from 'node:crypto';
 import { DeterministicHahserBase } from '@Crypto/contracts/DeterministicHasher.contract.js';
 
-export class HMAC extends DeterministicHahserBase {
+export default class HMAC extends DeterministicHahserBase {
 	protected get proviederName(): string {
 		return 'HMAC';
 	}
