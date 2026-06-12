@@ -12,12 +12,13 @@
 | Framework | Express | 5.x | HTTP, middleware, routing |
 | Linguagem | TypeScript | 5.x | Strict mode, branded types, project references |
 | Banco Persistente | MongoDB (Mongoose) | 9.x | Documento-base, ODM |
-| Banco em Memória | Redis / Valkey | - | Cache, sessões, pub/sub |
+| Banco em Memória | Redis / Valkey | - | Cache, sessões, pub/sub (TCP, TLS, UDS, Sentinel) |
 | Validação de Env | Zod | 4.x | Schema + type inference no boot |
-| Logging | Pino | - | Structured JSON, redact automático |
-| Hash / Crypto | Argon2 / Bcrypt | - | Seleção via env, factory pattern |
-| Identidade | UUID v4/v7, NanoID | - | Seleção via env, factory pattern |
-| Testes | Vitest | - | 267 testes, 25 suítes, ~2s de execução |
+| Logging | Pino | 10.x | Structured JSON, redact automático de PII |
+| Hash / Crypto | Argon2 / Bcrypt / HMAC | - | Hashing de senhas e hashes determinísticos (Factory pattern) |
+| Derivação de Chave | HKDF (WebCrypto) | - | Derivação de chaves criptográficas (RFC 5869) |
+| Identidade | UUID v4/v7, NanoID | - | Seleção via env (Factory pattern) |
+| Testes | Vitest | 4.x | 662 testes, 45 test files, ~6s de execução |
 | Lint | ESLint 10 | Flat config | Strict types, boundary enforcement |
 
 ---
@@ -32,7 +33,7 @@ Estas são as regras invioláveis do projeto. Se uma mudança contradiz qualquer
 
 3. **Branded Types > Type Assertions** - `as Type` é proibido em fluxos críticos. Toda transição de tipo passa por um Type Guard com validação de memória real. ([ADR 002](./Adrs.md#adr-002-branded-types-para-identidade-e-segurança), [ADR 009](./Adrs.md#adr-009-type-guards-e-type-narrowing-como-fronteiras-de-segurança-cybersecurity))
 
-4. **Contracts-First** - Novos providers implementam contratos abstratos (`BaseHasher`, `BaseUri`, `BaseEntity`). O contrato é testado primeiro (TDD), o provider depois. ([ADR 010](./Adrs.md#adr-010-adoção-de-metodologia-tdd))
+4. **Contracts-First** - Novos providers implementam contratos abstratos (`BaseHasher`, `BaseUri`, `BaseEntity`, `KeyDerivatorBase`, `DeterministicHasherBase`). O contrato é testado primeiro (TDD), o provider depois. ([ADR 010](./Adrs.md#adr-010-adoção-de-metodologia-tdd))
 
 5. **Zero Side-Effects em Barrel Exports** - Módulos re-exportados via `@Types` não podem executar lógica dependente de env no top-level. Valores dinâmicos usam Lazy Singleton. ([ADR 011](./Adrs.md#adr-011-proibição-de-side-effects-em-avaliação-de-módulos-barrel-exported-lazy-initialization))
 
@@ -44,22 +45,24 @@ O nível de um módulo é definido pelo **nível mais alto que ele importa + 1**
 
 ```
 Level 0 - Folhas Puras (zero imports internos)
-├── configs/constants/env.constants.ts       constantes, regex, listas
+├── configs/constants/                       Constantes, regex, listas (env, crypto, pii, database)
 └── configs/logger.ts                        Pino + process.env direto
 
 Level 1 - Consumidores de Level 0 (peers entre si)
 ├── shared/types/*                           Brand types, Type Guards (@Types)
 ├── shared/masks/*                           Máscaras de anonimização (@Masks)
+├── shared/helpers/EncodingToByte.ts         Universal Bytes Decoder (hex/base64/etc.)
 ├── configs/schemas/*.schema.ts              Zod schemas de validação
-└── validations/*                            Classes validadoras
+└── validations/*                            Classes validadoras (Host, CPF, Password, etc.)
 
 Level 2 - Agregador de Configuração
 └── configs/env.ts                           Agrega schemas, valida, exporta env
 
 Level 3 - Infraestrutura de Serviço
+├── core/cryptography/                       KeyDerivation, DeterministicHash (Factories + providers)
 ├── core/identity/                           IdentityFactory + providers
 ├── auth/hash/                               HasherFactory + providers
-└── databases/                               URI factories + connections
+└── databases/                               URI factories (cache/persistence) + connections
 
 Level 4 - Domínio
 └── resources/                               Entidades (User, futuras)
@@ -86,7 +89,7 @@ Referência completa: [ADR 012](./Adrs.md#adr-012-hierarquia-de-dependências-ba
 
 ```
 1. dotenv carrega .env
-2. env.ts agrega todos os schemas Zod
+2. env.ts agrega todos os schemas Zod (dbEnv, memDbEnv, hasherEnv, idEnv, criptography)
 3. Zod valida process.env inteiro de uma vez
 4. Se falhar → log fatal + process.exit(1)        ← Fail-Fast
 5. Se passar → `env` é exportado como objeto tipado e imutável
@@ -104,24 +107,33 @@ Referência completa: [ADR 012](./Adrs.md#adr-012-hierarquia-de-dependências-ba
 ```
 src/
 ├── configs/
-│   ├── constants/env.constants.ts   ← Level 0: verdade absoluta
+│   ├── constants/                   ← Level 0: verdade absoluta
+│   │   ├── env.constants.ts
+│   │   ├── crypto.constants.ts
+│   │   ├── pii.constants.ts
+│   │   ├── database.constants.ts
+│   │   └── identify.constants.ts
 │   ├── logger.ts                    ← Level 0: Pino com redact
 │   ├── schemas/                     ← Level 1: Zod schemas
 │   │   ├── dbEnv.schema.ts
 │   │   ├── hasherEnv.schema.ts
 │   │   ├── idEnv.schema.ts
-│   │   └── memDbEnv.schema.ts
+│   │   ├── memDbEnv.schema.ts
+│   │   └── criptography.schema.ts
 │   └── env.ts                       ← Level 2: agregador + validação
 │
 ├── shared/                          ← Level 1: Módulos Compartilhados
 │   ├── types/                       ← Sistema de tipos (Branded + Guards - @Types)
 │   │   ├── index.ts                 ← Barrel export (@Types)
 │   │   ├── brand.type.ts            ← Brand<T, B> genérico
-│   │   ├── identity.type.ts         ← AppID, NanoIDString
-│   │   ├── security.types.ts        ← HashedString, DatabaseURI, Type Guards
-│   │   ├── pii.types.ts             ← CPF branded type
-│   │   ├── primitives.type.ts       ← NonEmptyString, PositiveInteger
-│   │   └── static.types.ts          ← DeepReadonly<T>, utility types
+│   │   ├── identity.type.ts         ← AppID, DatabaseID
+│   │   ├── security.types.ts        ← ValidCryptoKey, HashedString, Uri, DatabaseUsername, DerivedKey
+│   │   ├── pii.types.ts             ← ValidCPF, ValidEmail, ValidUsernamePii
+│   │   ├── primitives.type.ts       ← StringWithLegth
+│   │   └── static.types.ts          ← DeepReadonly<T>
+│   │
+│   ├── helpers/                     ← Utilitários compartilhados
+│   │   └── EncodingToByte.ts        ← Decodificador universal agnóstico
 │   │
 │   └── masks/                       ← Utilitários de anonimização (@Masks)
 │       ├── index.ts                 ← Barrel export (@Masks)
@@ -133,14 +145,30 @@ src/
 │   ├── Host.validations.ts
 │   ├── DatabaseUsername.validation.ts
 │   ├── DatabasePassword.validation.ts
-│   └── DatabaseInMemoryUri.validation.ts
+│   ├── DatabaseInMemoryUri.validation.ts
+│   ├── EncondingAlphabets.validations.ts
+│   ├── Email.validations.ts
+│   └── UsernamePII.validations.ts
 │
-├── auth/hash/                       ← Level 3: criptografia
+├── auth/hash/                       ← Level 3: hashing não-determinístico (senhas)
 │   ├── contracts/IHasher.contract.ts
 │   ├── hashesFactory.auth.ts        ← Factory: seleciona provider via env
 │   └── providers/
 │       ├── Argon2.service.auth.ts
 │       └── Bcrypt.service.auth.ts
+│
+├── core/cryptography/               ← Level 3: criptografia e chaves
+│   ├── contracts/
+│   │   ├── KeyDerivator.contract.ts          ← Contrato base de KDF
+│   │   └── DeterministicHasher.contract.ts   ← Contrato base de hashing determinístico
+│   ├── keyDerivation/
+│   │   ├── KeyDerivation.factory.crypto.ts   ← Factory singleton
+│   │   └── provider/
+│   │       └── Hkdf.provider.crypto.ts       ← Implementação HKDF
+│   └── deterministicHash/
+│       ├── DeterministicHash.factory.crypto.ts ← Factory singleton
+│       └── providers/
+│           └── Hmac.provider.crypto.ts       ← Implementação HMAC
 │
 ├── core/identity/                   ← Level 3: geração de IDs
 │   ├── contracts/IIdentyti.contract.ts
@@ -150,15 +178,15 @@ src/
 │       ├── UuidV4.service.identity.ts
 │       └── UuidV7.service.identity.ts
 │
-├── databases/                       ← Level 3: persistência
+├── databases/                       ← Level 3: persistência e cache
 │   ├── uri/
 │   │   ├── contracts/
 │   │   │   ├── BaseUri.contract.ts      ← Contrato abstrato para DB persistente
 │   │   │   └── BaseMemUri.contract.ts   ← Contrato abstrato para DB em memória
 │   │   ├── cache/
-│   │   │   └── valkey.uri.ts            ← Implementação Valkey/Redis
+│   │   │   └── valkey.uri.ts            ← Conexão Valkey/Redis (TCP, UDS, Sentinel)
 │   │   └── persistence/
-│   │       └── mongodb.uri.ts           ← Implementação MongoDB
+│   │       └── mongodb.uri.ts           ← Conexão MongoDB
 │   └── connections/
 │       ├── contracts/BaseConnect.contract.ts
 │       └── mongodb.database.ts
@@ -174,8 +202,7 @@ src/
 │   └── dateManager.util.ts
 │
 ├── app.ts                           ← Level 5: Express setup
-│   └── server.ts                        ← Level 5: bootstrap
-│
+└── server.ts                        ← Level 5: bootstrap
 ```
 
 ---
@@ -214,24 +241,26 @@ tests/
 │   ├── env/loadTestEnv.ts           ← Carrega .env.test com isolamento (@tests)
 │   └── mocks/test.fixtures.ts       ← Stubs e Fixtures reutilizáveis (@Mocks)
 └── unit/                            ← Espelho de src/
-    ├── auth/hash/                   ← Testa contratos + providers
+    ├── auth/hash/                   ← Testa contratos + providers (Argon2, Bcrypt)
     ├── configs/                     ← Testa schemas + env + logger
-    ├── core/identity/               ← Testa contratos + providers
-    ├── databases/                   ← Testa URI contracts + connections
+    ├── core/identity/               ← Testa contratos + providers (UUIDs, NanoID)
+    ├── core/cryptography/           ← Testa contratos + KDF (HKDF) + Hasher (HMAC)
+    ├── databases/                   ← Testa URI contracts + connections (Mongo, Valkey)
     ├── resources/user/              ← Testa entidade User
     ├── shared/                      ← Testa componentes compartilhados
     │   ├── types/                   ← Testa Type Guards (@Types)
-    │   └── masks/                   ← Testa utilitários de anonimização (@Masks)
-    ├── utils/                       ← Testa utilitários
-    └── validations/                 ← Testa classes validadoras
+    │   ├── masks/                   ← Testa utilitários de anonimização (@Masks)
+    │   └── helpers/                 ← Testa utilitários agnósticos (EncodingToByte)
+    ├── utils/                       ← Testa utilitários (DateManager)
+    └── validations/                 ← Testa classes validadoras (Host, CPF, Password, etc.)
 ```
 
 **Padrões de teste:**
-- Cada teste de contrato usa **Stubs** que estendem o contrato abstrato - testa o contrato, não a implementação
-- `vi.mock('@Configs/env.js')` é usado em testes de Type Guards para evitar que `env.ts` chame `process.exit(1)` durante a avaliação
-- O `.env.test` fornece valores válidos mas fictícios para todas as variáveis
+- Cada teste de contrato usa **Stubs** que estendem o contrato abstrato - testa o contrato, não a implementação.
+- `vi.mock('@Configs/env.js')` é usado em testes de Type Guards para evitar que `env.ts` chame `process.exit(1)` durante a avaliação.
+- O `.env.test` fornece valores válidos mas fictícios para todas as variáveis.
 
-**Executar:** `npx vitest run` - 267 testes, ~2 segundos
+**Executar:** `npm run test` - 662 testes executados com 100% de cobertura nos arquivos principais de `src/` em aproximadamente 6 segundos.
 
 ---
 
@@ -264,14 +293,12 @@ tests/
 
 Este documento deve ser atualizado quando:
 
-- **Novo módulo/diretório é criado** → Atualize o mapa de diretórios e a pirâmide se necessário
-- **Nova ADR é criada** → Adicione referência na seção de filosofias se for uma regra inviolável
-- **Novo contrato abstrato é criado** → Adicione guia de extensão na seção "Contratos e Como Estendê-los"
-- **Stack muda** (ex: troca de Express por Fastify) → Atualize a tabela de stack
+- **Novo módulo/diretório é criado** → Atualize o mapa de diretórios e a pirâmide se necessário.
+- **Nova ADR é criada** → Adicione referência na seção de filosofias se for uma regra inviolável.
+- **Novo contrato abstrato é criado** → Adicione guia de extensão na seção "Contratos e Como Estendê-los".
+- **Stack muda** (ex: troca de Express por Fastify) → Atualize a tabela de stack.
 
 **Não é necessário atualizar para:**
-- Mudanças internas em implementações existentes
-- Novos testes (a contagem exata não precisa estar atualizada)
-- Correções de bugs
-
-**Dica de manutenção:** Ao final de cada sprint/ciclo de desenvolvimento significativo, releia este documento em 2 minutos. Se algo parecer desatualizado, corrija. É mais fácil manter atualizado incrementalmente do que reconstruir do zero.
+- Mudanças internas em implementações existentes.
+- Novos testes (a contagem exata não precisa estar atualizada no detalhe de unidade, mas marcos consolidados sim).
+- Correções de bugs.
