@@ -258,4 +258,3 @@ const transport = pino.transport({
  * @see {@link createChildLogger} Função recomendada para obter logs contextuais derivados.
  */
 export const logger = pino(pinoConfigs, transport);
-

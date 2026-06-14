@@ -417,4 +417,3 @@ export abstract class BaseMemUri implements IMemDatabaseUri {
 	 */
 	protected abstract maskUriToLog(unmaskUri: string): string;
 }
-

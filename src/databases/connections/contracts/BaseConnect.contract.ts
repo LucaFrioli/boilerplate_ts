@@ -177,4 +177,3 @@ export abstract class BaseConnectDb implements IConnectDb {
 		throw new Error(`Erro de módulo ${this.connectionName}: erro detectado ${params.message}`);
 	}
 }
-
