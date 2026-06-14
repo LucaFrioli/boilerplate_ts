@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -58,9 +56,14 @@ describe('Core / Cryptography / KeyDerivationFactory', () => {
 		expect(provider1).toBe(provider2);
 	});
 
-	it('deve validar que a exportação estática KeyDerivation é um derivador instanciado', async () => {
+	it('deve validar que a exportação estática KeyDerivation possui a função derive e deriva chaves com sucesso', async () => {
 		const { KeyDerivation } = await import('@Crypto/keyDerivation/KeyDerivation.factory.crypto.js');
 		expect(KeyDerivation).toBeDefined();
-		expect(KeyDerivation).toBeInstanceOf(HKDFProvider);
+		expect(KeyDerivation.derive).toBeTypeOf('function');
+
+		const mockMasterKey = '0000000000000000000000000000000000000000000000000000000000000000';
+		const result = await KeyDerivation.derive(mockMasterKey, 'hasher:test:context', 32);
+		expect(result).toBeDefined();
+		expect(result).toBeTypeOf('string');
 	});
 });

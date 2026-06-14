@@ -12,6 +12,7 @@ import { env } from '@Configs/env.js';
 import { supportedCryptographyDerivationKeyAlgs } from '@Configs/Constants';
 import HKDFProvider from '@Crypto/keyDerivation/provider/Hkdf.provider.crypto.js';
 import type { IKeyDerivator } from '@Crypto/contracts/KeyDerivator.contract.js';
+import type { DerivedKey } from '@/shared/types/security.types.js';
 
 /**
  * Tipo representando as chaves dos algoritmos de derivação suportados no boilerplate.
@@ -57,4 +58,11 @@ export class KeyDerivationFactory {
  * @description Atalho global exportado contendo a instância única (Singleton) do Derivador de Chaves.
  * Deve ser importado e consumido nos casos de uso que necessitam derivar sub-chaves criptográficas específicas.
  */
-export const KeyDerivation = KeyDerivationFactory.getProvider();
+export const KeyDerivation = {
+	derive: <N extends number>(
+		masterKey: string,
+		contextInfo: string,
+		outputBytesLegth: N,
+	): Promise<DerivedKey<N>> =>
+		KeyDerivationFactory.getProvider().derive(masterKey, contextInfo, outputBytesLegth),
+};
