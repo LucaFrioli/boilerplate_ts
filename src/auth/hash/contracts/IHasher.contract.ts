@@ -1,6 +1,46 @@
+import { KeyDerivation } from '@Crypto/keyDerivation/KeyDerivation.factory.crypto.js';
+import { EmailValidator } from '@Validations/Email.validations.js';
+import { nodeEnvSupported } from '@Configs/Constants';
+import { hasherEnvValidationSchema } from '@Configs/Schemas/hasherEnv.schema.js';
 import { env } from '@Configs/env.js';
 import { createChildLogger } from '@Configs/logger.js';
-import { isHashedString, type HashedString } from '@Types/index.js';
+import {
+	assertsValidCryptoKey,
+	isHashedString,
+	type DerivedKey,
+	type HashedString,
+	type ValidEmail,
+} from '@Types';
+import z from 'zod';
+
+// // Fazemos uma função de resolução tardia:
+// let cachedDerivedKey: DerivedKey<32> | null = null;
+
+async function getDerivedKey(): Promise<DerivedKey<32>> {
+	// A derivação física só ocorre na primeira vez que esta função for de fato chamada
+	const key = await KeyDerivation.derive(
+		env.HASHER_SECURITY_PEPPER,
+		'hasher:derived:securityPepper',
+		32,
+	);
+	assertsValidCryptoKey(key);
+
+	return key;
+}
+
+export type EnvForHasherProvider = Pick<
+	typeof env,
+	| 'NODE_ENV'
+	| 'HASHER_PROVIDER'
+	| 'EMAIL_TO_CONTACT'
+	| 'HASHER_MEMORY_COST'
+	| 'HASHER_TIME_COST'
+	| 'HASHER_PARALLELISM'
+	| 'HASHER_SECURITY_PEPPER'
+	| 'HASHER_LENGTH'
+	| 'HASHER_SALT_LENGTH'
+	| 'HASHER_BCRYPT_ROUNDS'
+>;
 
 export interface IHasherProvider {
 	/**
@@ -30,6 +70,52 @@ export abstract class BaseHasher implements IHasherProvider {
 		service: 'hasher',
 	});
 
+	protected static _baseEnv?: EnvForHasherProvider;
+
+
+	protected async validateEnvValues(): Promise<EnvForHasherProvider> {
+		const method = 'validateEnvValue' as const;
+		if (BaseHasher._baseEnv === undefined) {
+			const baseEnvHahserProviderShild: z.ZodType<EnvForHasherProvider> = z.object({
+				NODE_ENV: z.enum(nodeEnvSupported),
+				HASHER_BCRYPT_ROUNDS: hasherEnvValidationSchema.shape.HASHER_BCRYPT_ROUNDS,
+				HASHER_LENGTH: hasherEnvValidationSchema.shape.HASHER_LENGTH,
+				HASHER_MEMORY_COST: hasherEnvValidationSchema.shape.HASHER_MEMORY_COST,
+				HASHER_PARALLELISM: hasherEnvValidationSchema.shape.HASHER_PARALLELISM,
+				HASHER_PROVIDER: hasherEnvValidationSchema.shape.HASHER_PROVIDER,
+				HASHER_SALT_LENGTH: hasherEnvValidationSchema.shape.HASHER_SALT_LENGTH,
+				// POr momento estraei deixando a derivação ddessa maniera futuramente extraio ela deaqui e utilizo object compose
+				HASHER_SECURITY_PEPPER: hasherEnvValidationSchema.shape.HASHER_SECURITY_PEPPER,
+				HASHER_TIME_COST: hasherEnvValidationSchema.shape.HASHER_TIME_COST,
+				EMAIL_TO_CONTACT: z.custom<ValidEmail>((val) => {
+					if (typeof val !== 'string') return false;
+					val = val.trim();
+					return EmailValidator.isValid(val);
+				}),
+			});
+
+			const shildResult = await baseEnvHahserProviderShild.safeParseAsync(env);
+
+			if (!shildResult.success) {
+				this.handleFatalErrors(z.treeifyError(shildResult.error), method);
+			}
+
+			try {
+				const derivedKey = await getDerivedKey();
+				assertsValidCryptoKey(derivedKey);
+				shildResult.data.HASHER_SECURITY_PEPPER = derivedKey;
+			} catch (e) {
+				this.handleFatalErrors(
+					{ e, message: 'erro no momento da derivação de chave' },
+					method,
+				);
+			}
+			BaseHasher._baseEnv = shildResult.data;
+		}
+
+		return BaseHasher._baseEnv;
+	}
+
 	/**
 	 * Obriga o desenvolvedor a declara o nome de serviço trzendo ainda mais informação para os logs e depuração
 	 */
@@ -50,6 +136,10 @@ export abstract class BaseHasher implements IHasherProvider {
 	protected abstract executeValidation(hashedString: string): boolean;
 
 	public async generate(payload: string): Promise<HashedString> {
+		if (!BaseHasher._baseEnv) {
+			await this.validateEnvValues();
+		}
+
 		if (!payload || payload.trim().length === 0) {
 			this.hasherLogger.warn(
 				{ serviceName: this.ServiceName },
@@ -59,8 +149,9 @@ export abstract class BaseHasher implements IHasherProvider {
 		}
 
 		try {
+			if (!BaseHasher._baseEnv) throw new Error('Erro as variaveis de hambientes derivadas e validadas, froma maculadas')
 			const hash = await this.executeHash(payload);
-			if (!isHashedString(hash, env.HASHER_PROVIDER))
+			if (!isHashedString(hash, BaseHasher._baseEnv.HASHER_PROVIDER))
 				throw new Error('Erro ao tentar gerar a string');
 			return hash;
 		} catch (e) {
