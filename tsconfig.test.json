@@ -88,7 +88,8 @@
 		    "@Crypto/deterministicHash":["./src/core/cryptography/deterministicHash/DeterministicHash.factory.ts"],
 			// Exclusivo do ambiente de teste:
 			"@tests/*": ["./tests/*"],
-			"@Mocks/*": ["./tests/helpers/mocks/*"]
+			"@Mocks/*": ["./tests/helpers/mocks/*"],
+			"@Scripts/*": ["./scripts/*"]
 		}
 	},
 
@@ -101,5 +102,5 @@
 	 * Nota: NÃO incluímos `eslint.config.ts` aqui (ele pertence ao tsconfig.tooling.json).
 	 * Cada arquivo de tooling tem seu tsconfig responsável visando separação de responsabilidades.
 	 */
-	"include": ["src/**/*", "tests/**/*", "vitest.config.ts"]
+	"include": ["src/**/*", "tests/**/*", "vitest.config.ts", "scripts/**/*"]
 }

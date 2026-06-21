@@ -14,7 +14,8 @@
     "lint:fix": "npm run format && eslint src/ --fix",
 	"test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+	"gen:key": "tsx ./scripts/keyGenCLI/keygen.script.ts"
   },
   "keywords": [],
   "author": "",
