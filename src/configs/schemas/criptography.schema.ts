@@ -20,7 +20,7 @@ export const criptographyEnvValidationSchema = z.object({
 	}),
 
 	CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: z.enum(supportedCryptographyDerivationKeyAlgs, {
-		error: `Defina um algoritimo de derivação de chave válido presente nesta lista: \n${supportedCryptographyDerivationKeyAlgs.join(', ')}`,
+		error: `Defina um algoritimo de derivação de chave válido presente nesta lista: ${supportedCryptographyDerivationKeyAlgs.join(', ')}`,
 	}),
 
 	CRIPTOGRAPHY_DERIVATION_KEY_SALT: z.coerce.number().min(32).max(64),

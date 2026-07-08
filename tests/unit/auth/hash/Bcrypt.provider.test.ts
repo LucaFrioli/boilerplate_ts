@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /**
  * @fileoverview Testes do BcryptService — Motor de Hashing Legado/Compatível.
  *
@@ -10,17 +12,14 @@
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
+
 // Mock do env e de funções de log usando vi.hoisted para evitar erros de inicialização
-const { mockWarn, mockEnv } = vi.hoisted(() => ({
-	mockWarn: vi.fn(),
-	mockEnv: {
-		HASHER_PROVIDER: 'bcrypt',
-		HASHER_SECURITY_PEPPER: 'test-pepper-bcrypt-suffix',
-		HASHER_SALT_LENGTH: 16, // Default seguro para testes
-		EMAIL_TO_CONTACT: 'admin@test.com',
-		HASHER_BCRYPT_ROUNDS: 12
-	},
-}));
+const { mockWarn } = vi.hoisted(() => {
+	return (
+		{
+			mockWarn: vi.fn(),
+		})
+});
 
 vi.mock('@Configs/logger.js', () => ({
 	createChildLogger: (): { fatal: unknown; warn: unknown; error: unknown; info: unknown } => ({
@@ -31,22 +30,32 @@ vi.mock('@Configs/logger.js', () => ({
 	}),
 }));
 
-vi.mock('@Configs/env.js', () => ({
-	env: mockEnv,
-}));
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
 
+	return ({
+		env: { ...baseTestEnv, HASHER_PROVIDER: 'bcrypt' },
+	})
+});
+
+import { env } from '@Configs/env.js';
 import BcryptService from '@Hash/providers/Bcrypt.service.auth.js';
+import { BaseHasher } from '@Hash/contracts/IHasher.contract.js';
 import { hasherEnvValidationSchema } from '@Configs/schemas/hasherEnv.schema.js';
 
 describe('BcryptService', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockEnv.HASHER_BCRYPT_ROUNDS = 12; // Reset para cada teste
+		(BaseHasher as any)._baseEnv = undefined;
+		env.HASHER_BCRYPT_ROUNDS = 12; // Reset para cada teste
 	});
 
 	describe('generate()', () => {
 		it('deve gerar um hash Bcrypt válido ($2$10) quando rounds são 10', async () => {
-			mockEnv.HASHER_BCRYPT_ROUNDS = 10
+			(BaseHasher as any)._baseEnv = {
+				...env,
+				HASHER_BCRYPT_ROUNDS: 10,
+			};
 			const provider = new BcryptService();
 			const hash = await provider.generate('senha123');
 
@@ -63,7 +72,10 @@ describe('BcryptService', () => {
 		});
 
 		it('deve falhar se rounds < 10 (Fail-Fast)', async () => {
-			mockEnv.HASHER_BCRYPT_ROUNDS = 8;
+			(BaseHasher as any)._baseEnv = {
+				...env,
+				HASHER_BCRYPT_ROUNDS: 8,
+			};
 			const provider = new BcryptService();
 
 			await expect(provider.generate('senha123')).rejects.toThrow(
@@ -72,7 +84,10 @@ describe('BcryptService', () => {
 		});
 
 		it('deve emitir aviso se rounds > 13 (Performance)', async () => {
-			mockEnv.HASHER_BCRYPT_ROUNDS = 14;
+			(BaseHasher as any)._baseEnv = {
+				...env,
+				HASHER_BCRYPT_ROUNDS: 14,
+			};
 			const provider = new BcryptService();
 
 			await provider.generate('senha123');

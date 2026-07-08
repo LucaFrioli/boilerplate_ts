@@ -172,4 +172,57 @@ export const invalidCryptographyKeys = {
 	base58BadChars: '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwx0', // '0' inválido na base58 ( bitcoin descarta )
 } as const;
 
+// ─── Fixtures de Variáveis de Ambiente (Mocks de env) ──────────────────────
+
+/**
+ * Objeto mock de variáveis de ambiente padrão usado para testes.
+ * Centraliza e espelha as configurações estritas e os mínimos exigidos pelo env.ts.
+ */
+export const baseTestEnv = {
+	NODE_ENV: 'test',
+	PORT: 3000,
+	APP_NAME: 'Boilerplate_Test',
+	APP_TIMEZONE: 'UTC',
+	APP_LOCALE: 'pt-BR',
+	EMAIL_TO_CONTACT: 'test-admin@boilerplate-test.local',
+	DATABASE_TYPE: 'mongodb',
+	DATABASE_HOST: 'localhost',
+	DATABASE_PORT: 27017,
+	DATABASE_USERNAME: '',
+	DATABASE_PASSWORD: 'TestDb@Pass123!',
+	DATABASE_NAME: 'boilerplate_test',
+	DATABASE_URI: '',
+	DATABASE_ID_DEFAULT: 'uuidv7',
+	HASHER_PROVIDER: 'argon2',
+	HASHER_SECURITY_PEPPER: '8VughkStcJqkMdNg6vjtL3IKWafSV+tJh3+3nZkiy+E',
+	HASHER_LENGTH: 32,
+	HASHER_SALT_LENGTH: 16,
+	HASHER_PARALLELISM: 2,
+	HASHER_TIME_COST: 3,
+	HASHER_MEMORY_COST: 65536,
+	HASHER_BCRYPT_ROUNDS: 12,
+	IDENTIFIER_PATTERN: 'nanoid',
+	IDENTIFIER_NANOID_ALPHABET: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',
+	IDENTIFIER_NANOID_SIZE: 21,
+	MEM_DB_TYPE: 'valkey',
+	MEM_DB_PROTOCOL: 'valkey',
+	MEM_DB_HOST: 'localhost',
+	MEM_DB_PORT: 6379,
+	MEM_DB_USERNAME: '',
+	MEM_DB_PASSWORD: '',
+	MEM_DB_INDEX_OR_PATH: '0',
+	MEM_DB_SENTINEL_MASTER_ID: '',
+	MEM_DB_SENTINEL_USERNAME: '',
+	MEM_DB_SENTINEL_PASSWORD: '',
+	CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
+	CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
+	CRIPTOGRAPHY_DERIVATION_KEY_SALT: 32,
+	CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac',
+	CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
+	CRIPTOGRAPHY_SIGNATURE_ALGORITHM: 'ed25519',
+	CIPHER_ALGORITHM: 'aes-256-gcm',
+	CRIPTOGRAPHY_SECURITY_PEPPER: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+	CIPHER_MASTER_KEY: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+} as const;
+
 

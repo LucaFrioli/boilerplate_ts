@@ -72,7 +72,6 @@ export abstract class BaseHasher implements IHasherProvider {
 
 	protected static _baseEnv?: EnvForHasherProvider;
 
-
 	protected async validateEnvValues(): Promise<EnvForHasherProvider> {
 		const method = 'validateEnvValue' as const;
 		if (BaseHasher._baseEnv === undefined) {
@@ -149,7 +148,10 @@ export abstract class BaseHasher implements IHasherProvider {
 		}
 
 		try {
-			if (!BaseHasher._baseEnv) throw new Error('Erro as variaveis de hambientes derivadas e validadas, froma maculadas')
+			if (!BaseHasher._baseEnv)
+				throw new Error(
+					'Erro as variaveis de hambientes derivadas e validadas, froma maculadas',
+				);
 			const hash = await this.executeHash(payload);
 			if (!isHashedString(hash, BaseHasher._baseEnv.HASHER_PROVIDER))
 				throw new Error('Erro ao tentar gerar a string');

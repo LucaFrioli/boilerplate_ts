@@ -1,17 +1,18 @@
 import { BaseHasher } from '@Auth/hash/contracts/IHasher.contract.js';
 import { hash, compare } from 'bcrypt';
-import { env } from '@Configs/env.js';
 import { regexValidationToHasherProvidersSupported } from '@Configs/Constants';
+import { DeterministicHash } from '@/core/cryptography/deterministicHash/DeterministicHash.factory.crypto.js';
 
 export default class BcryptService extends BaseHasher {
 	protected get ServiceName(): string {
 		return 'BcryptService';
 	}
-	private pepper: string = env.HASHER_SECURITY_PEPPER;
 
 	protected async executeHash(payload: string): Promise<string> {
-		const passwordWithPepper = payload + this.pepper;
-		const rounds: number = env.HASHER_BCRYPT_ROUNDS;
+		const envValid = await this.validateEnvValues();
+		const pepperValid = envValid.HASHER_SECURITY_PEPPER;
+		const passwordWithPepper = await DeterministicHash.hash(payload, pepperValid);
+		const rounds: number = envValid.HASHER_BCRYPT_ROUNDS;
 
 		if (rounds < 10) {
 			this.handleFatalErrors(
@@ -42,7 +43,8 @@ export default class BcryptService extends BaseHasher {
 			return false;
 		}
 
-		const passwordWithPepper = payload + this.pepper;
+		const pepperValid = (await this.validateEnvValues()).HASHER_SECURITY_PEPPER;
+		const passwordWithPepper = await DeterministicHash.hash(payload, pepperValid);
 		return await compare(passwordWithPepper, hashedString);
 	}
 
