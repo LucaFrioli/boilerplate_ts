@@ -51,9 +51,7 @@ export class DeterministicHashFactory {
 	}
 }
 
-/**
- * @constant DeterministicHash
- * @description Atalho global exportado contendo a instância única (Singleton) do Hasher Determinístico.
- * Deve ser importado e consumido nos casos de uso que necessitam de Blind Indexing ou password pre-hashing.
- */
-export const DeterministicHash = DeterministicHashFactory.getProvider();
+export const DeterministicHash = {
+	hash: (plaintext: string, secretPepper: string): Promise<string> =>
+		DeterministicHashFactory.getProvider().hash(plaintext, secretPepper),
+};
