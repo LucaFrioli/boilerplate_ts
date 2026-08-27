@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 /**
  * @fileoverview Testes da HasherFactory — Gestão de Instâncias de Hashing.
  *
@@ -8,30 +7,24 @@
  * ✅ Configuração: Respeita o env.HASHER_PROVIDER.
  * ✅ Tipagem: Retorna Branded Type HashedString.
  */
-import { vi, describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-// Mock do env para alternar provedores
-const { mockEnv } = vi.hoisted(() => ({
-	mockEnv: {
-		HASHER_PROVIDER: 'argon2' as 'argon2' | 'bcrypt',
-		HASHER_SECURITY_PEPPER: 'factory-test-pepper-ultra-strong',
-		HASHER_SALT_LENGTH: 10,
-		HASHER_MEMORY_COST: 65536,
-		HASHER_TIME_COST: 3,
-		HASHER_PARALLELISM: 4,
-		HASHER_LENGTH: 32,
-		EMAIL_TO_CONTACT: 'admin@test.com',
-	},
-}));
-
-vi.mock('@Configs/env.js', () => ({
-	env: mockEnv,
-}));
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+	return ({
+		env: { ...baseTestEnv },
+	})
+});
 
 import { Hasher, HasherFactory } from '@Hash/hashesFactory.auth.js';
 import Argon2Provider from '@Hash/providers/Argon2.service.auth.js';
+import { BaseHasher } from '@Hash/contracts/IHasher.contract.js';
 
 describe('HasherFactory', () => {
+	beforeEach(() => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(BaseHasher as any)._baseEnv = undefined;
+	});
 	it('deve retornar uma instância de Argon2Provider por padrão', () => {
 		expect(Hasher).toBeInstanceOf(Argon2Provider);
 	});
