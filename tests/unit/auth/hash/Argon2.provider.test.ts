@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @fileoverview Testes do Argon2Provider — Motor de Hashing Principal.
  *
@@ -14,26 +16,42 @@
  *
  * @see {@link src/auth/hash/providers/Argon2.service.auth.ts}
  */
-import { vi, describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { weakPassword } from '@Mocks/test.fixtures.js';
 
-// Mock do env para garantir que pepper e custos sejam constantes controladas
-vi.mock('@Configs/env.js', () => ({
-	env: {
-		HASHER_PROVIDER: 'argon2',
-		HASHER_SECURITY_PEPPER: 'test-pepper-ultra-strong-sha256-ficticio',
-		HASHER_MEMORY_COST: 65536,
-		HASHER_TIME_COST: 3,
-		HASHER_PARALLELISM: 4,
-		HASHER_LENGTH: 32,
-		HASHER_SALT_LENGTH: 16,
-		EMAIL_TO_CONTACT: 'admin@test.com',
-	},
+const { mockWarn } = vi.hoisted(() => {
+	return (
+		{
+			mockWarn: vi.fn(),
+		}
+	)
+})
+
+vi.mock('@Configs/logger.js', () => ({
+	createChildLogger: (): { fatal: unknown; warn: unknown; error: unknown; info: unknown } => ({
+		fatal: vi.fn(),
+		warn: mockWarn,
+		error: vi.fn(),
+		info: vi.fn(),
+	}),
 }));
 
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+	return ({
+		env: { ...baseTestEnv }
+	})
+});
+
 import Argon2Provider from '@Hash/providers/Argon2.service.auth.js';
+import { BaseHasher } from '@Hash/contracts/IHasher.contract.js';
 
 describe('Argon2Provider', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		(BaseHasher as any)._baseEnv = undefined;
+	});
+
 	const provider = new Argon2Provider();
 
 	describe('generate()', () => {
@@ -42,7 +60,7 @@ describe('Argon2Provider', () => {
 			const hash = await provider.generate(password);
 
 			// Formato PHC: $argon2id$v=19$m=65536,t=3,p=4$...
-			expect(hash).toMatch(/^\$argon2id\$v=19\$m=65536,t=3,p=4\$/);
+			expect(hash).toMatch(/^\$argon2id\$v=19\$m=65536,t=3,p=2\$/);
 			expect(typeof hash).toBe('string');
 		});
 
