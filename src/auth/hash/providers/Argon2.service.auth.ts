@@ -2,7 +2,7 @@ import { BaseHasher, type EnvForHasherProvider } from '@Auth/hash/contracts/IHas
 import { argon2id, hash, verify, type Options as ArgonOptions } from 'argon2';
 import { randomBytes } from 'node:crypto';
 import { regexValidationToHasherProvidersSupported } from '@Configs/Constants';
-import { DeterministicHash } from '@/core/cryptography/deterministicHash/DeterministicHash.factory.crypto.js';
+import { DeterministicHash } from '@Crypto/deterministicHash';
 
 export default class Argon2Provider extends BaseHasher {
 	protected get ServiceName(): string {
@@ -42,8 +42,9 @@ export default class Argon2Provider extends BaseHasher {
 		}
 
 		const { secret } = await this.genArgonConfigs();
-
-		return await verify(hashedString, payload, {
+		const { HASHER_SECURITY_PEPPER } = await this.validateEnvValues();
+		const securePayload = await DeterministicHash.hash(payload, HASHER_SECURITY_PEPPER)
+		return await verify(hashedString, securePayload, {
 			secret: secret,
 		});
 	}
