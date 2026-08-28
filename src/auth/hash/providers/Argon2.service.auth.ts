@@ -12,22 +12,22 @@ export default class Argon2Provider extends BaseHasher {
 	private async genArgonConfigs(): Promise<ArgonOptions> {
 		const validEnv: EnvForHasherProvider = await this.validateEnvValues();
 
-		return ({
+		return {
 			type: argon2id,
 			memoryCost: validEnv.HASHER_MEMORY_COST,
 			timeCost: validEnv.HASHER_TIME_COST,
 			parallelism: validEnv.HASHER_PARALLELISM,
 			secret: Buffer.from(validEnv.HASHER_SECURITY_PEPPER),
 			hashLength: validEnv.HASHER_LENGTH,
-			salt: randomBytes(validEnv.HASHER_SALT_LENGTH)
-		})
+			salt: randomBytes(validEnv.HASHER_SALT_LENGTH),
+		};
 	}
 
 	protected async executeHash(payload: string): Promise<string> {
 		const configs = await this.genArgonConfigs();
-		const { HASHER_SALT_LENGTH, HASHER_SECURITY_PEPPER } = (await this.validateEnvValues());
+		const { HASHER_SALT_LENGTH, HASHER_SECURITY_PEPPER } = await this.validateEnvValues();
 
-		const securePayload = await DeterministicHash.hash(payload, HASHER_SECURITY_PEPPER)
+		const securePayload = await DeterministicHash.hash(payload, HASHER_SECURITY_PEPPER);
 
 		const result = await hash(securePayload, {
 			...configs,
@@ -43,7 +43,7 @@ export default class Argon2Provider extends BaseHasher {
 
 		const { secret } = await this.genArgonConfigs();
 		const { HASHER_SECURITY_PEPPER } = await this.validateEnvValues();
-		const securePayload = await DeterministicHash.hash(payload, HASHER_SECURITY_PEPPER)
+		const securePayload = await DeterministicHash.hash(payload, HASHER_SECURITY_PEPPER);
 		return await verify(hashedString, securePayload, {
 			secret: secret,
 		});
