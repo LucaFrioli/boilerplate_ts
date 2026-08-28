@@ -201,7 +201,7 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 				'warn',
 				{
 					typeofNewPAssword: typeof newPassword,
-					rawValue: newPassword,
+					rawValue: '***REDACTED***',
 					errorsCatched: z.treeifyError(validatePassword.error),
 				},
 				'Erro ao tentar trocar senha! Tente novamente',
@@ -213,7 +213,7 @@ export class User extends BaseEntity<UserI, PublicUserI> implements UserMethods 
 			this.handlingError(
 				'fatal',
 				{
-					rawValue: validatedNewPassword,
+					rawValue: '***HASH_REDACTED***',
 					retunOfValidateHash: Hasher.validateHash(validatedNewPassword),
 				},
 				'Tentativa de maculação de hash após troca de senha',

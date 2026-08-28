@@ -102,7 +102,7 @@ export function isHashedString(
 		securityTypesLogger.warn(
 			{
 				typeofRawValue: typeof rawValue,
-				rawValueEntry: rawValue,
+				rawValueEntry: typeof rawValue,
 			},
 			'tentativa de entrada de valor diferente de string',
 		);
