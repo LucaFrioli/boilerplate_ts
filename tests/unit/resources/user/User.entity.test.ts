@@ -11,28 +11,23 @@ import { User } from '@Resources/User/User.js';
 import { validCreateUserPayload } from '@Mocks/test.fixtures.js';
 import { Hasher } from '@Hash/hashesFactory.auth.js';
 import baseUserSchema from '@Resources/User/User.validation.js';
-import type { AppID, DatabaseID, HashedString, ValidCPF, ValidEmail } from '@Types';
+import type { AppID, DatabaseID, HashedString, ValidCPF, ValidEmail, ValidUsernamePii } from '@Types';
 import type { UserI } from '@Resources/User/User.interface.js';
+import resetsCache from '@Mocks/test.resets.js';
 
-// Mocks de infraestrutura para isolar a Entidade Parcialmente
-vi.mock('@Configs/env.js', () => ({
-	env: {
-		HASHER_PROVIDER: 'argon2',
-		HASHER_SECURITY_PEPPER: 'test-pepper-ultra-strong-sha256-ficticio',
-		HASHER_LENGTH: 32,
-		HASHER_SALT_LENGTH: 16,
-		HASHER_PARALLELISM: 1,
-		HASHER_TIME_COST: 2,
-		HASHER_MEMORY_COST: 19456,
-		IDENTIFIER_PATTERN: 'uuidv7',
-		IDENTIFIER_NANOID_ALPHABET: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_',
-		IDENTIFIER_NANOID_SIZE: 21,
-		DATABASE_ID_DEFAULT: 'uuidv7',
-		EMAIL_TO_CONTACT: 'admin@test.com',
-	},
-}));
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+	return ({
+		env: { ...baseTestEnv },
+	})
+});
+
 
 describe('User Entity (Fail-Fast Architecture)', () => {
+	beforeAll(() => {
+		vi.clearAllMocks();
+		resetsCache(['BaseHasher', 'DeterministicHasherBase', 'KeyDerivatorBase']);
+	});
 
 	describe('Constructor & Schema Guard (User.create)', () => {
 
@@ -99,7 +94,7 @@ describe('User Entity (Fail-Fast Architecture)', () => {
 				success: true,
 				data: {
 					publicId: 'app_id' as AppID,
-					username: 'mocked',
+					username: 'mocked' as ValidUsernamePii,
 					id: 'id' as DatabaseID,
 					active: false,
 					email: '' as ValidEmail,
