@@ -207,3 +207,16 @@ Level 5 — Bootstrap
 - **Aderência Estrita à Pirâmide (ADR 012)**: Preserva a integridade e o isolamento de folhas de tipos no Level 1, prevenindo dependências circulares e permitindo imports de tipos rápidos e sem efeitos colaterais.
 - **Zero Crashes em Runtime**: Garante resiliência absoluta em produção sob inputs malformados ou corrompidos.
 
+---
+
+## ADR 015: Centralização de Variáveis de Ambiente de Teste (Fixtures) e Reset de Cache Estático Global para Garantia de Isolamento
+**Data: 2026-08-28** *Contexto*: A necessidade de mockar variáveis de ambiente (`env`) em suítes de testes unitários que envolvem criptografia, conexões de banco de dados e identidade gerava duplicidade massiva de código. Além disso, no modelo ESM nativo do Node.js executado pelo Vitest, o caching de imports em escopo estático (`static _baseEnv`) em classes de infraestrutura e fábricas provocava vazamento de estado entre suítes executadas sob o mesmo worker, resultando em testes intermitentes (*flaky tests*) de difícil depuração.
+
+**Decisão**:
+1. **Fixtures Centrais**: Centralizar a configuração de ambiente de teste no objeto `baseTestEnv` localizado em `@Mocks/test.fixtures.ts`, consumindo-o através de importações dinâmicas (`await import`) dentro das fábricas assíncronas de `vi.mock` para evitar erros de içamento (*hoisting*) do Vitest.
+2. **Registro e Utilitário de Reset (`resetsCache`)**: Criar o utilitário `tests/helpers/mocks/test.resets.ts` com um dicionário mapeado (`RESET_REGISTRY`) que executa a limpeza de propriedades privadas estáticas de cache de todas as classes abstratas da aplicação. Aplicar uma validação a nível de tipo (`NoDuplicates<T>`) para impedir duplicatas redundantes nos parâmetros de limpeza.
+
+**Justificativa**:
+- **Minimização da Carga Cognitiva**: O desenvolvedor não precisa memorizar quais variáveis privadas estáticas de infraestrutura precisam ser limpas e nem replicar casts manuais do compilador (`as any`) em cada arquivo de teste. Bastará chamar a função centralizada `resetsCache()`.
+- **Determinismo e Isolamento Hermético**: Evita a poluição de memória no heap do Node.js entre execuções de testes em threads compartilhadas, aumentando a confiabilidade da esteira de testes unitários e CI.
+- **Tipagem Segura em Tempo de Compilação**: A restrição estrita sobre duplicatas em tempo de desenvolvimento aprimora a experiência de desenvolvimento (DX) e mitiga erros de digitação.

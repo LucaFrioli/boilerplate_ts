@@ -45,7 +45,9 @@ export type EnvDataForDeterministicHasher = Pick<
  * 1. **Blind Indexes:** Permite a busca exata em colunas de banco de dados encriptadas de forma determinística
  *    (sem revelar o texto puro e sem usar cifras vulneráveis a ataques de dicionário).
  * 2. **Pre-hashing de Senhas:** Mitiga a vulnerabilidade de truncamento de 72 bytes do Bcrypt, pré-hasheando
- *    passwords antes de despachá-los para a função de derivação lenta.
+ *    passwords antes de despachá-los para a função de derivação lenta, além de ajudar a conter tetativas de ataque DOS.
+ *
+ * - hasher(plaintext: `string`, secretPepper: `string`): Promise\<string\>
  */
 export interface IDeterministicHasher {
 	/**
