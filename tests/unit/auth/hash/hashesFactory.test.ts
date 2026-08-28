@@ -22,6 +22,7 @@ import { BaseHasher } from '@Hash/contracts/IHasher.contract.js';
 
 describe('HasherFactory', () => {
 	beforeEach(() => {
+		vi.clearAllMocks();
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(BaseHasher as any)._baseEnv = undefined;
 	});

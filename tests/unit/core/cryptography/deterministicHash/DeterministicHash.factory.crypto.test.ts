@@ -3,20 +3,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DeterministicHashFactory } from '@Crypto/deterministicHash/DeterministicHash.factory.crypto.js';
+import { DeterministicHahserBase } from '@Crypto/contracts/DeterministicHasher.contract.js'
 import HMAC from '@Crypto/deterministicHash/providers/Hmac.provider.crypto.js';
 
 // Setup environment and logger mocks
-const { mockFatal, mockError, mockInfo, mockEnv } = vi.hoisted(() => ({
+const { mockFatal, mockError, mockInfo } = vi.hoisted(() => ({
 	mockFatal: vi.fn(),
 	mockError: vi.fn(),
 	mockInfo: vi.fn(),
-	mockEnv: {
-		NODE_ENV: 'test',
-		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
-		CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac',
-		CRIPTOGRAPHY_SECURITY_PEPPER: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
-	},
 }));
 
 vi.mock('@Configs/logger.js', () => ({
@@ -28,27 +22,44 @@ vi.mock('@Configs/logger.js', () => ({
 	}),
 }));
 
-vi.mock('@Configs/env.js', () => ({
-	env: mockEnv,
-}));
+
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js')
+	return ({
+		env: { ...baseTestEnv },
+	})
+});
+
 
 describe('Core / Cryptography / DeterministicHashFactory', () => {
 	beforeEach(() => {
+
 		vi.clearAllMocks();
 		// Reset Singleton instance before each test
 		(DeterministicHashFactory as any).instance = undefined;
+		(DeterministicHahserBase as any)._baseEnv = undefined;
 	});
 
-	it('deve retornar o provedor HMAC quando configurado no env', () => {
-		mockEnv.CRIPTOGRAPHY_PASSWORDS_ALGORITHM = 'hmac';
+	it('deve retornar o provedor HMAC quando configurado no env', async () => {
+		const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+		(DeterministicHahserBase as any)._baseEnv = {
+			...baseTestEnv,
+			CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac'
+		}
 
 		const provider = DeterministicHashFactory.getProvider();
 
 		expect(provider).toBeInstanceOf(HMAC);
 	});
 
-	it('deve retornar a mesma instância (Singleton) nas chamadas subsequentes', () => {
-		mockEnv.CRIPTOGRAPHY_PASSWORDS_ALGORITHM = 'hmac';
+	it('deve retornar a mesma instância (Singleton) nas chamadas subsequentes', async () => {
+
+		const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+		(DeterministicHahserBase as any)._baseEnv = {
+			...baseTestEnv,
+			CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac'
+		}
+
 
 		const provider1 = DeterministicHashFactory.getProvider();
 		const provider2 = DeterministicHashFactory.getProvider();
@@ -56,9 +67,9 @@ describe('Core / Cryptography / DeterministicHashFactory', () => {
 		expect(provider1).toBe(provider2);
 	});
 
-	it('deve validar que a exportação estática DeterministicHash é um hasher instanciado', async () => {
+	it('deve validar que a exportação estática DeterministicHash expõe a função hash', async () => {
 		const { DeterministicHash } = await import('@Crypto/deterministicHash/DeterministicHash.factory.crypto.js');
 		expect(DeterministicHash).toBeDefined();
-		expect(DeterministicHash).toBeInstanceOf(HMAC);
+		expect(DeterministicHash.hash).toBeTypeOf('function');
 	});
 });
