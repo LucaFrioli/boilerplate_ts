@@ -4,19 +4,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { KeyDerivationFactory } from '@Crypto/keyDerivation/KeyDerivation.factory.crypto.js';
 import HKDFProvider from '@Crypto/keyDerivation/provider/Hkdf.provider.crypto.js';
+import { baseTestEnv } from '@Mocks/test.fixtures.js';
+import { env } from '@Configs/env.js';
+import resetsCache from '@Mocks/test.resets.js';
 
 // Setup environment and logger mocks
-const { mockFatal, mockError, mockInfo, mockEnv } = vi.hoisted(() => ({
+const { mockFatal, mockError, mockInfo } = vi.hoisted(() => ({
 	mockFatal: vi.fn(),
 	mockError: vi.fn(),
 	mockInfo: vi.fn(),
-	mockEnv: {
-		NODE_ENV: 'test',
-		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
-		CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
-		CRIPTOGRAPHY_DERIVATION_KEY_SALT: 32,
-		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
-	},
 }));
 
 vi.mock('@Configs/logger.js', () => ({
@@ -28,19 +24,23 @@ vi.mock('@Configs/logger.js', () => ({
 	}),
 }));
 
-vi.mock('@Configs/env.js', () => ({
-	env: mockEnv,
-}));
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+	return {
+		env: { ...baseTestEnv },
+	};
+});
 
 describe('Core / Cryptography / KeyDerivationFactory', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		// Reset Singleton instance before each test
+		resetsCache(['KeyDerivatorBase']);
+		Object.assign(env, baseTestEnv);
 		(KeyDerivationFactory as any).instance = undefined;
 	});
 
 	it('deve retornar o provedor HKDFProvider quando configurado no env', () => {
-		mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'hkdf';
+		env.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'hkdf';
 
 		const provider = KeyDerivationFactory.getProvider();
 
@@ -48,7 +48,7 @@ describe('Core / Cryptography / KeyDerivationFactory', () => {
 	});
 
 	it('deve retornar a mesma instância (Singleton) nas chamadas subsequentes', () => {
-		mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'hkdf';
+		env.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'hkdf';
 
 		const provider1 = KeyDerivationFactory.getProvider();
 		const provider2 = KeyDerivationFactory.getProvider();
@@ -57,7 +57,8 @@ describe('Core / Cryptography / KeyDerivationFactory', () => {
 	});
 
 	it('deve validar que a exportação estática KeyDerivation possui a função derive e deriva chaves com sucesso', async () => {
-		const { KeyDerivation } = await import('@Crypto/keyDerivation/KeyDerivation.factory.crypto.js');
+		const { KeyDerivation } =
+			await import('@Crypto/keyDerivation/KeyDerivation.factory.crypto.js');
 		expect(KeyDerivation).toBeDefined();
 		expect(KeyDerivation.derive).toBeTypeOf('function');
 
