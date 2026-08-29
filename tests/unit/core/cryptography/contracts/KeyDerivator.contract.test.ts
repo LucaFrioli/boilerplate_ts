@@ -8,21 +8,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { KeyDerivatorBase } from '@Crypto/contracts/KeyDerivator.contract.js';
-import { validCryptographyKeys, invalidCryptographyKeys } from '@Mocks/test.fixtures.js';
-import { type DerivedKey } from '@Types'
+import {
+	validCryptographyKeys,
+	invalidCryptographyKeys,
+	baseTestEnv,
+} from '@Mocks/test.fixtures.js';
+import resetsCache from '@Mocks/test.resets.js';
+import { env } from '@Configs/env.js';
+import { type DerivedKey } from '@Types';
 
 // Setup environment and logger mocks using vi.hoisted to avoid early evaluation issues
-const { mockFatal, mockError, mockInfo, mockEnv } = vi.hoisted(() => ({
+const { mockFatal, mockError, mockInfo } = vi.hoisted(() => ({
 	mockFatal: vi.fn(),
 	mockError: vi.fn(),
 	mockInfo: vi.fn(),
-	mockEnv: {
-		NODE_ENV: 'test',
-		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
-		CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
-		CRIPTOGRAPHY_DERIVATION_KEY_SALT: 32,
-		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
-	},
 }));
 
 vi.mock('@Configs/logger.js', () => ({
@@ -34,9 +33,12 @@ vi.mock('@Configs/logger.js', () => ({
 	}),
 }));
 
-vi.mock('@Configs/env.js', () => ({
-	env: mockEnv,
-}));
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+	return {
+		env: { ...baseTestEnv },
+	};
+});
 
 // Stub implementation of KeyDerivatorBase for contract testing
 class StubKeyDerivator extends KeyDerivatorBase {
@@ -50,7 +52,7 @@ class StubKeyDerivator extends KeyDerivatorBase {
 	protected deriveSync<N extends number>(
 		masterKey: string,
 		contextInfo: string,
-		outputLengthBytes: N
+		outputLengthBytes: N,
 	): DerivedKey<N> {
 		return this.deriveSyncStub(masterKey, contextInfo, outputLengthBytes);
 	}
@@ -58,7 +60,7 @@ class StubKeyDerivator extends KeyDerivatorBase {
 	protected async deriveInEdge<N extends number>(
 		masterKey: string,
 		contextInfo: string,
-		outputLengthBytes: N
+		outputLengthBytes: N,
 	): Promise<DerivedKey<N>> {
 		return this.deriveInEdgeStub(masterKey, contextInfo, outputLengthBytes);
 	}
@@ -94,14 +96,10 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		stub = new StubKeyDerivator();
 
-		// Reset env properties to default valid state
-		mockEnv.NODE_ENV = 'test';
-		mockEnv.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha256';
-		mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'hkdf';
-		mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_SALT = 32;
-		mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
+		resetsCache();
+		Object.assign(env, baseTestEnv);
+		stub = new StubKeyDerivator();
 	});
 
 	describe('validatedEnvValues()', () => {
@@ -120,23 +118,25 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 		it('não deve rodar a validação novamente se o baseEnv já estiver definido', () => {
 			stub.triggerValidatedEnvValues();
 			// Mudamos o env, mas a validação não deve re-rodar
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			stub.triggerValidatedEnvValues();
 			expect(stub.getBaseEnv()?.CRIPTOGRAPHY_ENGINE_MODE).toBe('sync_node');
 		});
 
 		it('deve disparar erro fatal via handlerErrors se NODE_ENV for inválido', () => {
-			mockEnv.NODE_ENV = 'unknown_env' as any;
+			(env as { NODE_ENV: string }).NODE_ENV = 'unknown_env';
 			expect(() => stub.triggerValidatedEnvValues()).toThrow(
-				/Erro ao validar env de derivação, tentativa de macular valores em runtime/
+				/Erro ao validar env de derivação, tentativa de macular valores em runtime/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
 
 		it('deve disparar erro fatal via handlerErrors se CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM for inválido', () => {
-			mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'invalid_kdf' as any;
+			(
+				env as { CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: string }
+			).CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'invalid_kdf';
 			expect(() => stub.triggerValidatedEnvValues()).toThrow(
-				/Erro ao validar env de derivação, tentativa de macular valores em runtime/
+				/Erro ao validar env de derivação, tentativa de macular valores em runtime/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
@@ -156,7 +156,7 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 		});
 
 		it('deve chamar deriveInEdge se CRIPTOGRAPHY_ENGINE_MODE for async_web_api', async () => {
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			const expectedKey = validCryptographyKeys.hex;
 			stub.deriveInEdgeStub.mockResolvedValue(expectedKey);
 			const result = await stub.derive(masterKey, 'info', 32);
@@ -168,11 +168,11 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 
 		it('deve lançar erro se o baseEnv for undefined após a chamada de validatedEnvValues (Dead-Code safety)', async () => {
 			const customStub = new StubKeyDerivator();
-			vi.spyOn(customStub as any, 'validatedEnvValues').mockImplementation(() => { });
+			vi.spyOn(customStub as any, 'validatedEnvValues').mockImplementation(() => {});
 			customStub.setBaseEnv(undefined);
 
 			await expect(customStub.derive(masterKey, 'info', 32)).rejects.toThrow(
-				/Erro interno de variáveis de ambiente do derivador de chaves/
+				/Erro interno de variáveis de ambiente do derivador de chaves/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
@@ -182,7 +182,7 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 				throw new Error('Sync KDF Error');
 			});
 			await expect(stub.derive(masterKey, 'info', 32)).rejects.toThrow(
-				/Falha crítica durante a derivação de chaves criptográficas/
+				/Falha crítica durante a derivação de chaves criptográficas/,
 			);
 			expect(mockError).toHaveBeenCalled();
 		});
@@ -192,21 +192,21 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 				throw 'raw string error';
 			});
 			await expect(stub.derive(masterKey, 'info', 32)).rejects.toThrow(
-				/Falha crítica durante a derivação de chaves criptográficas/
+				/Falha crítica durante a derivação de chaves criptográficas/,
 			);
 			expect(mockError).toHaveBeenCalledWith(
 				expect.objectContaining({
-					specificErrors: expect.any(Error)
+					specificErrors: expect.any(Error),
 				}),
-				expect.any(String)
+				expect.any(String),
 			);
 		});
 
 		it('deve capturar erro lançado pelo motor async e lançar via handlerErrors', async () => {
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			stub.deriveInEdgeStub.mockRejectedValue(new Error('Async KDF Error'));
 			await expect(stub.derive(masterKey, 'info', 32)).rejects.toThrow(
-				/Falha crítica durante a derivação de chaves criptográficas/
+				/Falha crítica durante a derivação de chaves criptográficas/,
 			);
 			expect(mockError).toHaveBeenCalled();
 		});
@@ -230,7 +230,7 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 		it('deve lançar erro via handlerErrors para chave mestra inválida (muito curta)', () => {
 			const key = invalidCryptographyKeys.hexTooShort;
 			expect(() => stub.triggerValidateMasterKey(key)).toThrow(
-				/A chave mestra fornecida não atende aos requisitos mínimos de segurança/
+				/A chave mestra fornecida não atende aos requisitos mínimos de segurança/,
 			);
 			expect(mockError).toHaveBeenCalled();
 		});
@@ -244,7 +244,7 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 		});
 
 		it('deve normalizar sha512 para SHA-512 se configurado no env', () => {
-			mockEnv.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha512';
+			env.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha512';
 			stub.triggerValidatedEnvValues();
 			const result = stub.triggerNormalizeDigestorNameToWebCryptoApi();
 			expect(result).toBe('SHA-512');
@@ -253,7 +253,7 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 		it('deve lançar erro fatal se baseEnv for undefined (Dead-Code safety)', () => {
 			stub.setBaseEnv(undefined);
 			expect(() => stub.triggerNormalizeDigestorNameToWebCryptoApi()).toThrow(
-				/Incapaz de acessar o digestor configurado no sistema/
+				/Incapaz de acessar o digestor configurado no sistema/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
@@ -267,7 +267,7 @@ describe('Core / Cryptography / KeyDerivator Base Contract', () => {
 					serviceName: 'StubKeyDerivator',
 					extra: 'data',
 				}),
-				'message'
+				'message',
 			);
 		});
 	});
