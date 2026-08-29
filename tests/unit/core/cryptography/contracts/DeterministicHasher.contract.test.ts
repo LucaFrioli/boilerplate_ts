@@ -9,19 +9,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DeterministicHahserBase } from '@Crypto/contracts/DeterministicHasher.contract.js';
 import { validCryptographyKeys, invalidCryptographyKeys } from '@Mocks/test.fixtures.js';
+import resetsCache from '@Mocks/test.resets.js';
+import { env } from '@Configs/env.js';
+import { baseTestEnv } from '@Mocks/test.fixtures.js';
 
 // Setup environment and logger mocks using vi.hoisted to avoid early evaluation issues
-const { mockFatal, mockError, mockInfo, mockEnv } = vi.hoisted(() => ({
+const { mockFatal, mockError, mockInfo } = vi.hoisted(() => ({
 	mockFatal: vi.fn(),
 	mockError: vi.fn(),
 	mockInfo: vi.fn(),
-	mockEnv: {
-		NODE_ENV: 'test',
-		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
-		CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac',
-		CRIPTOGRAPHY_SECURITY_PEPPER: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', // 64 chars hex (valid)
-		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
-	},
 }));
 
 vi.mock('@Configs/logger.js', () => ({
@@ -33,10 +29,12 @@ vi.mock('@Configs/logger.js', () => ({
 	}),
 }));
 
-vi.mock('@Configs/env.js', () => ({
-	env: mockEnv,
-}));
-
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+	return {
+		env: { ...baseTestEnv },
+	};
+});
 
 // Stub implementation of DeterministicHahserBase for contract testing
 class StubDeterministicHasher extends DeterministicHahserBase {
@@ -86,14 +84,11 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		stub = new StubDeterministicHasher();
 
-		// Reset env properties to default valid state
-		mockEnv.NODE_ENV = 'test';
-		mockEnv.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha256';
-		mockEnv.CRIPTOGRAPHY_PASSWORDS_ALGORITHM = 'hmac';
-		mockEnv.CRIPTOGRAPHY_SECURITY_PEPPER = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-		mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
+		resetsCache(['DeterministicHasherBase']);
+		Object.assign(env, baseTestEnv);
+
+		stub = new StubDeterministicHasher();
 	});
 
 	describe('validatedEnvValues()', () => {
@@ -103,7 +98,8 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 				NODE_ENV: 'test',
 				CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
 				CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac',
-				CRIPTOGRAPHY_SECURITY_PEPPER: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+				CRIPTOGRAPHY_SECURITY_PEPPER:
+					'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 				CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
 			});
 			expect(mockFatal).not.toHaveBeenCalled();
@@ -112,23 +108,23 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 		it('não deve rodar a validação novamente se o baseEnv já estiver definido', () => {
 			stub.triggerValidatedEnvValues();
 			// Mudamos o env, mas a validação não deve re-rodar
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			stub.triggerValidatedEnvValues();
 			expect(stub.getBaseEnv()?.CRIPTOGRAPHY_ENGINE_MODE).toBe('sync_node');
 		});
 
 		it('deve disparar erro fatal via handlerErrors se NODE_ENV for inválido', () => {
-			mockEnv.NODE_ENV = 'unknown_env' as any;
+			(env as { NODE_ENV: string }).NODE_ENV = 'unknown_env';
 			expect(() => stub.triggerValidatedEnvValues()).toThrow(
-				/Erro ao validar env, tentativa de macular valores durante execução/
+				/Erro ao validar env, tentativa de macular valores durante execução/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
 
 		it('deve disparar erro fatal via handlerErrors se CRIPTOGRAPHY_SECURITY_PEPPER for inválido (muito curto)', () => {
-			mockEnv.CRIPTOGRAPHY_SECURITY_PEPPER = invalidCryptographyKeys.hexTooShort;
+			env.CRIPTOGRAPHY_SECURITY_PEPPER = invalidCryptographyKeys.hexTooShort;
 			expect(() => stub.triggerValidatedEnvValues()).toThrow(
-				/Erro ao validar env, tentativa de macular valores durante execução/
+				/Erro ao validar env, tentativa de macular valores durante execução/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
@@ -146,7 +142,7 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 
 		it('deve chamar hashInEdge se CRIPTOGRAPHY_ENGINE_MODE for async_web_api', async () => {
 			// Definimos no env
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			stub.hashInEdgeStub.mockResolvedValue('async_hash_result');
 			const result = await stub.hash('myPlaintext', 'myPepper');
 
@@ -162,7 +158,7 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 			customStub.setBaseEnv(undefined);
 
 			await expect(customStub.hash('plain', 'pepper')).rejects.toThrow(
-				/Erro dentro dos valores das variaveis de hambiente/
+				/Erro dentro dos valores das variaveis de hambiente/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
@@ -172,7 +168,7 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 				throw new Error('Sync Engine Error');
 			});
 			await expect(stub.hash('plain', 'pepper')).rejects.toThrow(
-				/Falha cítica durante a execução do hash/
+				/Falha cítica durante a execução do hash/,
 			);
 			expect(mockError).toHaveBeenCalled();
 		});
@@ -182,21 +178,21 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 				throw 'raw string error';
 			});
 			await expect(stub.hash('plain', 'pepper')).rejects.toThrow(
-				/Falha cítica durante a execução do hash/
+				/Falha cítica durante a execução do hash/,
 			);
 			expect(mockError).toHaveBeenCalledWith(
 				expect.objectContaining({
-					specificErrors: expect.any(Error)
+					specificErrors: expect.any(Error),
 				}),
-				expect.any(String)
+				expect.any(String),
 			);
 		});
 
 		it('deve capturar erro lançado pelo motor async e lançar via handlerErrors', async () => {
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			stub.hashInEdgeStub.mockRejectedValue(new Error('Async Engine Error'));
 			await expect(stub.hash('plain', 'pepper')).rejects.toThrow(
-				/Falha cítica durante a execução do hash/
+				/Falha cítica durante a execução do hash/,
 			);
 			expect(mockError).toHaveBeenCalled();
 		});
@@ -220,7 +216,7 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 		it('deve lançar erro via handlerErrors para pepper inválido (muito curto)', () => {
 			const pepper = invalidCryptographyKeys.hexTooShort;
 			expect(() => stub.triggerValidatePepper(pepper)).toThrow(
-				/Validação do secret pepper falhou, verifique o pepper que você passou/
+				/Validação do secret pepper falhou, verifique o pepper que você passou/,
 			);
 			expect(mockError).toHaveBeenCalled();
 		});
@@ -234,7 +230,7 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 		});
 
 		it('deve normalizar sha512 para SHA-512 se configurado no env', () => {
-			mockEnv.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha512';
+			env.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha512';
 			stub.triggerValidatedEnvValues();
 			const result = stub.triggerNormalizeDigestorNameToWebCryptoApi();
 			expect(result).toBe('SHA-512');
@@ -243,7 +239,7 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 		it('deve lançar erro fatal se baseEnv for undefined (Dead-Code safety)', () => {
 			stub.setBaseEnv(undefined);
 			expect(() => stub.triggerNormalizeDigestorNameToWebCryptoApi()).toThrow(
-				/Infelizmente não foi possível acessar o parametro que disponibiliza o digestor/
+				/Infelizmente não foi possível acessar o parametro que disponibiliza o digestor/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
@@ -257,7 +253,7 @@ describe('Core / Cryptography / DeterministicHasher Base Contract', () => {
 					serviceNmae: 'StubDeterministicHasher',
 					extra: 'data',
 				}),
-				'message'
+				'message',
 			);
 		});
 	});
