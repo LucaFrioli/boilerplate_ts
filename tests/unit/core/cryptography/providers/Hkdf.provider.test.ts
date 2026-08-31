@@ -6,19 +6,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import HKDFProvider from '@Crypto/keyDerivation/provider/Hkdf.provider.crypto.js';
 import { validCryptographyKeys } from '@Mocks/test.fixtures.js';
+import { env } from '@Configs/env.js';
+import { baseTestEnv } from '@Mocks/test.fixtures.js';
+import resetsCache from '@Mocks/test.resets.js';
 
 // Setup environment and logger mocks
-const { mockFatal, mockError, mockInfo, mockEnv } = vi.hoisted(() => ({
+const { mockFatal, mockError, mockInfo } = vi.hoisted(() => ({
 	mockFatal: vi.fn(),
 	mockError: vi.fn(),
 	mockInfo: vi.fn(),
-	mockEnv: {
-		NODE_ENV: 'test',
-		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
-		CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
-		CRIPTOGRAPHY_DERIVATION_KEY_SALT: 32,
-		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
-	},
 }));
 
 vi.mock('@Configs/logger.js', () => ({
@@ -30,9 +26,12 @@ vi.mock('@Configs/logger.js', () => ({
 	}),
 }));
 
-vi.mock('@Configs/env.js', () => ({
-	env: mockEnv,
-}));
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+	return {
+		env: { ...baseTestEnv },
+	};
+});
 
 // Global toggle for mock implementation of assertsDerivedKey
 let shouldMockAssertsDerivedKeyThrow = false;
@@ -55,14 +54,12 @@ describe('Core / Cryptography / Providers / HKDFProvider', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+
+		resetsCache();
+		Object.assign(env, baseTestEnv);
+
 		shouldMockAssertsDerivedKeyThrow = false;
 		hkdfProvider = new HKDFProvider();
-
-		mockEnv.NODE_ENV = 'test';
-		mockEnv.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha256';
-		mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM = 'hkdf';
-		mockEnv.CRIPTOGRAPHY_DERIVATION_KEY_SALT = 32;
-		mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
 	});
 
 	it('deve retornar o nome correto do provedor', () => {
@@ -95,7 +92,7 @@ describe('Core / Cryptography / Providers / HKDFProvider', () => {
 
 	describe('deriveInEdge() via derive()', () => {
 		it('deve derivar chave com sucesso em modo async_web_api', async () => {
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			const masterKey = validCryptographyKeys.hex;
 			const contextInfo = 'test-context';
 			const outputLength = 32;
@@ -103,7 +100,7 @@ describe('Core / Cryptography / Providers / HKDFProvider', () => {
 			const result = await hkdfProvider.derive(masterKey, contextInfo, outputLength);
 
 			// Deve ser igual ao deriveSync para a mesma entrada
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
 			const syncProvider = new HKDFProvider();
 			const expectedSync = await syncProvider.derive(masterKey, contextInfo, outputLength);
 
@@ -166,7 +163,7 @@ describe('Core / Cryptography / Providers / HKDFProvider', () => {
 		});
 
 		it('deve capturar erro e chamar handlerErrors se a validação do tamanho falhar no deriveInEdge', async () => {
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			const masterKey = validCryptographyKeys.hex;
 			const contextInfo = 'test-context';
 
