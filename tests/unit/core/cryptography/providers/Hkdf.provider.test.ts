@@ -5,9 +5,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import HKDFProvider from '@Crypto/keyDerivation/provider/Hkdf.provider.crypto.js';
-import { validCryptographyKeys } from '@Mocks/test.fixtures.js';
 import { env } from '@Configs/env.js';
-import { baseTestEnv } from '@Mocks/test.fixtures.js';
+import { baseTestEnv, validCryptographyKeys } from '@Mocks/test.fixtures.js';
 import resetsCache from '@Mocks/test.resets.js';
 
 // Setup environment and logger mocks
@@ -115,11 +114,8 @@ describe('Core / Cryptography / Providers / HKDFProvider', () => {
 
 			// Bypass env validation and set salt to 0
 			(hkdfProvider as any)._baseEnv = {
-				NODE_ENV: 'test',
-				CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
-				CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
+				...baseTestEnv,
 				CRIPTOGRAPHY_DERIVATION_KEY_SALT: 0,
-				CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
 			};
 
 			const result = await hkdfProvider.derive(masterKey, contextInfo, outputLength);
@@ -133,11 +129,8 @@ describe('Core / Cryptography / Providers / HKDFProvider', () => {
 
 			// Bypass env validation and set digestor to undefined/falsy
 			(hkdfProvider as any)._baseEnv = {
-				NODE_ENV: 'test',
+				...baseTestEnv,
 				CRIPTOGRAPHY_PASSWORDS_DIGESTOR: undefined as any,
-				CRIPTOGRAPHY_DERIVATION_KEY_ALGORITHM: 'hkdf',
-				CRIPTOGRAPHY_DERIVATION_KEY_SALT: 32,
-				CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
 			};
 
 			const result = await hkdfProvider.derive(masterKey, contextInfo, outputLength);

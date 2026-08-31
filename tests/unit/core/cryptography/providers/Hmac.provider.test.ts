@@ -4,21 +4,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import HMAC  from '@Crypto/deterministicHash/providers/Hmac.provider.crypto.js';
-import { validCryptographyKeys } from '@Mocks/test.fixtures.js';
+import HMAC from '@Crypto/deterministicHash/providers/Hmac.provider.crypto.js';
+import { validCryptographyKeys, baseTestEnv } from '@Mocks/test.fixtures.js';
+import { env } from '@Configs/env.js';
+import resetsCache from '@Mocks/test.resets.js';
 
 // Setup environment and logger mocks
-const { mockFatal, mockError, mockInfo, mockEnv } = vi.hoisted(() => ({
+const { mockFatal, mockError, mockInfo } = vi.hoisted(() => ({
 	mockFatal: vi.fn(),
 	mockError: vi.fn(),
 	mockInfo: vi.fn(),
-	mockEnv: {
-		NODE_ENV: 'test',
-		CRIPTOGRAPHY_PASSWORDS_DIGESTOR: 'sha256',
-		CRIPTOGRAPHY_PASSWORDS_ALGORITHM: 'hmac',
-		CRIPTOGRAPHY_SECURITY_PEPPER: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-		CRIPTOGRAPHY_ENGINE_MODE: 'sync_node',
-	},
 }));
 
 vi.mock('@Configs/logger.js', () => ({
@@ -30,22 +25,23 @@ vi.mock('@Configs/logger.js', () => ({
 	}),
 }));
 
-vi.mock('@Configs/env.js', () => ({
-	env: mockEnv,
-}));
+vi.mock('@Configs/env.js', async () => {
+	const { baseTestEnv } = await import('@Mocks/test.fixtures.js');
+	return {
+		env: { ...baseTestEnv },
+	};
+});
 
 describe('Core / Cryptography / Providers / HMAC', () => {
 	let hmacProvider: HMAC;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		hmacProvider = new HMAC();
 
-		mockEnv.NODE_ENV = 'test';
-		mockEnv.CRIPTOGRAPHY_PASSWORDS_DIGESTOR = 'sha256';
-		mockEnv.CRIPTOGRAPHY_PASSWORDS_ALGORITHM = 'hmac';
-		mockEnv.CRIPTOGRAPHY_SECURITY_PEPPER = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-		mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
+		resetsCache();
+		Object.assign(env, baseTestEnv);
+
+		hmacProvider = new HMAC();
 	});
 
 	it('deve retornar o nome correto do provedor', () => {
@@ -61,7 +57,10 @@ describe('Core / Cryptography / Providers / HMAC', () => {
 
 			// Gera de forma independente usando node:crypto
 			const crypto = await import('node:crypto');
-			const expected = crypto.createHmac('sha256', pepper).update(plaintext, 'utf-8').digest('hex');
+			const expected = crypto
+				.createHmac('sha256', pepper)
+				.update(plaintext, 'utf-8')
+				.digest('hex');
 
 			expect(result).toBe(expected);
 			expect(mockFatal).not.toHaveBeenCalled();
@@ -74,7 +73,7 @@ describe('Core / Cryptography / Providers / HMAC', () => {
 
 			// Como hashSync chama validatedEnvValues e verifica se é undefined:
 			expect(() => (hmacProvider as any).hashSync('plaintext', 'pepper')).toThrow(
-				/Erro na definição de variaveis de ambientes durante execução/
+				/Erro na definição de variaveis de ambientes durante execução/,
 			);
 			expect(mockFatal).toHaveBeenCalled();
 		});
@@ -82,14 +81,14 @@ describe('Core / Cryptography / Providers / HMAC', () => {
 
 	describe('hashInEdge() via hash()', () => {
 		it('deve gerar hash HMAC válido em modo async_web_api e corresponder ao padrão WebCrypto subtle', async () => {
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			const plaintext = 'hello_world';
 			const pepper = validCryptographyKeys.hex;
 
 			const result = await hmacProvider.hash(plaintext, pepper);
 
 			// Deve corresponder exatamente ao resultado do hashSync para a mesma chave/input
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'sync_node';
 			const syncProvider = new HMAC();
 			const expectedSync = await syncProvider.hash(plaintext, pepper);
 
@@ -98,7 +97,7 @@ describe('Core / Cryptography / Providers / HMAC', () => {
 		});
 
 		it('deve falhar e lançar erro se o pepper for inválido em modo async_web_api', async () => {
-			mockEnv.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
+			env.CRIPTOGRAPHY_ENGINE_MODE = 'async_web_api';
 			const plaintext = 'hello_world';
 			const invalidPepper = 'curto';
 
