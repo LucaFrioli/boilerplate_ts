@@ -22,7 +22,6 @@ COPY --chown=node:node . .
 
 EXPOSE 3000
 
-RUN npm run test:coverage
 CMD [ "npm", "run", "dev" ]
 
 FROM base AS builder
