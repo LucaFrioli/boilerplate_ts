@@ -1,0 +1,14 @@
+.git
+node_modules
+.husky/*
+.idea/*
+.mcp/*
+coverage/*
+dist/*
+docs/*
+logs/*
+scripts/*
+.env*
+.tsbuildinfo
+Dockerfile
+docker-compose
