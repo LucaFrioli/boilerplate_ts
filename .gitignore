@@ -3,6 +3,7 @@ node_modules
 .env.*
 logs
 dist
+*.tsbuildinfo
 # Templates públicos de env — são documentação e DEVEM ser commitados
 !.env.example
 !.env.test.example
